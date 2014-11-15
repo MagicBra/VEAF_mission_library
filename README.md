@@ -49,14 +49,16 @@ Fell free to read the licence file before distribution.
 
 > 4.1 Groups to move inside a zone list.
 
-
 - Functionnality : 
-From time to time all groups identified will move between
+  From time to time all groups identified will move between
 
 - how to :
-1. make sure that the variable "ENABLE_VEAF_RANDOM_MOVE_ZONE" is true
-2. add a group with part of the name matching the tag defined in "VEAF_random_move_zone_zoneTag" (default : veafrz)
-   ex : abrams_001_veafrz, veafrz_RED_IFV_42
-3. add at least 1 with part of the name matching the tag defined in "VEAF_random_move_zone_groupTag" (defaul : veafrz)
+  - make sure that the variable "ENABLE_VEAF_RANDOM_MOVE_ZONE" is true
+  - add a group with part of the name matching the tag defined in "VEAF_random_move_zone_zoneTag" (default : veafrz)
+    ex : abrams_001_veafrz, veafrz_RED_IFV_42
+  - add at least 1 with part of the name matching the tag defined in "VEAF_random_move_zone_groupTag" (defaul : veafrz)
    ex : City01_veafrz, veafrz_zone84
 
+- misc : 
+  - Setting the change waypoint timer in the script header : VEAF_random_move_zone_timer (in seconds). default 10 minutes.
+   
