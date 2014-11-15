@@ -54,9 +54,9 @@ Fell free to read the licence file before distribution.
 From time to time all groups identified will move between
 
 - how to :
-1) make sure that the variable "ENABLE_VEAF_RANDOM_MOVE_ZONE" is true
-2) add a group with part of the name matching the tag defined in "VEAF_random_move_zone_zoneTag" (default : veafrz)
+1. make sure that the variable "ENABLE_VEAF_RANDOM_MOVE_ZONE" is true
+2. add a group with part of the name matching the tag defined in "VEAF_random_move_zone_zoneTag" (default : veafrz)
    ex : abrams_001_veafrz, veafrz_RED_IFV_42
-3) add at least 1 with part of the name matching the tag defined in "VEAF_random_move_zone_groupTag" (defaul : veafrz)
+3. add at least 1 with part of the name matching the tag defined in "VEAF_random_move_zone_groupTag" (defaul : veafrz)
    ex : City01_veafrz, veafrz_zone84
 
