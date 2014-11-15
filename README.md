@@ -46,12 +46,17 @@ Fell free to read the licence file before distribution.
 -----------------------------
 4.0 Usage
 -----------------------------
------------------------------
-4.1 Groups to move inside a zone list.
+
+> 4.1 Groups to move inside a zone list.
 
 
-Functionnality : 
+- Functionnality : 
 From time to time all groups identified will move between
 
-how to :
+- how to :
+1) make sure that the variable "ENABLE_VEAF_RANDOM_MOVE_ZONE" is true
+2) add a group with part of the name matching the tag defined in "VEAF_random_move_zone_zoneTag" (default : veafrz)
+   ex : abrams_001_veafrz, veafrz_RED_IFV_42
+3) add at least 1 with part of the name matching the tag defined in "VEAF_random_move_zone_groupTag" (defaul : veafrz)
+   ex : City01_veafrz, veafrz_zone84
 
