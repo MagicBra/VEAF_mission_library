@@ -5,9 +5,9 @@ VEAF_misison_library
 -----------------------------
 0.0 Introduction
 -----------------------------
--- initiator    : MagicBra (nosdudefr-a@t-gmail.com)
--- contributors : 
--- testers      :
+- initiator    : MagicBra (nosdudefr-a@t-gmail.com)
+- contributors : 
+- testers      :
 
 
 -----------------------------
@@ -46,7 +46,9 @@ Fell free to read the licence file before distribution.
 -----------------------------
 4.0 Usage
 -----------------------------
-3.1 Groups to move inside a zone list.
+-----------------------------
+4.1 Groups to move inside a zone list.
+
 
 Functionnality : 
 From time to time all groups identified will move between
