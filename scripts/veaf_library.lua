@@ -15,9 +15,9 @@
 ENABLE_VEAF_RANDOM_MOVE_ZONE = true;
 
 -- part of the group name identifying the zone where groups can move
-VEAF_random_move_zone_zoneTag = 'Z'
+VEAF_random_move_zone_zoneTag = 'veafrz'
 -- part of the group name identifying the groups afected
-VEAF_random_move_zone_groupTag = 'rand'
+VEAF_random_move_zone_groupTag = 'veafrz'
 -- time in seconds before the groups will have a new waypoint
 VEAF_random_move_zone_timer = 600
 
