@@ -5,7 +5,7 @@ VEAF_misison_library
 -----------------------------
 0.0 Introduction
 -----------------------------
-- initiator    : MagicBra (nosdudefr-a@t-gmail.com)
+- initiator    : MagicBra (veaf.magicbra-a@t-gmail.com)
 - contributors : 
 - testers      :
 
