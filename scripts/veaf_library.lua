@@ -133,5 +133,3 @@ end
 
 -- main loop
 timer.scheduleFunction(VEAF_controller, nil, timer.getTime() + 1)
-
-AUTO_VEAF_move_group_to_random_zone()
