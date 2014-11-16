@@ -1,5 +1,7 @@
 ------------------------------------------------------------------------
 -- Function library for the VEAF missions
+-- More infos : http://www.VEAF.org
+-- last version : https://github.com/MagicBra/VEAF_misison_library
 ------------------------------------------------------------------------3.
 -- initiator    : MagicBra (nosdudefr-a@t-gmail.com)
 -- contributors : 
@@ -31,9 +33,6 @@ VEAF_random_move_zone_timer = 600
 ------------------------------------------------------------------------
 
 
-function VEAF_move_group_to_random_zone(group, zoneList)
-	mist.groupToRandomZone(group, zoneList)
-end
 
 ------------------------------------------------------------------------------
 -- function : VEAF_get_zones_with_tag
@@ -57,6 +56,7 @@ function VEAF_get_zones_with_tag(searchTag)
     return zonesArray;
     
 end
+
 ------------------------------------------------------------------------------
 -- function : VEAF_get_groups_with_tag
 -- args     : 1, searchTag : part of the name to search in the group list
@@ -80,7 +80,8 @@ function VEAF_get_groups_with_tag(searchTag)
 	return groupsArray
 	
 end
-------------------------------------------------------------------------------
+
+
 ------------------------------------------------------------------------------
 -- function : AUTO_VEAF_move_group_to_random_zone
 -- args     : N/A
@@ -94,7 +95,6 @@ end
 --            1.0 16/11/14 ~ replace zone list for tag search, 
 --						   + add tag search param for group search
 ------------------------------------------------------------------------------
-
 function AUTO_VEAF_move_group_to_random_zone()
 
 	--- search zones with tag (global var)
@@ -103,11 +103,15 @@ function AUTO_VEAF_move_group_to_random_zone()
 	
 	-- actions !
 	for id, groupName in pairs(groupList) do
-			VEAF_move_group_to_random_zone(groupName, VEAF_random_move_zone_list)
+			VEAF_move_group_to_random_zone(groupName, zoneList)
 	end
 
     -- schedule function
     timer.scheduleFunction(AUTO_VEAF_move_group_to_random_zone, nil, timer.getTime() + VEAF_random_move_zone_timer)
+end
+
+function VEAF_move_group_to_random_zone(group, zoneList)
+	mist.groupToRandomZone(group, zoneList)
 end
 
 ------------------------------------------------------------------------------
@@ -120,10 +124,14 @@ end
 ------------------------------------------------------------------------------
 -- Version  : 1.0 16/11/14 + creation
 ------------------------------------------------------------------------------
-function VEAF_controller() {
+function VEAF_controller() 
 	
 	if (ENABLE_VEAF_RANDOM_MOVE_ZONE) then
 		AUTO_VEAF_move_group_to_random_zone()
 	end
 end
 
+-- main loop
+timer.scheduleFunction(VEAF_controller, nil, timer.getTime() + 1)
+
+AUTO_VEAF_move_group_to_random_zone()
