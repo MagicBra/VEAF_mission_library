@@ -2,7 +2,13 @@
 -- Function library for the VEAF missions
 -- More infos : http://www.VEAF.org
 -- last version : https://github.com/MagicBra/VEAF_misison_library
-------------------------------------------------------------------------3.
+------------------------------------------------------------------------
+-- Other ressources and thanks : 
+-- MIST  library from Grimes and Speed (http://wiki.hoggit.us/view/Mission_Scripting_Tools_Documentation)
+-- Dismount script from mbot (http://forums.eagle.ru/showthread.php?t=109676)
+--
+-- thanks everyone of DCS community for making all the tests and reports :)
+------------------------------------------------------------------------
 -- initiator    : MagicBra (nosdudefr-a@t-gmail.com)
 -- contributors : 
 -- testers      :
@@ -15,7 +21,6 @@
 
 -- enable or disable the usage of the movement between zones
 ENABLE_VEAF_RANDOM_MOVE_ZONE = true;
-
 -- part of the group name identifying the zone where groups can move
 VEAF_random_move_zone_zoneTag = 'veafrz'
 -- part of the group name identifying the groups afected
@@ -23,6 +28,16 @@ VEAF_random_move_zone_groupTag = 'veafrz'
 -- time in seconds before the groups will have a new waypoint
 VEAF_random_move_zone_timer = 600
 
+
+-- enable troups to embark and disembark
+ENABLE_VEAF_DISMOUNT_IFV = true
+-- tag in the vehicule name that will have dismount
+VEAF_dismount_IFV_tag = 'veafdm'
+-- number of soldier to be dismounted 
+VEAF_dismount_IFV_number_soldier = 8
+-- probability of a AAA and manpads in percent
+VEAF_dismount_IFV_AAA_prob = 33
+VEAF_dismount_IFV_manpads_prob = 10
 
 
 ------------------------------------------------------------------------
