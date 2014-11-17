@@ -132,6 +132,28 @@ function VEAF_get_groups_with_tag(searchTag)
 	
 end
 
+------------------------------------------------------------------------------
+-- function : VEAF_get_group_coalition
+-- args     : 1, groupName : exact name of the group to seachr the coa for
+-- output   : array : groups identified
+------------------------------------------------------------------------------
+-- Objective: returns the coalition blue or red of the group
+-- Author   : VEAF MagicBra
+------------------------------------------------------------------------------
+-- Version  : 1.0 17/11/14 + creation
+------------------------------------------------------------------------------
+function VEAF_get_group_coalition(groupName)
+	
+	local groupCoa = 'unknown'
+	
+	for groupName, groupData in pairs(mist.DBs.groupsByName) do
+		if (string.lower(groupName) == string.lower(searchTag)) then
+			groupCoa = groupData.coalition
+		end
+	end
+	return groupCoa
+	
+end
 
 ------------------------------------------------------------------------------
 -- function : AUTO_VEAF_move_group_to_random_zone
@@ -168,7 +190,16 @@ end
 
 
 
-
+------------------------------------------------------------------------------
+-- function : AUTO_VEAF_move_group_to_random_zone
+-- args     : N/A
+-- output   : N/A
+------------------------------------------------------------------------------
+-- Objective: add dismount to units based on a tag in their name
+-- Author   : VEAF MagicBra
+------------------------------------------------------------------------------
+-- Version  : 1.0 17/11/14 + creation
+------------------------------------------------------------------------------
 function AUTO_VEAF_dismount_ground()
 
 	--- search units with tag (global var)
@@ -181,7 +212,7 @@ function AUTO_VEAF_dismount_ground()
 	
 	-- add dismount with rifles/soldiers only
 	for id, unitName in pairs(unitsListOnlySoldier) do
-			AddDismounts(unitName, "rifle")
+			AddDismounts(unitName, "Rifle")
 	end
 	
 	-- add dismount with AAA only
@@ -204,7 +235,8 @@ function AUTO_VEAF_dismount_ground()
 			-- making a little random magic pipidibou !
 			proba = math.random(1,100)
 			mountType = _VEAF_get_random_mount_type(proba)
-			AddDismounts(unitName, mountType)
+			--AddDismounts(unitName, mountType)
+			return {unitName, proba, mountType)
 	end
 
     -- schedule function
@@ -223,7 +255,7 @@ function _VEAF_get_random_mount_type(proba)
 	local lowProbaName = ''
 	local lowProbaValue = 0
 	
-	local mountType = "rifle"
+	local mountType = "Rifle"
 	
 
 
@@ -334,4 +366,5 @@ function VEAF_controller()
 end
 
 -- main loop
-timer.scheduleFunction(VEAF_controller, nil, timer.getTime() + 1)
+--timer.scheduleFunction(VEAF_controller, nil, timer.getTime() + 1)
+return AUTO_VEAF_dismount_ground()
