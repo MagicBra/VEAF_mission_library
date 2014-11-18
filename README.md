@@ -80,7 +80,7 @@ Please refer to the txt file included in this folder for more infos.
   All actions are only activated using the units names (not the group names)
 
 - how to :
-  - in the ME, triggers, after adding MIST and before adding veaf_library. Add an action "do script file", and chose "DismountsScript.lua" (included in the /scripts/ folder of this library).
+  - in the ME, triggers, after adding MIST and before adding veaf_library. Add an action "do script file", and chose "DismountsScript.lua" (included in the /scripts/community/ folder of this library).
   - in the script, make sure that the variable "ENABLE_VEAF_DISMOUNT_GROUND" is true (default)
   - in the ME, set a part of the name of the transport vehicle (can be any vehicle) to the appropriate dismount type tag : 
     - 'veafdm_rnd' : random based on probability settings
@@ -106,7 +106,7 @@ Please refer to the txt file included in this folder for more infos.
   Buildings will be added in a zone matching a tag. the coalition is also tagged in tha name.
   It's possible to add a specific objective type or make a random one.
   Each building had a little randomization on the placement and their numbers and orientation so each site looks different.
-  For now the types available are : Warhouse, Logistics Depot, Oil Pumping Station, Factory (with big smokes).
+  For now the types available are : Warehouse, Logistics Depot, Oil Pumping Station, Factory (with big smokes).
 
 - how to :
 	- in the script, make sure that the variable "ENABLE_VEAF_CREATE_OBJECTIVES" is true (default)
