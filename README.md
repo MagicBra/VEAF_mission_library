@@ -82,7 +82,7 @@ Fell free to read the licence file before distribution.
     - 'veafdm_aaa' : AAA (ZU-23)
     - 'veafdm_mpd' : manpads team
     - 'veafdm_mot' : mortar team
-   ex : veafdm_rnd01, red_veafdm_sol, veafdm_aaa_Blue
+    - ex : veafdm_rnd01, red_veafdm_sol, veafdm_aaa_Blue
   
 - misc : 
   - identification tags can be changed in the script header
@@ -91,4 +91,31 @@ Fell free to read the licence file before distribution.
     - VEAF_dismount_ground_AAA_prob : probability of a AAA (default = 10)
     - VEAF_dismount_ground_manpads_prob = probability of a manpad (default = 05)
 
-- Example mission : VEAF_dismount_ground
+- Example mission : VEAF_dismount_ground.miz
+
+  
+> 4.1 Automated objectives/site creation based on zone name
+
+- Functionality : 
+  Buildings will be added in a zone matching a tag. the coalition is also tagged in tha name.
+  It's possible to add a specific objective type or make a random one.
+  Each building had a little randomization on the placement and their numbers and orientation so each site looks different.
+  For now the types available are : Warhouse, Logistics Depot, Oil Pumping Station, Factory (with big smokes).
+
+- how to :
+	- in the script, make sure that the variable "ENABLE_VEAF_CREATE_OBJECTIVES" is true (default)
+    - in the ME, add a trigger zone and set its radius (recommended 500 to 1500), the buildings will pop inside.
+    - For the zone, set its name to contain the good type tag and coalition tag (default is red):
+		- 'veafobj_rnd' : random objective type
+		- 'veafobj_wh' : warehouse objective type 
+		- 'veafobj_fac' : factory objective type (big smokes and toilets ... yep)
+		- 'veafobj_log' : logistics objective type (with some bunkers and watchtowers)
+		- 'veafobj_pump' : Oil pumping site objective type
+		- 'blueside' : makes the objective with blue units (USA)
+		- 'redside' : makes the objective with red units (Russia)
+    - ex : veafobj_rnd_blueside, redside_veafobj_pump_42, veafobj_wh.redside01
+  
+- known issue : 
+	- sometimes some buildings (1 or 2) won't appear, it's an issue of the scripting engine. But most of them are there. 
+
+- Example mission : VEAF_dismount_ground.miz

@@ -3,7 +3,7 @@
 -- More infos : http://www.VEAF.org
 -- last version : https://github.com/MagicBra/VEAF_misison_library
 ------------------------------------------------------------------------
--- Other ressources and thanks : 
+-- Other resources and thanks : 
 -- MIST  library from Grimes and Speed (http://wiki.hoggit.us/view/Mission_Scripting_Tools_Documentation)
 -- Dismount script from mbot (http://forums.eagle.ru/showthread.php?t=109676)
 --
@@ -14,8 +14,10 @@
 -- testers      :
 ------------------------------------------------------------------------
 -- versions : 
--- 0.1 : + added random move between zones for a group
--- 0.2 : + added check to enable the functions 
+-- 1.0  : + added random move between zones for a group
+-- 1.01 : + added check to enable the functions 
+-- 1.1  : + added automatic embark/disembark for ground units
+-- 1.2  : + added automatic objectives creation in zones
 
 ------------------------------------------------------------------------------------------------------------
 -- Configuration for the movement between random zones for ground units
@@ -25,7 +27,7 @@
 ENABLE_VEAF_RANDOM_MOVE_ZONE = false;
 -- part of the group name identifying the zone where groups can move
 VEAF_random_move_zone_zoneTag = 'veafrz'
--- part of the group name identifying the groups afected
+-- part of the group name identifying the groups affected
 VEAF_random_move_zone_groupTag = 'veafrz'
 -- time in seconds before the groups will have a new waypoint
 VEAF_random_move_zone_timer = 600
@@ -34,23 +36,40 @@ VEAF_random_move_zone_timer = 600
 -- Configuration for the auto dismount for ground units
 ------------------------------------------------------------------------------------------------------------
 
--- enable troups to embark and disembark form ground vehicules
-ENABLE_VEAF_DISMOUNT_GROUND = true
--- tag in the vehicule name that will have dismount with a random dismount
+-- enable troops to embark and disembark form ground vehicle
+ENABLE_VEAF_DISMOUNT_GROUND = false
+-- tag in the vehicle name that will have dismount with a random dismount
 VEAF_dismount_ground_random_tag = 'veafdm_rnd'
--- tag in the vehicule name that will have dismount with a fireteam (rifles)
+-- tag in the vehicle name that will have dismount with a fire-team (rifles)
 VEAF_dismount_ground_soldiers_tag = 'veafdm_sol'
--- tag in the vehicule name that will have dismount with a AAA
+-- tag in the vehicle name that will have dismount with a AAA
 VEAF_dismount_ground_AAA_tag = 'veafdm_aaa'
--- tag in the vehicule name that will have dismount with a manpads
+-- tag in the vehicle name that will have dismount with a manpads
 VEAF_dismount_ground_manpads_tag = 'veafdm_mpd'
--- tag in the vehicule name that will have dismount with a mortar team
+-- tag in the vehicle name that will have dismount with a mortar team
 VEAF_dismount_ground_mortars_tag = 'veafdm_mot'
 
 -- in case of random : probability of dismounting a type of unit in percent, default is soldier squad
 VEAF_dismount_ground_mortar_prob = 25
 VEAF_dismount_ground_AAA_prob = 10
 VEAF_dismount_ground_manpads_prob = 05
+
+------------------------------------------------------------------------------------------------------------
+-- Configuration for automatic objectives/sites generation in zone
+------------------------------------------------------------------------------------------------------------
+-- enable the creation of objectives in named zones
+ENABLE_VEAF_CREATE_OBJECTIVES = true
+
+-- tag in the zone name to get a random objective
+VEAF_obj_zone_random_zoneTag = "veafobj_rnd"
+-- tag in the zone name to get a warehouse site
+VEAF_obj_zone_warhouse_zoneTag = "veafobj_wh"
+-- tag in the zone name to get a factory site
+VEAF_obj_zone_factory_zoneTag = "veafobj_fac"
+-- tag in the zone name to get a oil pump station site
+VEAF_obj_zone_oilPumpingSite_zoneTag = "veafobj_pump"
+-- tag in the zone name to get a logistics site
+VEAF_obj_zone_logisticCenter_zoneTag = "veafobj_log"
 
 
 ------------------------------------------------------------------------
@@ -378,7 +397,7 @@ end
 ------------------------------------------------------------------------------
 -- Version  : 1.0 18/11/14 + creation
 ------------------------------------------------------------------------------
-function VEAF_generate_objective_warehouse(side, zoneName)
+function VEAF_generate_objective_warehouseSite(side, zoneName)
 	
     local maxRadius = VEAF_get_zone_radius(zoneName)
 	local zone = trigger.misc.getZone(zoneName)        
@@ -442,7 +461,27 @@ function VEAF_generate_objective_warehouse(side, zoneName)
         heading = math.random() * 10,
         dead = false
     }
-
+	
+	-- adding up to 4 silos to randomize a little
+	siloNumber = math.random(0,4)
+	
+	for i=0,siloNumber do
+	
+	    local dmpi = 
+		{
+			type = "Tank",
+			country = obj.country, 
+			category = "Warhouses", 
+			x = obj.x + math.random(-100, -10),
+			y = obj.y + math.random(-100, 100),
+			name = obj.name .. "_tank_" .. math.random(0, 100) , 
+			heading =  math.random() * 10,
+			dead = false
+		}
+		 mist.dynAddStatic(dmpi)
+	end
+	
+	
     mist.dynAddStatic(warehouse)
     mist.dynAddStatic(fueltank1)
     mist.dynAddStatic(fueltank2)
@@ -450,8 +489,7 @@ function VEAF_generate_objective_warehouse(side, zoneName)
     
 end
 
-
-function VEAF_generate_objective_FactorySite(side, zoneName)
+function VEAF_generate_objective_factorySite(side, zoneName)
 	
     local maxRadius = VEAF_get_zone_radius(zoneName)
 	local zone = trigger.misc.getZone(zoneName)        
@@ -537,7 +575,7 @@ function VEAF_generate_objective_FactorySite(side, zoneName)
 
 end
 
-function VEAF_generate_objective_OilFactorySite(side, zoneName)
+function VEAF_generate_objective_oilPumpingSite(side, zoneName)
 	
     local maxRadius = VEAF_get_zone_radius(zoneName)
 	local zone = trigger.misc.getZone(zoneName)        
@@ -662,7 +700,245 @@ function VEAF_generate_objective_OilFactorySite(side, zoneName)
 
 end
 
+function VEAF_generate_objective_logisticCenterSite(side, zoneName)
+	
+    local maxRadius = VEAF_get_zone_radius(zoneName)
+	local zone = trigger.misc.getZone(zoneName)        
+	local obj = {}
+	local country = "Russia"
+    
+    if (string.lower(side) == "blue") then 
+        country = "USA"
+    end
+    
+	obj.name = "FuelPlant_" .. math.random(0, 1000)
+	obj.x = zone.point.x + math.random(-maxRadius, maxRadius)
+	obj.y = zone.point.z + math.random(-maxRadius, maxRadius) -- z is Y lol wtf ED wtf lol ... ahah ... it costed me 3 hours >_<!!
+	obj.country = country
+    
+    orientation = math.random() * 10
 
+    -- warehouse at the center of the coordinates.
+   local dmpi1 = 
+    {
+        type = "Tech hangar A",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x,
+        y = obj.y,
+        name = obj.name .."_factory_" .. math.random(0, 100) , 
+        heading = orientation,
+        dead = false
+    }
+
+    local dmpi2 = 
+    {
+        type = "Bunker",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(200, 300),
+        y = obj.y + math.random(-300, -200),
+        name = obj.name .. "_depot_" .. math.random(0, 100) , 
+        heading =  math.random() * 10,
+        dead = false
+    }
+
+    local dmpi3 = 
+    {
+        type = "Bunker",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(-300, -200),
+        y = obj.y + math.random(200, 300),
+        name = obj.name .. "_depot_" .. math.random(0, 100) , 
+        heading =  math.random() * 10,
+        dead = false
+    }
+
+	local dmpi4 = 
+    {
+        type = "Tech hangar A",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(-30, -20 ),
+        y = obj.y + math.random(10, 80),
+        name = obj.name .. "_tank_" .. math.random(0, 100) , 
+        heading = orientation,
+        dead = false
+    }
+    
+    local dmpi5 = 
+    {
+        type = "Watchtower",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(10, 50 ),
+        y = obj.y + math.random(200, 300),
+        name = obj.name .. "_tank_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+    
+    local dmpi6 = 
+    {
+        type = "outpost",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(40, 60 ),
+        y = obj.y + math.random(-100, 100),
+        name = obj.name .."_factory_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+    
+    local dmpi7 = 
+    {
+        type = "Subsidiary structure 2",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(50, 100 ),
+        y = obj.y + math.random(-50, 50),
+        name = obj.name .."_factory_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+    
+    local dmpi8 = 
+    {
+        type = "Watchtower",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(-300, -200 ),
+        y = obj.y + math.random(200, 300),
+        name = obj.name .."_factory_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+    
+    
+    local dmpi9 = 
+    {
+        type = "Watchtower",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(100, 200 ),
+        y = obj.y + math.random(-300, -200),
+        name = obj.name .."_factory_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+	
+	local dmpi10 = 
+    {
+        type = "Fuel tank",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(-100, -50 ),
+        y = obj.y + math.random(-50, 50),
+        name = obj.name .."_factory_" .. math.random(0, 100) , 
+        heading = orientation,
+        dead = false
+    }
+   	local dmpi11 = 
+    {
+        type = "Fuel tank",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(-100, -50 ),
+        y = obj.y + math.random(-50, 50),
+        name = obj.name .."_factory_" .. math.random(0, 100) , 
+        heading = orientation,
+        dead = false
+    }
+
+    mist.dynAddStatic(dmpi1)
+    mist.dynAddStatic(dmpi2)
+    mist.dynAddStatic(dmpi3)
+	mist.dynAddStatic(dmpi4)
+	mist.dynAddStatic(dmpi5)
+    mist.dynAddStatic(dmpi6)
+    mist.dynAddStatic(dmpi7)
+    mist.dynAddStatic(dmpi8)
+    mist.dynAddStatic(dmpi9)
+    mist.dynAddStatic(dmpi10)
+    mist.dynAddStatic(dmpi11)
+
+end
+
+
+function AUTO_VEAF_create_objectives()
+	
+	-- init arrays
+	local objZonesRandom = VEAF_get_zones_with_tag(VEAF_obj_zone_random_zoneTag)
+	local objZonesWarhouse = VEAF_get_zones_with_tag(VEAF_obj_zone_warhouse_zoneTag)
+	local objZonesFactory = VEAF_get_zones_with_tag(VEAF_obj_zone_factory_zoneTag)
+	local objZonesOilPumpingSite = VEAF_get_zones_with_tag(VEAF_obj_zone_oilPumpingSite_zoneTag)
+	local objZonesLogisticCenter = VEAF_get_zones_with_tag(VEAF_obj_zone_logisticCenter_zoneTag)
+	local coalition = "red"
+	
+
+    
+	-- pop zones warhouse
+	for _, zoneName in pairs(objZonesWarhouse) do
+		coaliation = "red"
+		if(string.find(string.lower(zoneName), "blueside")) then
+			coaliation = "blue"
+		end
+		VEAF_generate_objective_warehouseSite(coaliation, zoneName)
+	end
+	
+	-- pop zones factory
+	for _, zoneName in pairs(objZonesFactory) do
+		coaliation = "red"
+		if(string.find(string.lower(zoneName), "blueside")) then
+			coaliation = "blue"
+		end
+		VEAF_generate_objective_factorySite(coaliation, zoneName)
+	end
+	
+	-- pop zones oil pumping 
+	for _, zoneName in pairs(objZonesOilPumpingSite) do
+		coaliation = "red"
+		if(string.find(string.lower(zoneName), "blueside")) then
+			coaliation = "blue"
+		end
+		VEAF_generate_objective_oilPumpingSite(coaliation, zoneName)
+	end
+	
+	-- pop zones logistics 
+	for _, zoneName in pairs(objZonesLogisticCenter) do
+		coaliation = "red"
+		if(string.find(string.lower(zoneName), "blueside")) then
+			coaliation = "blue"
+		end
+		VEAF_generate_objective_logisticCenterSite(coaliation, zoneName)
+	end
+	
+	-- pop zones random 
+	for _, zoneName in pairs(objZonesRandom) do
+		coaliation = "red"
+		if(string.find(string.lower(zoneName), "blueside")) then
+			coaliation = "blue"
+		end
+		
+		-- randomize !
+		objType = math.random(1,4)
+		
+		if (objType == 1) then 
+			VEAF_generate_objective_warehouseSite(coaliation, zoneName)
+		elseif (objType == 2) then 
+			VEAF_generate_objective_factorySite(coaliation, zoneName)
+		elseif (objType == 3) then 
+			VEAF_generate_objective_oilPumpingSite(coaliation, zoneName)
+		elseif (objType == 4) then 
+			VEAF_generate_objective_logisticCenterSite(coaliation, zoneName)
+		else
+			-- lol ? how is it possible >_< ... but it gets there sometimes ... T_T!
+			VEAF_generate_objective_warehouseSite(coaliation, zoneName)
+		end
+	end
+	
+end
 
 ------------------------------------------------------------------------------
 -- function : VEAF_controller
@@ -681,6 +957,9 @@ function VEAF_controller()
 	end
 	if (ENABLE_VEAF_DISMOUNT_GROUND) then
 		AUTO_VEAF_dismount_ground()
+	end
+	if (ENABLE_VEAF_CREATE_OBJECTIVES) then
+		AUTO_VEAF_create_objectives()
 	end
 	
 end
