@@ -344,6 +344,111 @@ end
 
 
 ------------------------------------------------------------------------------
+-- function : VEAF_get_zone_radius
+-- args     : zoneName, string : name of a zone
+-- output   : radius, integer (default 42)
+------------------------------------------------------------------------------
+-- Objective: retreive the radius of a zone by its name
+-- Author   : VEAF MagicBra
+------------------------------------------------------------------------------
+-- Version  : 1.0 18/11/14 + creation
+------------------------------------------------------------------------------
+function VEAF_get_zone_radius(zoneName)
+
+    local zoneRadius = 42
+
+    for name, zone in pairs(mist.DBs.zonesByName) do
+        if (string.lower(name) == string.lower(searchTag)) then
+            zoneRadius = zone.radius
+        end
+    end
+    return zoneRadius;
+    
+end
+
+
+------------------------------------------------------------------------------
+-- function : VEAF_generate_objective_warehouse
+-- args     : country, string : country of the warhouse (ex : USA, Russia)
+--   		: zoneName, string : the name of the zone to pop the objective in. 
+-- output   : N/A
+------------------------------------------------------------------------------
+-- Objective: create a warehouse site with a little randomization in a zone.
+-- Author   : VEAF MagicBra
+------------------------------------------------------------------------------
+-- Version  : 1.0 18/11/14 + creation
+------------------------------------------------------------------------------
+function VEAF_generate_objective_warehouse(country, zoneName)
+	
+    local maxRadius = VEAF_get_zones_radius(zoneName)
+	local zone = trigger.misc.getZone(zoneName)        
+	local obj = {}
+			
+	obj.name = "Depot_" .. math.random(0, 1000)
+	obj.x = zone.point.x + math.random(-maxRadius, maxRadius)
+	obj.y = zone.point.z + math.random(-maxRadius, maxRadius) -- z is Y lol wtf ED wtf lol ... ahah ... it costed me 3 hours >_<!!
+	obj.country = country
+
+    -- warehouse at the center of the coordinates.
+    local warehouse = 
+    {
+        type = "Warehouse",
+        country = obj.country, 
+        category = "Warhouses", 
+        x = obj.x,
+        y = obj.y,
+        name = obj.name .."_warhouse_" .. math.random(0, 100) , 
+        heading = math.random(),
+        dead = false
+    }
+
+    local fueltank1 = 
+    {
+        type = "Tank",
+        country = obj.country, 
+        category = "Warhouses", 
+        x = obj.x + math.random(30, 70),
+        y = obj.y + math.random(-100, 100),
+        name = obj.name .. "_tank_" .. math.random(0, 100) , 
+        heading =  math.random(),
+        dead = false
+    }
+
+    local fueltank2 = 
+    {
+        type = "Tank 2",
+        country = obj.country, 
+        category = "Warhouses", 
+        x = obj.x + math.random(-60, -40 ),
+        y = obj.y + math.random(-100, 100),
+        name = obj.name .. "_tank_" .. math.random(0, 100) , 
+        heading = math.random(),
+        dead = false
+    }
+
+    local fueltank3 = 
+    {
+        type = "Tank 3",
+        country = obj.country, 
+        category = "Warhouses", 
+        x = obj.x + math.random(60, 120 ),
+        y = obj.y + math.random(-50, 50),
+        name = obj.name .. "_tank_" .. math.random(0, 100) , 
+        heading = 0.1,
+        dead = false
+    }
+
+    mist.dynAddStatic(warehouse)
+    mist.dynAddStatic(fueltank1)
+    mist.dynAddStatic(fueltank2)
+    mist.dynAddStatic(fueltank3)
+    
+end
+
+
+
+
+------------------------------------------------------------------------------
 -- function : VEAF_controller
 -- args     : N/A
 -- output   : N/A
