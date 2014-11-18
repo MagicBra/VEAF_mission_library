@@ -537,6 +537,132 @@ function VEAF_generate_objective_FactorySite(side, zoneName)
 
 end
 
+function VEAF_generate_objective_OilFactorySite(side, zoneName)
+	
+    local maxRadius = VEAF_get_zone_radius(zoneName)
+	local zone = trigger.misc.getZone(zoneName)        
+	local obj = {}
+	local country = "Russia"
+    
+    if (string.lower(side) == "blue") then 
+        country = "USA"
+    end
+    
+	obj.name = "FuelPlant_" .. math.random(0, 1000)
+	obj.x = zone.point.x + math.random(-maxRadius, maxRadius)
+	obj.y = zone.point.z + math.random(-maxRadius, maxRadius) -- z is Y lol wtf ED wtf lol ... ahah ... it costed me 3 hours >_<!!
+	obj.country = country
+
+    -- warehouse at the center of the coordinates.
+   local dmpi1 = 
+    {
+        type = "Chemical tank A",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x,
+        y = obj.y,
+        name = obj.name .."_factory_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+
+    local dmpi2 = 
+    {
+        type = "Oil derrick",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(100, 150),
+        y = obj.y + math.random(-100, 150),
+        name = obj.name .. "_depot_" .. math.random(0, 100) , 
+        heading =  math.random() * 10,
+        dead = false
+    }
+
+    local dmpi3 = 
+    {
+        type = "Oil derrick",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(-60, -20 ),
+        y = obj.y + math.random(-100, 100),
+        name = obj.name .. "_tank_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+	
+	local dmpi4 = 
+    {
+        type = "Oil derrick",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(-30, -20 ),
+        y = obj.y + math.random(10, 80),
+        name = obj.name .. "_tank_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+    
+    local dmpi5 = 
+    {
+        type = "Oil derrick",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(20, 60 ),
+        y = obj.y + math.random(-100, 100),
+        name = obj.name .. "_tank_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+    
+    local dmpi6 = 
+    {
+        type = "Chemical tank A",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(10, 20 ),
+        y = obj.y + math.random(-100, 100),
+        name = obj.name .."_factory_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+    
+    local dmpi7 = 
+    {
+        type = "Pump station",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(40, 150 ),
+        y = obj.y + math.random(-100, 100),
+        name = obj.name .."_factory_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+    
+    local dmpi8 = 
+    {
+        type = "Pump station",
+        country = obj.country, 
+        category = "Fortifications", 
+        x = obj.x + math.random(40, 150 ),
+        y = obj.y + math.random(-100, 100),
+        name = obj.name .."_factory_" .. math.random(0, 100) , 
+        heading = math.random() * 10,
+        dead = false
+    }
+	
+
+    mist.dynAddStatic(dmpi1)
+    mist.dynAddStatic(dmpi2)
+    mist.dynAddStatic(dmpi3)
+	mist.dynAddStatic(dmpi4)
+	mist.dynAddStatic(dmpi5)
+    mist.dynAddStatic(dmpi6)
+    mist.dynAddStatic(dmpi7)
+    mist.dynAddStatic(dmpi8)
+
+end
+
+
 
 ------------------------------------------------------------------------------
 -- function : VEAF_controller
