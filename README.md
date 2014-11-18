@@ -71,7 +71,7 @@ Please refer to the txt file included in this folder for more infos.
  
 - Example mission : VEAF_random_zone_move.miz
    
-> 4.1 Automated ground dismount
+> 4.2 Automated ground dismount
 
 - Functionality : 
   units can dismount from ground vehicules. This units can be a rifle squad, AAA, manpads, mortar.
@@ -100,7 +100,7 @@ Please refer to the txt file included in this folder for more infos.
 - Example mission : VEAF_dismount_ground.miz
 
   
-> 4.1 Automated objectives/site creation based on zone name
+> 4.3 Automated objectives/site creation based on zone name
 
 - Functionality : 
   Buildings will be added in a zone matching a tag. the coalition is also tagged in tha name.
