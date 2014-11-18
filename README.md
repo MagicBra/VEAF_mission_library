@@ -13,9 +13,9 @@ VEAF_misison_library
 -----------------------------
 0.42 Major Versions and releases
 -----------------------------
-2014/11/16 : 1.0 release
-2014/11/17 : 1.1 dismount automation added
-2014/11/18 : 1.2 automated objective site generation.
+- 2014/11/16 : 1.0 release
+- 2014/11/17 : 1.1 dismount automation added
+- 2014/11/18 : 1.2 automated objective site generation.
 
 -----------------------------
 1.0 Licensing
