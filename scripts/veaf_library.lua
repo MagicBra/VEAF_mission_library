@@ -37,7 +37,7 @@ VEAF_random_move_zone_timer = 600
 -- enable troups to embark and disembark form ground vehicules
 ENABLE_VEAF_DISMOUNT_GROUND = true
 -- tag in the vehicule name that will have dismount with a random dismount
-VEAF_dismount_ground_random_tag = 'Unit'
+VEAF_dismount_ground_random_tag = 'veafdm_rnd'
 -- tag in the vehicule name that will have dismount with a fireteam (rifles)
 VEAF_dismount_ground_soldiers_tag = 'veafdm_sol'
 -- tag in the vehicule name that will have dismount with a AAA
@@ -47,17 +47,17 @@ VEAF_dismount_ground_manpads_tag = 'veafdm_mpd'
 -- tag in the vehicule name that will have dismount with a mortar team
 VEAF_dismount_ground_mortars_tag = 'veafdm_mot'
 
--- in cas of random : probability of dismount in percent, default is soldier
+-- in case of random : probability of dismounting a type of unit in percent, default is soldier squad
 VEAF_dismount_ground_mortar_prob = 25
 VEAF_dismount_ground_AAA_prob = 10
 VEAF_dismount_ground_manpads_prob = 05
 
 
 ------------------------------------------------------------------------
------ NO MODIFICATION BELIW THIS POINT UNLESS YOU KNOW WHAT YOU DO -----
------ NO MODIFICATION BELIW THIS POINT UNLESS YOU KNOW WHAT YOU DO -----
------ NO MODIFICATION BELIW THIS POINT UNLESS YOU KNOW WHAT YOU DO -----
------ NO MODIFICATION BELIW THIS POINT UNLESS YOU KNOW WHAT YOU DO -----
+----- NO MODIFICATION BELOW THIS POINT UNLESS YOU KNOW WHAT YOU DO -----
+----- NO MODIFICATION BELOW THIS POINT UNLESS YOU KNOW WHAT YOU DO -----
+----- NO MODIFICATION BELOW THIS POINT UNLESS YOU KNOW WHAT YOU DO -----
+----- NO MODIFICATION BELOW THIS POINT UNLESS YOU KNOW WHAT YOU DO -----
 ------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
@@ -235,8 +235,7 @@ function AUTO_VEAF_dismount_ground()
 			-- making a little random magic pipidibou !
 			proba = math.random(1,100)
 			mountType = _VEAF_get_random_mount_type(proba)
-			--AddDismounts(unitName, mountType)
-			return {unitName, proba, mountType)
+			AddDismounts(unitName, mountType)
 	end
 
     -- schedule function
@@ -366,5 +365,5 @@ function VEAF_controller()
 end
 
 -- main loop
---timer.scheduleFunction(VEAF_controller, nil, timer.getTime() + 1)
-return AUTO_VEAF_dismount_ground()
+timer.scheduleFunction(VEAF_controller, nil, timer.getTime() + 1)
+--AUTO_VEAF_dismount_ground()

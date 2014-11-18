@@ -738,69 +738,69 @@ do
 						}, -- end of [1]
 						[2] = 
 						{
-							["y"] = dmVec2.y - carrierPos.z.z * 5,
+							["y"] = dmVec2.y - 5,
 							["type"] = "Soldier M4",
 							["name"] = "Dismounts_" .. carrierUnitID .. "_02",
 							["unitId"] = carrierUnitID + 29000,
 							["heading"] = heading,
 							["playerCanDrive"] = true,
 							["skill"] = "Average",
-							["x"] = dmVec2.x - carrierPos.z.x * 5,
+							["x"] = dmVec2.x - 5,
 						}, -- end of [2]
 						[3] = 
 						{
-							["y"] = dmVec2.y + carrierPos.z.z * 5,
+							["y"] = dmVec2.y + 5,
 							["type"] = "Soldier M4",
 							["name"] = "Dismounts_" .. carrierUnitID .. "_03",
 							["unitId"] = carrierUnitID + 30000,
 							["heading"] = heading,
 							["playerCanDrive"] = true,
 							["skill"] = "Average",
-							["x"] = dmVec2.x + carrierPos.z.x * 5,
+							["x"] = dmVec2.x + 5,
 						}, -- end of [3]
 						[4] = 
 						{
-							["y"] = dmVec2.y - carrierPos.z.z * 10,
+							["y"] = dmVec2.y - 10,
 							["type"] = "Soldier M249",
 							["name"] = "Dismounts_" .. carrierUnitID .. "_04",
 							["unitId"] = carrierUnitID + 31000,
 							["heading"] = heading,
 							["playerCanDrive"] = true,
 							["skill"] = "Average",
-							["x"] = dmVec2.x - carrierPos.z.x * 10,
+							["x"] = dmVec2.x - 10,
 						}, -- end of [4]
 						[5] = 
 						{
-							["y"] = dmVec2.y + carrierPos.z.z * 10,
+							["y"] = dmVec2.y + 10,
 							["type"] = "Soldier M249",
 							["name"] = "Dismounts_" .. carrierUnitID .. "_05",
 							["unitId"] = carrierUnitID + 32000,
 							["heading"] = heading,
 							["playerCanDrive"] = true,
 							["skill"] = "Average",
-							["x"] = dmVec2.x + carrierPos.z.x * 10,
+							["x"] = dmVec2.x + 10,
 						}, -- end of [5]
 						[6] = 
 						{
-							["y"] = dmVec2.y - carrierPos.z.z * 15,
+							["y"] = dmVec2.y - 15,
 							["type"] = "Soldier M4",
 							["name"] = "Dismounts_" .. carrierUnitID .. "_06",
 							["unitId"] = carrierUnitID + 33000,
 							["heading"] = heading,
 							["playerCanDrive"] = true,
 							["skill"] = "Average",
-							["x"] = dmVec2.x - carrierPos.z.x * 15,
+							["x"] = dmVec2.x - 15,
 						}, -- end of [6]
 						[7] = 
 						{
-							["y"] = dmVec2.y + carrierPos.z.z * 15,
+							["y"] = dmVec2.y + 15,
 							["type"] = "Soldier M4",
 							["name"] = "Dismounts_" .. carrierUnitID .. "_07",
 							["unitId"] = carrierUnitID + 34000,
 							["heading"] = heading,
 							["playerCanDrive"] = true,
 							["skill"] = "Average",
-							["x"] = dmVec2.x + carrierPos.z.x * 15,
+							["x"] = dmVec2.x + 15,
 						}, -- end of [7]
 					}, -- end of ["units"]
 					["y"] = dmVec2.y,
