@@ -14,20 +14,26 @@ VEAF_misison_library
 0.42 Major Versions and releases
 -----------------------------
 2014/11/16 : 1.0 release
-2014/11/16 : 1.1 dismount automation added
+2014/11/17 : 1.1 dismount automation added
+2014/11/18 : 1.2 automated objective site generation.
 
 -----------------------------
-1.0 Licencing
+1.0 Licensing
 -----------------------------
-This repository is created under opensource Apache 2.0 licence.
+Unless specified this repository is created under opensource Apache 2.0 licence.
 Fell free to read the licence file before distribution. 
+
+All included libraries in the folder /scripts/community have their own licensing regarding their authors.
+Please refer to the txt file included in this folder for more infos. 
 
 ----------------------------
 2.0 Purpose : 
 -----------------------------
-- Create a mission library for DCS WORLD to simplify the misison creation 
-- no coding or scripting for the missions creator only unit naming in the ME
-- Every function can be deactivated from the header.
+- Simplify the mission edition with no scripting knowledge needed
+- The mission creator is able to include advanced functionalities just by naming a zone or some units
+- Possibility to add randomization to enhance the mission re-playability 
+- Every functionality can be deactivated from the header.
+- Some tweaks are available in the scripts header (such as the identification tags)
 
 -----------------------------
 3.0 Installation 
