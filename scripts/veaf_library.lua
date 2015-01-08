@@ -196,6 +196,20 @@ function VEAF_get_group_coalition(groupName)
 	
 end
 
+function VEAF_get_terrain_altitude(x, z)
+
+    local zoneAlt = 42
+    
+    local vec2 = {}
+    vec2.x = x
+    vec2.y = z
+    
+
+    altitude = land.getHeight(vec2)
+    
+    return altitude;
+    
+end
 
 
 -- Private function that will return the mount type 
@@ -319,6 +333,29 @@ function VEAF_get_zone_radius(zoneName)
         end
     end
     return zoneRadius;
+    
+end
+
+------------------------------------------------------------------------------
+-- function : VEAF_get_zone_radius
+-- args     : zoneName, string : name of a zone
+-- output   : radius, integer (default 42)
+------------------------------------------------------------------------------
+-- Objective: retreive the radius of a zone by its name
+-- Author   : VEAF MagicBra
+------------------------------------------------------------------------------
+-- Version  : 1.0 18/11/14 + creation
+------------------------------------------------------------------------------
+function VEAF_get_zone_altitude(zoneName)
+
+    local zoneAlt = 42
+
+    for name, zone in pairs(mist.DBs.zonesByName) do
+        if (string.lower(name) == string.lower(zoneName)) then
+            zoneAlt = zone.y
+        end
+    end
+    return zoneAlt;
     
 end
 
@@ -878,6 +915,7 @@ function AUTO_VEAF_create_objectives()
 end
 
 
+
 ------------------------------------------------------------------------------
 -- function : VEAF_random_smoke_in_zone_random
 -- args     : 1, string : Name of the zone
@@ -895,13 +933,14 @@ function VEAF_random_smoke_in_zone_random(zoneName)
     local zone = trigger.misc.getZone(zoneName)
     
     local xOffset = math.random(-radius,radius)
-    local yOffset = math.random(-radius,radius)
+    local zOffset = math.random(-radius,radius)
+    local yOffset = math.random(-10,0)
     
     local mySmoke = {}
     
     mySmoke.x = zone.point.x + xOffset
-    mySmoke.z = zone.point.z + yOffset
-    mySmoke.y = math.random(-1,0) -- offseting smoke to make them look a little different every time
+    mySmoke.z = zone.point.z + zOffset
+    mySmoke.y = VEAF_get_terrain_altitude(mySmoke.x, mySmoke.z) + yOffset  -- offseting smoke to make them look a little different every time
     
 
     colorId = math.random(1,5)
@@ -915,6 +954,7 @@ function VEAF_random_smoke_in_zone_random(zoneName)
 
     trigger.action.smoke(mySmoke,colorValue)
     
+    return {mySmoke}
 end
 
 
