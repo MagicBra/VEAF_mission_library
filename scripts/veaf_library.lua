@@ -24,7 +24,7 @@
 ------------------------------------------------------------------------------------------------------------
 
 -- enable or disable the usage of the movement between zones
-ENABLE_VEAF_RANDOM_MOVE_ZONE = false;
+ENABLE_VEAF_RANDOM_MOVE_ZONE = true
 -- part of the group name identifying the zone where groups can move
 VEAF_random_move_zone_zoneTag = 'veafrz'
 -- part of the group name identifying the groups affected
@@ -37,7 +37,7 @@ VEAF_random_move_zone_timer = 600
 ------------------------------------------------------------------------------------------------------------
 
 -- enable troops to embark and disembark form ground vehicle
-ENABLE_VEAF_DISMOUNT_GROUND = false
+ENABLE_VEAF_DISMOUNT_GROUND = true
 -- tag in the vehicle name that will have dismount with a random dismount
 VEAF_dismount_ground_random_tag = 'veafdm_rnd'
 -- tag in the vehicle name that will have dismount with a fire-team (rifles)
@@ -70,6 +70,28 @@ VEAF_obj_zone_factory_zoneTag = "veafobj_fac"
 VEAF_obj_zone_oilPumpingSite_zoneTag = "veafobj_pump"
 -- tag in the zone name to get a logistics site
 VEAF_obj_zone_logisticCenter_zoneTag = "veafobj_log"
+
+
+------------------------------------------------------------------------------------------------------------
+-- Configuration for automatic ground group patrol
+------------------------------------------------------------------------------------------------------------
+VEAF_ground_patrol_groupTag = "veafpat"
+
+
+
+------------------------------------------------------------------------------------------------------------
+-- Configuration for automatic generation of smokes in zones (random colours) 
+------------------------------------------------------------------------------------------------------------
+-- enable the smoke generation in tagged zones. 
+ENABLE_VEAF_GENERATE_RANDOM_SMOKES = true
+
+-- tag in the zone name where to generate smokes
+VEAF_generate_random_smokes_in_zone_zoneTag = "VEAFsmokernd"
+-- delay since last generation before smokes new smokes are generated in seconds
+VEAF_generate_random_smokes_in_zone_timer = 300
+-- number of smokes generated each time. 
+VEAF_generate_random_smokes_in_zone_smokesNumber = 10
+
 
 
 ------------------------------------------------------------------------
@@ -174,92 +196,21 @@ function VEAF_get_group_coalition(groupName)
 	
 end
 
-------------------------------------------------------------------------------
--- function : AUTO_VEAF_move_group_to_random_zone
--- args     : N/A
--- output   : N/A
-------------------------------------------------------------------------------
--- Objective: move any groups identified with a tag to a random zone list identified by a tag
--- Author   : VEAF MagicBra
-------------------------------------------------------------------------------
--- Version  : 0.1 10/11/14 + creation
---            0.2 12/11/14 + add automation
---            1.0 16/11/14 ~ replace zone list for tag search, 
---						   + add tag search param for group search
-------------------------------------------------------------------------------
-function AUTO_VEAF_move_group_to_random_zone()
+function VEAF_get_terrain_altitude(x, z)
 
-	--- search zones with tag (global var)
-	local zoneList  = VEAF_get_zones_with_tag(VEAF_random_move_zone_zoneTag)
-	local groupList = VEAF_get_groups_with_tag(VEAF_random_move_zone_groupTag)
-	
-	-- actions !
-	for id, groupName in pairs(groupList) do
-			VEAF_move_group_to_random_zone(groupName, zoneList)
-	end
+    local zoneAlt = 42
+    
+    local vec2 = {}
+    vec2.x = x
+    vec2.y = z
+    
 
-    -- schedule function
-    timer.scheduleFunction(AUTO_VEAF_move_group_to_random_zone, nil, timer.getTime() + VEAF_random_move_zone_timer)
+    altitude = land.getHeight(vec2)
+    
+    return altitude;
+    
 end
 
--- core function to move units
-function VEAF_move_group_to_random_zone(group, zoneList)
-	mist.groupToRandomZone(group, zoneList)
-end
-
-
-
-------------------------------------------------------------------------------
--- function : AUTO_VEAF_move_group_to_random_zone
--- args     : N/A
--- output   : N/A
-------------------------------------------------------------------------------
--- Objective: add dismount to units based on a tag in their name
--- Author   : VEAF MagicBra
-------------------------------------------------------------------------------
--- Version  : 1.0 17/11/14 + creation
-------------------------------------------------------------------------------
-function AUTO_VEAF_dismount_ground()
-
-	--- search units with tag (global var)
-	local unitsListWithRandom = VEAF_get_units_with_tag(VEAF_dismount_ground_random_tag)
-	local unitsListOnlySoldier = VEAF_get_units_with_tag(VEAF_dismount_ground_soldiers_tag)
-	local unitsListOnlyAAA = VEAF_get_units_with_tag(VEAF_dismount_ground_AAA_tag)
-	local unitsListOnlyManpads = VEAF_get_units_with_tag(VEAF_dismount_ground_manpads_tag)
-	local unitsListOnlyMortars = VEAF_get_units_with_tag(VEAF_dismount_ground_mortars_tag)
-	
-	
-	-- add dismount with rifles/soldiers only
-	for id, unitName in pairs(unitsListOnlySoldier) do
-			AddDismounts(unitName, "Rifle")
-	end
-	
-	-- add dismount with AAA only
-	for id, unitName in pairs(unitsListOnlyAAA) do
-			AddDismounts(unitName, "ZU-23")
-	end
-	
-	-- add dismount with manpads only
-	for id, unitName in pairs(unitsListOnlyManpads) do
-			AddDismounts(unitName, "MANPADS")
-	end
-	
-	-- add dismount with manpads only
-	for id, unitName in pairs(unitsListOnlyMortars) do
-			AddDismounts(unitName, "Mortar")
-	end
-	
-	-- add dismount with manpads only
-	for id, unitName in pairs(unitsListWithRandom) do
-			-- making a little random magic pipidibou !
-			proba = math.random(1,100)
-			mountType = _VEAF_get_random_mount_type(proba)
-			AddDismounts(unitName, mountType)
-	end
-
-    -- schedule function
-    --timer.scheduleFunction(AUTO_VEAF_move_group_to_random_zone, nil, timer.getTime() + VEAF_random_move_zone_timer)
-end
 
 -- Private function that will return the mount type 
 function _VEAF_get_random_mount_type(proba)
@@ -382,6 +333,29 @@ function VEAF_get_zone_radius(zoneName)
         end
     end
     return zoneRadius;
+    
+end
+
+------------------------------------------------------------------------------
+-- function : VEAF_get_zone_radius
+-- args     : zoneName, string : name of a zone
+-- output   : radius, integer (default 42)
+------------------------------------------------------------------------------
+-- Objective: retreive the radius of a zone by its name
+-- Author   : VEAF MagicBra
+------------------------------------------------------------------------------
+-- Version  : 1.0 18/11/14 + creation
+------------------------------------------------------------------------------
+function VEAF_get_zone_altitude(zoneName)
+
+    local zoneAlt = 42
+
+    for name, zone in pairs(mist.DBs.zonesByName) do
+        if (string.lower(name) == string.lower(zoneName)) then
+            zoneAlt = zone.y
+        end
+    end
+    return zoneAlt;
     
 end
 
@@ -940,6 +914,189 @@ function AUTO_VEAF_create_objectives()
 	
 end
 
+
+
+------------------------------------------------------------------------------
+-- function : VEAF_random_smoke_in_zone_random
+-- args     : 1, string : Name of the zone
+-- output   : N/A
+------------------------------------------------------------------------------
+-- Objective: creates a smoke of a random color inside a zone
+-- Author   : VEAF MagicBra
+------------------------------------------------------------------------------
+-- Version  : 1.0 23/11/14 + creation
+-- 			  1.1 05/01/15 ~add randomness to the height of the smoke 	
+------------------------------------------------------------------------------
+function VEAF_random_smoke_in_zone_random(zoneName)
+
+    local radius = VEAF_get_zone_radius(zoneName)
+    local zone = trigger.misc.getZone(zoneName)
+    
+    local xOffset = math.random(-radius,radius)
+    local zOffset = math.random(-radius,radius)
+    local yOffset = math.random(-10,0)
+    
+    local mySmoke = {}
+    
+    mySmoke.x = zone.point.x + xOffset
+    mySmoke.z = zone.point.z + zOffset
+    mySmoke.y = VEAF_get_terrain_altitude(mySmoke.x, mySmoke.z) + yOffset  -- offseting smoke to make them look a little different every time
+    
+
+    colorId = math.random(1,5)
+    
+    if(colorId == 1) then colorValue = trigger.smokeColor.Green
+        elseif (colorId == 2) then colorValue = trigger.smokeColor.Red
+        elseif (colorId == 3) then colorValue = trigger.smokeColor.White
+        elseif (colorId == 4) then colorValue = trigger.smokeColor.Orange
+        elseif (colorId == 5) then colorValue = trigger.smokeColor.Blue
+    end
+
+    trigger.action.smoke(mySmoke,colorValue)
+    
+    return {mySmoke}
+end
+
+
+------------------------------------------------------------------------------
+-- function : AUTO_VEAF_ground_patrol_group
+-- args     : N/A
+-- output   : N/A
+------------------------------------------------------------------------------
+-- Objective: core function to enable smoke generation. 
+-- Author   : VEAF MagicBra
+------------------------------------------------------------------------------
+-- Version  : 1.0 01/01/15 + creation
+------------------------------------------------------------------------------
+function AUTO_VEAF_generate_random_smokes_in_zone()
+    
+	--- search zones with tag (global var)
+	local zoneList = VEAF_get_zones_with_tag(VEAF_generate_random_smokes_in_zone_zoneTag)
+	local smokeNumberEachTime = VEAF_generate_random_smokes_in_zone_smokesNumber
+	
+	-- actions !
+	for id, zoneName in pairs(zoneList) do
+			for number = 0, smokeNumberEachTime, 1 do
+				VEAF_random_smoke_in_zone_random(zoneName)
+			end
+	end
+
+    -- schedule function
+    timer.scheduleFunction(AUTO_VEAF_generate_random_smokes_in_zone, nil, timer.getTime() + VEAF_generate_random_smokes_in_zone_timer)
+end
+
+
+------------------------------------------------------------------------------
+-- function : AUTO_VEAF_move_group_to_random_zone
+-- args     : N/A
+-- output   : N/A
+------------------------------------------------------------------------------
+-- Objective: move any groups identified with a tag to a random zone list identified by a tag
+-- Author   : VEAF MagicBra
+------------------------------------------------------------------------------
+-- Version  : 0.1 10/11/14 + creation
+--            0.2 12/11/14 + add automation
+--            1.0 16/11/14 ~ replace zone list for tag search, 
+--						   + add tag search param for group search
+------------------------------------------------------------------------------
+function AUTO_VEAF_move_group_to_random_zone()
+
+	--- search zones with tag (global var)
+	local zoneList  = VEAF_get_zones_with_tag(VEAF_random_move_zone_zoneTag)
+	local groupList = VEAF_get_groups_with_tag(VEAF_random_move_zone_groupTag)
+	
+	-- actions !
+	for id, groupName in pairs(groupList) do
+			VEAF_move_group_to_random_zone(groupName, zoneList)
+	end
+
+    -- schedule function
+    timer.scheduleFunction(AUTO_VEAF_move_group_to_random_zone, nil, timer.getTime() + VEAF_random_move_zone_timer)
+end
+
+-- core function to move units
+function VEAF_move_group_to_random_zone(group, zoneList)
+	mist.groupToRandomZone(group, zoneList)
+end
+
+
+------------------------------------------------------------------------------
+-- function : AUTO_VEAF_ground_patrol_group
+-- args     : N/A
+-- output   : N/A
+------------------------------------------------------------------------------
+-- Objective: ground groups identified by a tag will patrol to first waypoint when they arrive to last waypoint
+-- Author   : VEAF MagicBra
+------------------------------------------------------------------------------
+-- Version  : 0.1 01/12/14 + creation
+------------------------------------------------------------------------------
+function AUTO_VEAF_ground_patrol_group()
+
+	--- search zones with tag (global var)
+	local groupList = VEAF_get_groups_with_tag(VEAF_ground_patrol_groupTag)
+	
+	-- actions !
+	for id, groupName in pairs(groupList) do
+			mist.ground.patrol(groupName)
+	end
+
+    -- schedule function
+    --timer.scheduleFunction(AUTO_VEAF_move_group_to_random_zone, nil, timer.getTime() + VEAF_random_move_zone_timer)
+end
+
+
+------------------------------------------------------------------------------
+-- function : AUTO_VEAF_move_group_to_random_zone
+-- args     : N/A
+-- output   : N/A
+------------------------------------------------------------------------------
+-- Objective: add dismount to units based on a tag in their name
+-- Author   : VEAF MagicBra
+------------------------------------------------------------------------------
+-- Version  : 1.0 17/11/14 + creation
+------------------------------------------------------------------------------
+function AUTO_VEAF_dismount_ground()
+
+	--- search units with tag (global var)
+	local unitsListWithRandom = VEAF_get_units_with_tag(VEAF_dismount_ground_random_tag)
+	local unitsListOnlySoldier = VEAF_get_units_with_tag(VEAF_dismount_ground_soldiers_tag)
+	local unitsListOnlyAAA = VEAF_get_units_with_tag(VEAF_dismount_ground_AAA_tag)
+	local unitsListOnlyManpads = VEAF_get_units_with_tag(VEAF_dismount_ground_manpads_tag)
+	local unitsListOnlyMortars = VEAF_get_units_with_tag(VEAF_dismount_ground_mortars_tag)
+	
+	
+	-- add dismount with rifles/soldiers only
+	for id, unitName in pairs(unitsListOnlySoldier) do
+			AddDismounts(unitName, "Rifle")
+	end
+	
+	-- add dismount with AAA only
+	for id, unitName in pairs(unitsListOnlyAAA) do
+			AddDismounts(unitName, "ZU-23")
+	end
+	
+	-- add dismount with manpads only
+	for id, unitName in pairs(unitsListOnlyManpads) do
+			AddDismounts(unitName, "MANPADS")
+	end
+	
+	-- add dismount with manpads only
+	for id, unitName in pairs(unitsListOnlyMortars) do
+			AddDismounts(unitName, "Mortar")
+	end
+	
+	-- add dismount with manpads only
+	for id, unitName in pairs(unitsListWithRandom) do
+			-- making a little random magic pipidibou !
+			proba = math.random(1,100)
+			mountType = _VEAF_get_random_mount_type(proba)
+			AddDismounts(unitName, mountType)
+	end
+
+    -- schedule function
+    --timer.scheduleFunction(AUTO_VEAF_move_group_to_random_zone, nil, timer.getTime() + VEAF_random_move_zone_timer)
+end
+
 ------------------------------------------------------------------------------
 -- function : VEAF_controller
 -- args     : N/A
@@ -961,6 +1118,11 @@ function VEAF_controller()
 	if (ENABLE_VEAF_CREATE_OBJECTIVES) then
 		AUTO_VEAF_create_objectives()
 	end
+	if (ENABLE_VEAF_GENERATE_RANDOM_SMOKES) then
+		AUTO_VEAF_generate_random_smokes_in_zone()
+	end	
+	
+	AUTO_VEAF_ground_patrol_group()
 	
 end
 
