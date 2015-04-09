@@ -16,6 +16,8 @@ VEAF_misison_library
 - 2014/11/16 : 1.0 release
 - 2014/11/17 : 1.1 dismount automation added
 - 2014/11/18 : 1.2 automated objective site generation.
+- 2014/12/11 : 1.3 randome smokes in area (infantry warfare simulation)
+- 2014/01/02 : 1.4 Ground patrols added
 
 -----------------------------
 1.0 Licensing
