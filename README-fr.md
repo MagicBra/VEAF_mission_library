@@ -39,7 +39,7 @@ Référez vous au fichier txt joint dans ce répertoire pour plus de détails.
 3.0 Installation 
 -----------------------------
 
-- télécharger mist >= 3.4 (http://forums.eagle.ru/showthread.php?t=98616)
+- télécharger mist >= 3.4 (https://github.com/mrSkortch/MissionScriptingTools)
 - dans l'éditeur de mission ajouter un nouveau trigger :
   type : once (init mission)
   condition : time more (1) 
