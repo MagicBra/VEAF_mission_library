@@ -5,9 +5,9 @@ VEAF_misison_library
 -----------------------------
 0.0 Introduction
 -----------------------------
-- initiator    : MagicBra (veaf.magicbra-a@t-gmail.com)
-- contributors : 
-- testers      :
+- initiator    : VEAF-MagicBra (veaf.magicbra-a@t-gmail.com)
+- contributors : VEAF-Couby
+- testers      : VEAF-Skywalker
 
 
 -----------------------------
@@ -16,6 +16,8 @@ VEAF_misison_library
 - 2014/11/16 : 1.0 release
 - 2014/11/17 : 1.1 dismount automation added
 - 2014/11/18 : 1.2 automated objective site generation.
+- 2014/12/11 : 1.3 randome smokes in area (infantry warfare simulation)
+- 2014/01/02 : 1.4 Ground patrols added
 
 -----------------------------
 1.0 Licensing
@@ -125,3 +127,37 @@ Please refer to the txt file included in this folder for more infos.
 	- sometimes some buildings (1 or 2) won't appear, it's an issue of the scripting engine. But most of them are there. 
 
 - Example mission : VEAF_dismount_ground.miz
+
+
+> 4.4 Automated random smoke generation based on zone name
+
+- Functionality : 
+  A determined number a smokes will be generated in each zones with the correct tag. 
+  each smoke has a random colour and starts with a small offset altitude (so they all look different on the battlefield) 
+  the smoke lifetime is determined by the game engine (about 300sec when this script was created)
+
+- how to :
+	- in the script, make sure that the variable "ENABLE_VEAF_GENERATE_RANDOM_SMOKES" is true (default)
+    - in the ME, add a trigger zone and set its radius (recommended 500 to 1500), the smokes will pop inside.
+    - For the zone, set its name to contain the good tag identified by the variable VEAF_generate_random_smokes_in_zone_zoneTag in the script (default is 'VEAFsmokernd'):
+    - ex of zone names in ME : VEAFsmokernd, VEAFsmokernd01, VEAFsmokernd #42, totoVEAFsmokerndtiti
+  
+- known issue : 
+	- too many smokes can slow down the clients in multilayer and create timeout from the server (tested with 100 w/o problem) .
+
+- Example mission : VEAF_random_smokes.miz
+
+
+> 4.5 Automated patrol for ground groups 
+
+- Functionality : 
+  Each group matching the tag in its name will patrol go back to its first waypoint when passing the last one. 
+
+- how to :
+    - in the ME, name a group with the correct tag identified in the script by VEAF_ground_patrol_groupTag (default : veafpat)
+    - ex of group names in ME : veafobj_rnd_blueside_veafpat, veafpat #42, AAA.veafpat
+  
+- known issue : 
+	- the script engine may not follow the determined roads if the WP are too close, and the groups may change their formation type.
+
+- Example mission : VEAF_Automated_patrols.miz
