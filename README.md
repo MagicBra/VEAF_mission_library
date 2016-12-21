@@ -41,7 +41,7 @@ Please refer to the txt file included in this folder for more infos.
 3.0 Installation 
 -----------------------------
 
-- download mist >= 3.4 (http://forums.eagle.ru/showthread.php?t=98616)
+- download mist >= 3.4 (https://github.com/mrSkortch/MissionScriptingTools)
 - in the ME add a new trigger :
   type : once (init mission)
   condition : time more (1) 
