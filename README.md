@@ -161,3 +161,14 @@ Please refer to the txt file included in this folder for more infos.
 	- the script engine may not follow the determined roads if the WP are too close, and the groups may change their formation type.
 
 - Example mission : VEAF_Automated_patrols.miz
+
+> 4.6 Trace grass runways
+
+- Functionality : 
+  Add grass runways with flags + tires limits
+
+- how to :
+  - include VEAF_grass_runways.lua
+  - use tag "veafgr" in object who act as the origin of the runway's right side
+
+- screenshots: https://imgur.com/a/VCPVoGr
