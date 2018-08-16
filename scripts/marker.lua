@@ -5,6 +5,9 @@
 -- documentation: see doc/marker.md
 ------------------------------------------------------------------------------
 
+-- a simple flag, set markerDebug = true
+markerDebug = false
+
 ------------------------------------------------------------------------------
 -- markerMoveCommandEventHandler
 -- ingame marker command: MOVE(groupName,speed)
@@ -80,11 +83,13 @@ function markerDetectMarkers(event)
 	if event.id == world.event.S_EVENT_MARK_CHANGE then 
    
 		-- display debug information
-		markerDebugEvent(event)
+		if markerDebug then
+			markerDebugEvent(event)
+		end
 
 		-- handle MOVE command (need to be improved)
 		if event.text~=nil and event.text:find('MOVE') then
-			moveCommandEventHandler(event)			
+			markerMoveCommandEventHandler(event)			
 		end 
    end 
 end 

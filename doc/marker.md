@@ -2,9 +2,15 @@
 
 ## Mission maker
 
-Just add marker.lua script execution after mist.lua is loaded:
+Just add marker.lua file script execution after mist.lua is loaded:
 
 ![init_mission](marker/init_mission_maker.jpg)
+
+To enable debug mode, add an inline script execution:
+
+```lua
+markerDebug = true
+```
 
 ##Players
 
