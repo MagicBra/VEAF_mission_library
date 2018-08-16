@@ -8,9 +8,9 @@ Move a group
 
 Exemple:
 
-![move_map](doc/move_map.jpg)
+![move_map](marker/move_map.jpg)
 
-![move_map](doc/move_external_view.jpg)
+![move_map](marker/move_external_view.jpg)
 
 Works with:
 
