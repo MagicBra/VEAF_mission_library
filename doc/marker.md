@@ -12,7 +12,7 @@ To enable debug mode, add an inline script execution:
 markerDebug = true
 ```
 
-##Players
+## Players
 
 In mission, simple add marker on map to send commands.
 
