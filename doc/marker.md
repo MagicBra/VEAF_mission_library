@@ -1,10 +1,21 @@
-Marker Documentation
---------------------
+# Marker Documentation
 
-Use in game (DCS World) markers to move groups on the map.
+## Mission maker
 
-Move a group
-============
+Just add marker.lua script execution after mist.lua is loaded:
+
+![init_mission](marker/init_mission_maker.jpg)
+
+##Players
+
+In mission, simple add marker on map to send commands.
+
+### Move a group
+
+Works with:
+
+* [x] ships
+* [ ] ground units (not tested)
 
 Exemple:
 
@@ -12,7 +23,3 @@ Exemple:
 
 ![move_map](marker/move_external_view.jpg)
 
-Works with:
-
-* [x] ships
-* [ ] ground units (not tested)
