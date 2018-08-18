@@ -1,6 +1,6 @@
 # CAS Infinity VEAF - création de zones de combat pour l'entrainement   
 
-Ce script ([CAS Infinity VEAF.lua](../scripts/CAS Infinity VEAF.lua) permet de générer facilement des zones de combat aléatoires, pour permettre un entrainement sur mesure.
+Le script [CAS Infinity VEAF.lua](../scripts/CAS Infinity VEAF.lua) permet de générer facilement des zones de combat aléatoires, pour permettre un entrainement sur mesure.
 En fonction du type d'entrainement souhaité et d'appareil piloté, il est possible de choisir des cibles faciles à abattre, ou très fortement défendues.
 
 ## Mission Maker
