@@ -30,6 +30,17 @@ Exemple :
 
 > arty engage, everyone, shots 50
 
+### Liste des unités disponibles
+
+- Alpha 1 ; artillerie de campagne (howitzer) ; clusters Alpha et Short
+- Alpha 2 ; artillerie de campagne (howitzer) ; clusters Alpha et Short
+- Bravo 1 ; artillerie de campagne (howitzer) ; clusters Bravo et Short
+- Bravo 2 ; artillerie de campagne (howitzer) ; clusters Bravo et Short
+- Long 1 ; lance roquettes multiples (MLRS) ; cluster Long
+- Long 2 ; lance roquettes multiples (MLRS) ; cluster Long
+- Perry 1 ; Frégate [Oliver Hazard Perry](https://en.wikipedia.org/wiki/Oliver_Hazard_Perry-class_frigate) ; cluster Perry
+- Perry 2 ; Frégate [Oliver Hazard Perry](https://en.wikipedia.org/wiki/Oliver_Hazard_Perry-class_frigate) ; cluster Perry
+
 ### Liste des commandes et de leurs paramètres (non exhaustive)
 
 #### arty engage
@@ -43,6 +54,7 @@ Il peut valoir *everyone* (ou *allbatteries*) pour engager toutes les batteries 
 On peut aussi préciser un cluster (groupement de batteries, voir liste des batteries) en précisant *cluster* "*nom du cluster*"
 Exemple : 
 > arty engage, cluster "long"
+
 Il est également possible de choisir une batterie (voir liste des batteries) en précisant *battery* "*nom de la batterie*"
 Exemple : 
 > arty engage, battery "Alpha 1"
@@ -72,6 +84,7 @@ Rayon de dispersion des munitions, en mètres (par défaut 100).
 
 Arme employée. Permet de choisir entre les différentes armes et munitions disponibles.
 > arty engage, weapon smokeshells
+
 > arty engage, weapon nuke
 
 ##### lldms
@@ -100,6 +113,7 @@ Il peut valoir *everyone* (ou *allbatteries*) pour déplacer toutes les batteries
 On peut aussi préciser un cluster (groupement de batteries, voir liste des batteries) en précisant *cluster* "*nom du cluster*"
 Exemple : 
 > arty move, cluster "long"
+
 Il est également possible de choisir une batterie (voir liste des batteries) en précisant *battery* "*nom de la batterie*"
 Exemple : 
 > arty move, battery "Alpha 1"
@@ -118,6 +132,7 @@ Il peut valoir *everyone* (ou *allbatteries*) pour interroger toutes les batteri
 On peut aussi préciser un cluster (groupement de batteries, voir liste des batteries) en précisant *cluster* "*nom du cluster*"
 Exemple : 
 > arty request, cluster "long"
+
 Il est également possible de choisir une batterie (voir liste des batteries) en précisant *battery* "*nom de la batterie*"
 Exemple : 
 > arty request, battery "Alpha 1"
@@ -145,6 +160,7 @@ Il peut valoir *everyone* (ou *allbatteries*) pour interroger toutes les batteri
 On peut aussi préciser un cluster (groupement de batteries, voir liste des batteries) en précisant *cluster* "*nom du cluster*"
 Exemple : 
 > arty request, cluster "long"
+
 Il est également possible de choisir une batterie (voir liste des batteries) en précisant *battery* "*nom de la batterie*"
 Exemple : 
 > arty request, battery "Alpha 1"
