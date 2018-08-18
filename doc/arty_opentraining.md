@@ -32,12 +32,12 @@ Exemple :
 
 ### Liste des unités disponibles
 
-- Alpha 1 ; artillerie de campagne (howitzer) ; clusters Alpha et Short
-- Alpha 2 ; artillerie de campagne (howitzer) ; clusters Alpha et Short
-- Bravo 1 ; artillerie de campagne (howitzer) ; clusters Bravo et Short
-- Bravo 2 ; artillerie de campagne (howitzer) ; clusters Bravo et Short
-- Long 1 ; lance roquettes multiples (MLRS) ; cluster Long
-- Long 2 ; lance roquettes multiples (MLRS) ; cluster Long
+- Alpha 1 ; artillerie de campagne (howitzer 2S19 Msta) ; clusters Alpha et Short
+- Alpha 2 ; artillerie de campagne (howitzer 2S19 Msta) ; clusters Alpha et Short
+- Bravo 1 ; artillerie de campagne (howitzer 2S19 Msta) ; clusters Bravo et Short
+- Bravo 2 ; artillerie de campagne (howitzer 2S19 Msta) ; clusters Bravo et Short
+- Long 1 ; lance roquettes multiples (MLRS Smerch) ; cluster Long
+- Long 2 ; lance roquettes multiples (MLRS Smerch) ; cluster Long
 - Perry 1 ; Frégate [Oliver Hazard Perry](https://en.wikipedia.org/wiki/Oliver_Hazard_Perry-class_frigate) ; cluster Perry
 - Perry 2 ; Frégate [Oliver Hazard Perry](https://en.wikipedia.org/wiki/Oliver_Hazard_Perry-class_frigate) ; cluster Perry
 
