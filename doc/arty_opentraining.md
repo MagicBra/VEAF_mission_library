@@ -18,8 +18,11 @@ Pour commander les batteries d'artillerie, il suffit de créer un marker sur la c
 Les commandes qui sont reconnues par ce script sont :
 
 > arty engage
+
 > arty move
+
 > arty request
+
 > arty cancel
 
 Les paramètres sont de la forme *paramètre* *valeur*, séparés les uns des autres (et de la commande) par des virgules.
