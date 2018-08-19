@@ -25,6 +25,7 @@ function MA_buildMenu()
 	_taskingsRootPath = missionCommands.addSubMenu('Tasking')
 	
 	_taskingsGroundPath = missionCommands.addSubMenu('Ground', _taskingsRootPath)
+	missionCommands.addCommand('INFO - Request a CAS task', _taskingsGroundPath, MA_infoCreateTask)
 	_taskingsTransportPath = missionCommands.addSubMenu('Transport', _taskingsRootPath)
 	
 	missionCommands.addCommand('Request cargo load', _taskingsTransportPath, MA_createTransportTask1)
@@ -47,7 +48,7 @@ function MA_createTransportTask2()
 	
 	repeat --Find a random spot of LAND within the large AO zone
 		cargoSpawnZone = mist.getRandPointInCircle(zone.point, zone.radius)
-	until land.getSurfaceType(cargoSpawnZone) == land.SurfaceType.LAND
+  until (land.getSurfaceType(unitPosition) == land.SurfaceType.LAND or land.getSurfaceType(unitPosition) == land.SurfaceType.ROAD or land.getSurfaceType(unitPosition) == land.SurfaceType.RUNWAY) 
 	
 	local cargo = {}
 	local cargoRand
@@ -106,12 +107,42 @@ end
 
 -- CAS tasks
 
-function MA_createTask2(zoneName, size, sam, armor, spacing)
+function MA_infoCreateTask()
+    trigger.action.outText("Create a marker and use the 'create ao' command ; parameters are comma-separated and can be : size, sam, armor, spacing" , 10)
+end
+
+function MA_createTask2(unitSpawnZone, size, sam, armor, spacing)
 
 		local units = {}
 		local infantryUnits = {}
 		local groupSize
 		local i
+		
+		-- Move reaper
+		
+		local groupName = 'Reaper'
+
+    -- new route point
+    local newWaypoint = {
+      action = "Turning Point",
+      alt = 20000,
+      alt_type = "BARO",
+      form = "Turning Point",
+      speed = 61,
+      type = "Turning Point",
+      x = unitSpawnZone.x,
+      y = unitSpawnZone.y
+    }
+    
+    -- prepare LatLong message
+    local vec3={x=unitSpawnZone.x, y=unitSpawnZone.y, z=unitSpawnZone.z}
+    lat, lon = coord.LOtoLL(vec3)
+    llString = mist.tostringLL(lat, lon, 2)
+    
+    -- order group to new waypoint
+    mist.goRoute(groupName, {newWaypoint})
+    
+    casInfinity.info(groupName .. ' moving to ' .. llString .. ' at 120 knots')
 		
 		-- Insert Manpads
 		local iglaCount = 0
@@ -119,16 +150,17 @@ function MA_createTask2(zoneName, size, sam, armor, spacing)
 			local iglaRand = mist.random(100)
 			
 			if iglaRand > 100-(5*sam) then
-				iglaCount = mist.random(4 * size, 5 * size)
+				iglaCount = mist.random(1.5 * size, 2 * size)
 			elseif iglaRand > 100-(5+10*sam) then
-				iglaCount = mist.random(3 * size, 4 * size)
+				iglaCount = mist.random(1.25 * size, 1.5 * size)
 			elseif iglaRand > 100-(15+15*sam) then
-				iglaCount = mist.random(2 * size, 3 * size)
+				iglaCount = mist.random(1 * size, 1.25 * size)
 			elseif iglaRand > 100-(45+25*sam) then
-				iglaCount = mist.random(1 * size, 2 * size)
+				iglaCount = mist.random(size/2, size)
 			else
-				iglaCount = mist.random(1 * size)
+				iglaCount = mist.random(size/2)
 			end
+		  iglaCount = math.floor(iglaCount)
 		end
 		
 		casInfinity.info(string.format("iglaCount = %d", iglaCount))
@@ -137,9 +169,9 @@ function MA_createTask2(zoneName, size, sam, armor, spacing)
 			
 			for i = 1, iglaCount do
 				
-				repeat --Place every unit within a (size+3-spacing)*150m radius circle from the spot previously randomly chosen
-					unitPosition = mist.getRandPointInCircle(unitSpawnZone, 250)
-				until land.getSurfaceType(unitPosition) == land.SurfaceType.LAND
+        repeat --Place every unit within a (size-2+spacing)*400ft radius circle from the spot previously randomly chosen
+          unitPosition = mist.getRandPointInCircle(unitSpawnZone, (size-2+spacing)*200)
+        until (land.getSurfaceType(unitPosition) == land.SurfaceType.LAND or land.getSurfaceType(unitPosition) == land.SurfaceType.ROAD or land.getSurfaceType(unitPosition) == land.SurfaceType.RUNWAY) 
 
 				table.insert(infantryUnits,
 				{
@@ -169,18 +201,18 @@ function MA_createTask2(zoneName, size, sam, armor, spacing)
 		local samCount  = 0
 		if sam > 0 then
 			local samRand = mist.random(100)
-			
-			if samRand > 100-(5*(sam-2)) then
-				samCount = mist.random(4 * size, 5 * size)
-			elseif samRand > 100-(5+10*(sam-2)) then
-				samCount = mist.random(3 * size, 4 * size)
-			elseif samRand > 100-(15+15*(sam-2)) then
-				samCount = mist.random(2 * size, 3 * size)
-			elseif samRand > 100-(45+25*(sam-2)) then
-				samCount = mist.random(1 * size, 2 * size)
+			if samRand > 100-(5*sam) then
+				samCount = mist.random(2.5 * size, 3 * size)
+			elseif samRand > 100-(5+10*sam) then
+				samCount = mist.random(2 * size, 2.5 * size)
+			elseif samRand > 100-(15+15*sam) then
+				samCount = mist.random(1.5 * size, 2 * size)
+			elseif samRand > 100-(45+25*sam) then
+				samCount = mist.random(size, 1.5 * size)
 			else
-				samCount = mist.random(1 * size)
+				samCount = mist.random(size)
 			end
+	    samCount= math.floor(samCount)
 		end
 		
 		casInfinity.info(string.format("samCount = %d", samCount))
@@ -208,11 +240,10 @@ function MA_createTask2(zoneName, size, sam, armor, spacing)
 				end
 				
 				casInfinity.info(string.format("samType = %s", samType))
-
 				
-				repeat --Place every unit within a (size-2+spacing)*120m radius circle from the spot previously randomly chosen
+				repeat --Place every unit within a (size-2+spacing)*400ft radius circle from the spot previously randomly chosen
 					unitPosition = mist.getRandPointInCircle(unitSpawnZone, (size-2+spacing)*200)
-				until land.getSurfaceType(unitPosition) == land.SurfaceType.LAND
+				until (land.getSurfaceType(unitPosition) == land.SurfaceType.LAND or land.getSurfaceType(unitPosition) == land.SurfaceType.ROAD or land.getSurfaceType(unitPosition) == land.SurfaceType.RUNWAY)
 
 				table.insert(units,
 				{
@@ -233,7 +264,8 @@ function MA_createTask2(zoneName, size, sam, armor, spacing)
 		-- Insert armors
 		local armorCount = 0
 		if armor > 0 then
-			armorCount = (2 + mist.random(3 + samCount)) * size
+		
+			armorCount = mist.random(3,8) * size
 
 			local armorType
 			local armorRand
@@ -317,9 +349,9 @@ function MA_createTask2(zoneName, size, sam, armor, spacing)
 					end
 				end
 				
-				repeat --Place every unit within a (size-2+spacing)*100m radius circle from the spot previously randomly chosen
-						unitPosition = mist.getRandPointInCircle(unitSpawnZone, (size-2+spacing)*160)
-				until land.getSurfaceType(unitPosition) == land.SurfaceType.LAND
+        repeat --Place every unit within a (size-2+spacing)*400ft radius circle from the spot previously randomly chosen
+          unitPosition = mist.getRandPointInCircle(unitSpawnZone, (size-2+spacing)*200)
+				until (land.getSurfaceType(unitPosition) == land.SurfaceType.LAND or land.getSurfaceType(unitPosition) == land.SurfaceType.ROAD or land.getSurfaceType(unitPosition) == land.SurfaceType.RUNWAY) 
 
 				table.insert(units,
 				{
@@ -339,7 +371,9 @@ function MA_createTask2(zoneName, size, sam, armor, spacing)
 		groupSize = groupSize + armorCount
 		
 		-- Insert transport
-		local transportCount = (mist.random(groupSize/2,groupSize)) * (size/2)
+		local transportCount = mist.random(3,8) * size
+		transportCount = math.floor(transportCount)
+		
 		local transportType
 		
 		for i = 1, transportCount do --Insert a random number (min 1, max 5)of random (selection 14 possible) vehicles into table units{}
@@ -375,9 +409,9 @@ function MA_createTask2(zoneName, size, sam, armor, spacing)
 				transportType = 'Ural ATsP-6'
 			end
 
-			repeat --Place every unit within a (size-2+spacing)*60m radius circle from the spot previously randomly chosen
-					unitPosition = mist.getRandPointInCircle(unitSpawnZone, (size-2+spacing)*100)
-			until land.getSurfaceType(unitPosition) == land.SurfaceType.LAND
+        repeat --Place every unit within a (size-2+spacing)*400ft radius circle from the spot previously randomly chosen
+          unitPosition = mist.getRandPointInCircle(unitSpawnZone, (size-2+spacing)*200)
+			until (land.getSurfaceType(unitPosition) == land.SurfaceType.LAND or land.getSurfaceType(unitPosition) == land.SurfaceType.ROAD or land.getSurfaceType(unitPosition) == land.SurfaceType.RUNWAY)
 
 			table.insert(units,
 			{
@@ -396,16 +430,16 @@ function MA_createTask2(zoneName, size, sam, armor, spacing)
 		groupSize = groupSize + transportCount
 		
 		-- insert infantry
-		local infantryMult = mist.random(10)/10
-		local infantryCount = groupSize*infantryMult
+		local infantryCount = mist.random(groupSize/10, groupSize)
+		infantryCount = math.floor(infantryCount)
 		
 		for i = 1, infantryCount do --Insert 0.1 to 1 times as many infantry soldiers as there are vehicles in the group into the table units{}
 		
 			unitType = 'Soldier AK'
 		
-			repeat --Place every unit within a (size-2+spacing)*80m radius circle from the spot previously randomly chosen
-				unitPosition = mist.getRandPointInCircle(unitSpawnZone, (size-2+spacing)*140)
-			until land.getSurfaceType(unitPosition) == land.SurfaceType.LAND
+        repeat --Place every unit within a (size-2+spacing)*400ft radius circle from the spot previously randomly chosen
+          unitPosition = mist.getRandPointInCircle(unitSpawnZone, (size-2+spacing)*200)
+			until (land.getSurfaceType(unitPosition) == land.SurfaceType.LAND or land.getSurfaceType(unitPosition) == land.SurfaceType.ROAD or land.getSurfaceType(unitPosition) == land.SurfaceType.RUNWAY)
 		
 			table.insert(infantryUnits,
 				{
@@ -487,6 +521,7 @@ function MA_createTask2(zoneName, size, sam, armor, spacing)
 
 
 		missionCommands.addCommand('Skip current objective', _taskingsGroundPath, MA_skipTask)
+		missionCommands.removeItem({'Tasking', 'Ground', 'INFO - Request a CAS task'})
 		
 		MA_out('An enemy group of ' .. groupSize .. ' vehicles and infantry has been located. Consult your F10 radio commands for more information.', 5)
 		
@@ -639,7 +674,7 @@ function MA_postTaskCleanup()
 	missionCommands.removeItem({'Tasking', 'Ground', 'Skip current objective'})
 	missionCommands.removeItem({'Tasking', 'Ground', 'Target markers'})
 	missionCommands.removeItem({'Tasking', 'Ground', 'Target information'})
-
+  missionCommands.addCommand('INFO - Request a CAS task', _taskingsGroundPath, MA_infoCreateTask)
 	groupAliveCheckTaskID = 'none'
 
 end
@@ -760,15 +795,13 @@ local function AOMarker(event)
 					casInfinity.info(string.format("spacing = %s", tostring(spacing)))
 					
 					local vec3 = {x=event.pos.z, y=event.pos.y, z=event.pos.x, p=0}
-					unitSpawnZone = mist.utils.makeVec2(vec3)
+					local unitSpawnZone = mist.utils.makeVec2(vec3)
 				
-					if land.getSurfaceType(unitSpawnZone) == land.SurfaceType.LAND then
+					if land.getSurfaceType(unitSpawnZone) == land.SurfaceType.LAND or land.SurfaceType.LAND or land.getSurfaceType(unitPosition) == land.SurfaceType.ROAD or land.getSurfaceType(unitPosition) == land.SurfaceType.RUNWAY then
 			
 							MA_out('Copy new tasking requested, stand by...', 10)
 							
-							local aoName = unitSpawnZone
-							
-							mist.scheduleFunction(MA_createTask2, {aoName, size, sam, armor, spacing}, timer.getTime() + 2 + mist.random(5))
+							mist.scheduleFunction(MA_createTask2, {unitSpawnZone, size, sam, armor, spacing}, timer.getTime() + 2 + mist.random(5))
 							
 					else
 					
