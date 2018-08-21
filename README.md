@@ -161,3 +161,7 @@ Please refer to the txt file included in this folder for more infos.
 	- the script engine may not follow the determined roads if the WP are too close, and the groups may change their formation type.
 
 - Example mission : VEAF_Automated_patrols.miz
+
+> 4.6 Auto build FARPs and grass runways
+
+- See [grass.lua](doc/grass.md) for more information

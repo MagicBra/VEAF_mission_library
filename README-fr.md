@@ -127,3 +127,7 @@ Référez vous au fichier txt joint dans ce répertoire pour plus de détails.
 	- parfois certains bâtiments (1 ou 2) n'apparaissent pas, c'est un problème du moteur de script. Mais la plupart des bâtiment seront bien là. 
 
 - Mission de démo : VEAF_dismount_ground.miz
+
+> 4.6 Création automatique d'unités sur les FARP et pistes en herbe
+
+- Voir [grass.lua](doc/grass.md) pour plus d'informations
