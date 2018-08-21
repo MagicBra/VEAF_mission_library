@@ -162,13 +162,6 @@ Please refer to the txt file included in this folder for more infos.
 
 - Example mission : VEAF_Automated_patrols.miz
 
-> 4.6 Trace grass runways
+> 4.6 Auto build FARPs and grass runways
 
-- Functionality : 
-  Add grass runways with flags + tires limits
-
-- how to :
-  - include VEAF_grass_runways.lua
-  - use tag "veafgr" in object who act as the origin of the runway's right side
-
-- screenshots: https://imgur.com/a/VCPVoGr
+- See [grass.lua](doc/grass.md) for more information
