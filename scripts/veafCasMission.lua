@@ -597,12 +597,12 @@ function veafCasMission.reportTargetInformation()
 
     -- get altitude, qfe and wind information
     local altitude = veaf.getLandHeight(averageGroupPosition)
-    local qfeHp = mist.utils.getQFE(averageGroupPosition, false)
-    local qfeinHg = mist.utils.getQFE(averageGroupPosition, true)
+    --local qfeHp = mist.utils.getQFE(averageGroupPosition, false)
+    --local qfeinHg = mist.utils.getQFE(averageGroupPosition, true)
     local windDirection, windStrength = veaf.getWind(veaf.placePointOnLand(averageGroupPosition))
 
     message = message .. 'TARGET ALT       : ' .. altitude .. " meters.\n"
-    message = message .. 'TARGET QFW       : ' .. qfeHp .. " hPa / " .. qfeinHg .. " inHg.\n"
+    --message = message .. 'TARGET QFW       : ' .. qfeHp .. " hPa / " .. qfeinHg .. " inHg.\n"
     local windText =     'no wind.\n'
     if windStrength > 0 then
         windText = string.format(
