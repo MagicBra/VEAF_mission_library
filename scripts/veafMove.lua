@@ -250,7 +250,7 @@ end
 ------------------------------------------------------------------------------
 function veafMove.moveGroup(eventPos, groupName, speed)
     veafMove.logDebug("veafMove.moveGroup(groupName = " .. groupName .. ", speed = " .. speed)
-    veafSpawn.logDebug(string.format("veafMove.moveGroup: eventPos  x=%.1f y=%.1f", eventPos.x, eventPos.y))
+    veafSpawn.logDebug(string.format("veafMove.moveGroup: eventPos  x=%.1f z=%.1f", eventPos.x, eventPos.z))
 
 
 	local unitGroup = Group.getByName(groupName)
@@ -269,7 +269,7 @@ function veafMove.moveGroup(eventPos, groupName, speed)
 		["speed"] = speed/1.94384,  -- speed in m/s
 		["type"] = "Turning Point",
 		["x"] = eventPos.x,
-		["y"] = eventPos.y,
+		["y"] = eventPos.z,
 	}
 
 	-- order group to new waypoint
@@ -293,7 +293,7 @@ end
 ------------------------------------------------------------------------------
 function veafMove.moveTanker(eventPos, groupName, speed, hdg ,distance,alt)
     veafMove.logDebug("veafMove.moveGroup(groupName = " .. groupName .. ", speed = " .. speed .. ", hdg = " .. hdg .. ", distance = " .. distance .. ", alt = " .. alt)
-    veafSpawn.logDebug(string.format("veafMove.moveGroup: eventPos  x=%.1f y=%.1f", eventPos.x, eventPos.y))
+    veafSpawn.logDebug(string.format("veafMove.moveGroup: eventPos  x=%.1f z=%.1f", eventPos.x, eventPos.z))
 
 	local unitGroup = Group.getByName(groupName)
 	if unitGroup == nil then
@@ -303,12 +303,15 @@ function veafMove.moveTanker(eventPos, groupName, speed, hdg ,distance,alt)
 	end
 
 	-- starting position
-	local fromPosition = eventPos
+	local fromPosition = {
+		["x"] = eventPos.x,
+		["y"] = eventPos.z
+	}
 	
 	-- ending position
 	local toPosition = {
 		["x"] = fromPosition.x + distance * 1000 * 0.539957 * math.cos(mist.utils.toRadian(hdg)),
-		["y"] = fromPosition.y + distance * 1000 * 0.539957 * math.sin(mist.utils.toRadian(hdg)),
+		["y"] = fromPosition.y + distance * 1000 * 0.539957 * math.sin(mist.utils.toRadian(hdg))
 	}
 
 	local mission = { 
