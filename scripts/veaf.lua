@@ -96,8 +96,18 @@ function veaf.trim(s)
     return s:sub(a,b-1)
 end
 
---- Split string around a separator
+--- Split string. C.f. http://stackoverflow.com/questions/1426954/split-string-in-lua
 function veaf.split(str, sep)
+    local result = {}
+    local regex = ("([^%s]+)"):format(sep)
+    for each in str:gmatch(regex) do
+        table.insert(result, each)
+    end
+    return result
+end
+
+--- Break string around a separator
+function veaf.breakString(str, sep)
     local regex = ("^([^%s]+)%s(.*)$"):format(sep, sep)
     local a, b = str:match(regex)
     if not a then a = str end

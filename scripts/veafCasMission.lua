@@ -196,7 +196,7 @@ function veafCasMission.markTextAnalysis(text)
 
     for _, keyphrase in pairs(keywords) do
         -- Split keyphrase by space. First one is the key and second, ... the parameter(s) until the next comma.
-        local str = veaf.split(veaf.trim(keyphrase), " ")
+        local str = veaf.breakString(veaf.trim(keyphrase), " ")
         local key = str[1]
         local val = str[2]
 
