@@ -280,7 +280,6 @@ function veafCasMission.generateAirDefenseGroup(groupId, spawnSpot, defense, arm
     end
 
     -- generate a secondary air defense platoon
-    local groupCount = mist.random(1, 3)
     for i = 2, groupCount do
         samTypeRand = mist.random(100)
 				
