@@ -572,42 +572,44 @@ end
 
 function veafCasMission.reportTargetInformation()
     -- generate information dispatch
+    local vehiclesUnits = Group.getByName(veafCasMission.RedCasVehiclesGroupName):getUnits()
+    local infantryUnits = Group.getByName(veafCasMission.RedCasInfantryGroupName):getUnits()
+
+    local message =      "TARGET: Group of " .. #vehiclesUnits .. " vehicles and " .. #infantryUnits .. " soldiers.\n"
+    message = message .. "\n"
+
+    -- add coordinates and position from bullseye
     local averageGroupPosition = veaf.getAveragePosition(veafCasMission.RedCasVehiclesGroupName)
     local lat, lon = coord.LOtoLL(averageGroupPosition)
     local mgrsString = mist.tostringMGRS(coord.LLtoMGRS(lat, lon), 3)
-
-    -- get position from bullseye
     local bullseye = mist.utils.makeVec3(mist.DBs.missionData.bullseye.blue, 0)
 	local vec = {x = averageGroupPosition.x - bullseye.x, y = averageGroupPosition.y - bullseye.y, z = averageGroupPosition.z - bullseye.z}
 	local dir = mist.utils.round(mist.utils.toDegree(mist.utils.getDir(vec, bullseye)), 0)
 	local dist = mist.utils.get2DDist(averageGroupPosition, bullseye)
 	local distMetric = mist.utils.round(dist/1000, 0)
 	local distImperial = mist.utils.round(mist.utils.metersToNM(dist), 0)
-	local fromBullseye = string.format('%03d', dir) .. ' for ' .. distMetric .. 'km/' .. distImperial .. 'nm'
+	local fromBullseye = string.format('%03d', dir) .. ' for ' .. distMetric .. 'km /' .. distImperial .. 'nm'
 
-    -- get wind information
-    local windDirection, windStrength = veaf.getWind(veaf.placePointOnLand(averageGroupPosition))
-
-    -- add radio menu information messages
-    local vehiclesUnits = Group.getByName(veafCasMission.RedCasVehiclesGroupName):getUnits()
-    local infantryUnits = Group.getByName(veafCasMission.RedCasInfantryGroupName):getUnits()
-
-    local message =      "TARGET: Group of " .. #vehiclesUnits .. " vehicles and " .. #infantryUnits .. " soldiers.\n"
-    message = message .. "\n"
     message = message .. "LAT LON (decimal): " .. mist.tostringLL(lat, lon, 2) .. ".\n"
     message = message .. "LAT LON (DMS)    : " .. mist.tostringLL(lat, lon, 0, true) .. ".\n"
     message = message .. "MGRS/UTM         : " .. mgrsString .. ".\n"
-    message = message .. "\n"
     message = message .. "FROM BULLSEYE    : " .. fromBullseye .. ".\n"
     message = message .. "\n"
-    message = message .. 'TARGET ALT       : ' .. veaf.getLandHeight(averageGroupPosition) .. " meters.\n"
-    message = message .. "\n"
-    local windText =     'WIND             : no wind.\n'
+
+    -- get altitude, qfe and wind information
+    local altitude = veaf.getLandHeight(averageGroupPosition)
+    local qfeHp = mist.utils.getQFE(averageGroupPosition, false)
+    local qfeinHg = mist.utils.getQFE(averageGroupPosition, true)
+    local windDirection, windStrength = veaf.getWind(veaf.placePointOnLand(averageGroupPosition))
+
+    message = message .. 'TARGET ALT       : ' .. altitude .. " meters.\n"
+    message = message .. 'TARGET QFW       : ' .. qfeHp .. " hPa / " .. qfeinHg .. " inHg.\n"
+    local windText =     'no wind.\n'
     if windStrength > 0 then
         windText = string.format(
-                         'WIND             : from %s at %s m/s.\n', windDirection, windStrength)
+                         'from %s at %s m/s.\n', windDirection, windStrength)
     end
-    message = message .. windText
+    message = message .. 'WIND OVER TARGET : ' .. windText
 
     trigger.action.outText(message, 15)
 end
