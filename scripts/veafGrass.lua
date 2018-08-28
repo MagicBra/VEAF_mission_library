@@ -144,10 +144,8 @@ end
 function veafGrass.buildFarpsUnits()
 
 	for name, unit in pairs(mist.DBs.unitsByName) do
-		if unit.type == "SINGLE_HELIPAD" and string.find(name, 'FARP ') then		
-			veafGrass.buildFarpUnits(unit, 100)
-		elseif unit.type == "FARP" and string.find(name, 'FARP ') then		
-			veafGrass.buildFarpUnits(unit, 140)
+		if (unit.type == "SINGLE_HELIPAD" or unit.type == "FARP") and string.find(name, 'FARP ') then
+			veafGrass.buildFarpUnits(unit)
 		end
 	end
 	
@@ -155,13 +153,19 @@ end
 
 ------------------------------------------------------------------------------
 -- build nice FARP units arround the FARP
--- @param float tentDistance distance (in meters) from the center of the FARP 
--- to first tent
+-- @param unit farp : the FARP unit
 ------------------------------------------------------------------------------
-function veafGrass.buildFarpUnits(farp, tentDistance)
+function veafGrass.buildFarpUnits(farp)
 
 	local angle = mist.utils.toDegree(farp.heading);
-	local tentSpacing=20
+	local tentSpacing = 20
+	local tentDistance = 100
+
+	-- fix tents distance on FARP
+	if farp.type == "FARP" then
+		tentDistance = 150
+	end
+
 	local tentOrigin = {
 		["x"] = farp.x + tentDistance * math.cos(mist.utils.toRadian(angle)),
 		["y"] = farp.y + tentDistance * math.sin(mist.utils.toRadian(angle)),
@@ -218,6 +222,13 @@ function veafGrass.buildFarpUnits(farp, tentDistance)
 	-- create Windsock
 	local windstockDistance = 50
 	local windstockAngle = 45
+
+	-- fix Windsock position on FARP
+	if farp.type == "FARP" then
+		windstockDistance = 110
+		windstockAngle = 0
+	end
+
 	local windstockUnit = {
 		["category"] = 'static',
 		["categoryStatic"] = 'Fortifications',
@@ -226,10 +237,26 @@ function veafGrass.buildFarpUnits(farp, tentDistance)
 		["countryId"] = farp.countryId,
 		["heading"] = mist.utils.toRadian(angle-90),
 		["type"] = 'H-Windsock_RW',
-		["x"] = farp.x + windstockDistance * math.cos(mist.utils.toRadian(angle+windstockAngle)),
-		["y"] = farp.y + windstockDistance * math.sin(mist.utils.toRadian(angle+windstockAngle)),
+		["x"] = farp.x + windstockDistance * math.cos(mist.utils.toRadian(angle + windstockAngle)),
+		["y"] = farp.y + windstockDistance * math.sin(mist.utils.toRadian(angle + windstockAngle)),
 	}
 	mist.dynAddStatic(windstockUnit)
+
+	-- on FARP unit, place a second windsock, on the other side
+	if farp.type == 'FARP' then
+		local windstockUnit = {
+			["category"] = 'static',
+			["categoryStatic"] = 'Fortifications',
+			["coalition"] = farp.coalition,
+			["country"] = farp.country,
+			["countryId"] = farp.countryId,
+			["heading"] = mist.utils.toRadian(angle-90),
+			["type"] = 'H-Windsock_RW',
+			["x"] = farp.x + windstockDistance * math.cos(mist.utils.toRadian(angle + windstockAngle + 180)),
+			["y"] = farp.y + windstockDistance * math.sin(mist.utils.toRadian(angle + windstockAngle + 180)),
+		}
+		mist.dynAddStatic(windstockUnit)
+	end
 
 	-- spawn a FARP escort group
 	local farpEscortUnitsNames={
