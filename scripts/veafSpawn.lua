@@ -14,7 +14,8 @@
 -- ------------
 -- * This script requires DCS 2.5.1 or higher and MIST 4.3.74 or higher.
 -- * It also requires the base veaf.lua script library (version 1.0 or higher)
--- * It also requires the base veafMarkers.lua script library (version 1.0 or higher)
+-- * It also requires the veafMarkers.lua script library (version 1.0 or higher)
+-- * It also requires the veafUnits.lua script library (version 1.0 or higher)
 --
 -- Load the script:
 -- ----------------
@@ -29,6 +30,8 @@
 --     * ACTION "DO SCRIPT FILE"
 --     * OPEN --> Browse to the location of veafMarkers.lua and click OK.
 --     * ACTION "DO SCRIPT FILE"
+--     * OPEN --> Browse to the location of veafUnits.lua and click OK.
+--     * ACTION "DO SCRIPT FILE"
 --     * OPEN --> Browse to the location of this script and click OK.
 --     * ACTION "DO SCRIPT"
 --     * set the script command to "veafSpawn.initialize()" and click OK.
@@ -38,7 +41,7 @@
 -- Basic Usage:
 -- ------------
 -- 1.) Place a mark on the F10 map.
--- 2.) As text enter "veaf spawn unit" or "veaf spawn cargo"
+-- 2.) As text enter "veaf spawn [unit|group|cargo|smoke|flare]"
 -- 3.) Click somewhere else on the map to submit the new text.
 -- 4.) The command will be processed. A message will appear to confirm this
 -- 5.) The original mark will disappear.
@@ -120,6 +123,8 @@ function veafSpawn.onEventMarkChange(eventPos, event)
             -- Check options commands
             if options.unit then
                 veafSpawn.spawnUnit(eventPos, options.unitType)
+            elseif options.group then
+                veafSpawn.spawnGroup(eventPos, options.groupAlias)
             elseif options.cargo then
                 veafSpawn.spawnCargo(eventPos, options.cargoType, options.cargoSmoke)
             elseif options.smoke then
@@ -148,12 +153,16 @@ function veafSpawn.markTextAnalysis(text)
     -- Option parameters extracted from the mark text.
     local switch = {}
     switch.unit = false
+    switch.group = false
     switch.cargo = false
     switch.smoke = false
     switch.flare = false
 
     -- spawned unit type
     switch.unitType = "BTR-80"
+
+    -- spawned group alias
+    switch.groupAlias = ""
 
     -- smoke color
     switch.smokeColor = trigger.smokeColor.Red
@@ -193,6 +202,12 @@ function veafSpawn.markTextAnalysis(text)
             -- Set unit type.
             veafSpawn.logDebug(string.format("Keyword type = %s", val))
             switch.unitType = val
+        end
+
+        if switch.group and key:lower() == "alias" then
+            -- Set group alias.
+            veafSpawn.logDebug(string.format("Keyword alias = %s", val))
+            switch.groupAlias = val
         end
 
         if switch.smoke and key:lower() == "color" then
@@ -247,7 +262,72 @@ function veafSpawn.markTextAnalysis(text)
         end
     end
 
+    -- check mandatory parameter "alias" for command "group"
+    if switch.group and not(switch.alias) then return nil end
+    
     return switch
+end
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Group spawn command
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--- Spawn a specific group at a specific spot
+function veafSpawn.spawnGroup(spawnSpot, groupAlias)
+    veafSpawn.logDebug("spawnGroup(groupAlias = " .. groupAlias .. ")")
+    veafSpawn.logDebug(string.format("spawnGroup: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
+    
+    veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
+
+    -- find the desired group in the groups database
+    local group = veafUnits.findGroup(groupAlias)
+    if not(group) then
+        veafSpawn.logInfo("cannot find group "..groupAlias)
+        trigger.action.outText("cannot find group "..groupAlias, 5)
+        return    
+    end
+
+    local units = {}
+    
+    veafSpawn.logDebug("spawnGroup group.naval = " .. tostring(group.naval))
+    
+    local groupName = group.groupName .. " #" .. veafSpawn.spawnedUnitsCounter
+
+    for i=1, #group.units do
+        local unitType = group.units[i]
+        local unitName = groupName .. " / " .. unitType .. " #" .. i
+        
+        local spawnPosition = veaf.findPointInZone(spawnSpot, 50, group.naval)
+        if spawnPosition == nil then
+            veafSpawn.logInfo("cannot find a suitable position for spawning unit "..unitType)
+            trigger.action.outText("cannot find a suitable position for spawning unit "..unitType, 5)
+            return
+        end  
+    
+        if spawnPosition ~= nil then
+            table.insert(
+                units,
+                {
+                    ["x"] = spawnPosition.x,
+                    ["y"] = spawnPosition.y,
+                    ["type"] = unitType,
+                    ["name"] = unitName,
+                    ["heading"] = 0,
+                    ["skill"] = "Random"
+                }
+            )
+        end
+    end
+
+    -- actually spawn the group
+    if group.naval then
+        mist.dynAdd({country = "RUSSIA", category = "SHIP", name = groupName, hidden = false, units = units})
+    else
+        mist.dynAdd({country = "RUSSIA", category = "GROUND_UNIT", name = groupName, hidden = false, units = units})
+    end
+
+    -- message the unit spawning
+    trigger.action.outText("An enemy " .. group.description .. " has been spawned", 5)
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -255,26 +335,32 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Spawn a specific unit at a specific spot
-function veafSpawn.spawnUnit(spawnSpot, unitType)
-    veafSpawn.logDebug("spawnUnit(unitType = " .. unitType .. ")")
+function veafSpawn.spawnUnit(spawnSpot, unitAlias)
+    veafSpawn.logDebug("spawnUnit(unitAlias = " .. unitAlias .. ")")
     veafSpawn.logDebug(string.format("spawnUnit: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
     
+    -- find the desired unit in the groups database
+    local unit = veafUnits.findUnit(groupAlias)
+    if not(unit) then  -- default value is that unitAlias is the actual DCS unit type
+        unit = {
+            aliases = {unitAlias},
+            unitType = unitAlias,
+            naval = (unitAlias == "VINSON" or  unitAlias == "PERRY" or unitAlias == "TICONDEROG" or unitAlias == "ALBATROS" or unitAlias == "KUZNECOW" or unitAlias == "MOLNIYA" or unitAlias == "MOSCOW" or unitAlias == "NEUSTRASH" or unitAlias == "PIOTR" or unitAlias == "REZKY" or unitAlias == "ELNYA" or unitAlias == "Dry-cargo ship-2" or unitAlias == "Dry-cargo ship-1" or unitAlias == "ZWEZDNY" or unitAlias == "KILO" or unitAlias == "SOM" or unitAlias == "speedboat")
+        }
+    end
+
     veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
 
-    local isShip = false
     local units = {}
     
-    if unitType == "VINSON" or  unitType == "PERRY" or unitType == "TICONDEROG" or unitType == "ALBATROS" or unitType == "KUZNECOW" or unitType == "MOLNIYA" or unitType == "MOSCOW" or unitType == "NEUSTRASH" or unitType == "PIOTR" or unitType == "REZKY" or unitType == "ELNYA" or unitType == "Dry-cargo ship-2" or unitType == "Dry-cargo ship-1" or unitType == "ZWEZDNY" or unitType == "KILO" or unitType == "SOM" or unitType == "speedboat" then
-        isShip = true
-    end
-    veafSpawn.logDebug("spawnUnit isShip = " .. tostring(isShip))
+    veafSpawn.logDebug("spawnUnit naval = " .. tostring(unit.naval))
     
     local groupName = veafSpawn.RedSpawnedUnitsGroupName .. " #" .. veafSpawn.spawnedUnitsCounter
     local unitName = groupName
 
-    local spawnPosition = veaf.findPointInZone(spawnSpot, 50, isShip)
+    local spawnPosition = veaf.findPointInZone(spawnSpot, 50, unit.naval)
     if spawnPosition == nil then
-        if isShip then 
+        if unit.naval then 
             veafSpawn.logInfo("cannot find a suitable position for spawning naval unit "..unitType)
             trigger.action.outText("cannot find a suitable position for spawning naval unit "..unitType, 5)
             return
@@ -291,7 +377,7 @@ function veafSpawn.spawnUnit(spawnSpot, unitType)
             {
                 ["x"] = spawnPosition.x,
                 ["y"] = spawnPosition.y,
-                ["type"] = unitType,
+                ["type"] = unit.unitType,
                 ["name"] = unitName,
                 ["heading"] = 0,
                 ["skill"] = "Random"
@@ -307,7 +393,7 @@ function veafSpawn.spawnUnit(spawnSpot, unitType)
     end
 
     -- message the unit spawning
-    trigger.action.outText("An enemy unit of type " .. unitType .. " has been spawned", 5)
+    trigger.action.outText("An enemy unit of type " .. unit.unitType .. " has been spawned", 5)
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -443,9 +529,6 @@ function veafSpawn.help()
             
     trigger.action.outText(text, 30)
 end
-
-
-
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- initialisation
