@@ -19,6 +19,10 @@
 -- 3.) Add a new trigger:
 --     * TYPE   "4 MISSION START"
 --     * ACTION "DO SCRIPT FILE"
+--     * OPEN --> Browse to the location of veaf.lua and click OK.
+--     * ACTION "DO SCRIPT FILE"
+--     * OPEN --> Browse to the location of dcsUnits.lua and click OK.
+--     * ACTION "DO SCRIPT FILE"
 --     * OPEN --> Browse to the location where you saved the script and click OK.
 --
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -30,10 +34,10 @@ veafUnits = {}
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Identifier. All output in DCS.log will start with this.
-veafUnits.Id = "UNITS - "
+veafUnits.Id = "VEAFUNITS - "
 
 --- Version.
-veafUnits.Version = "1.0.0"
+veafUnits.Version = "0.1.1"
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Do not change anything below unless you know what you are doing!
@@ -65,7 +69,7 @@ function veafUnits.findDcsUnit(unitType)
 
     -- find the desired unit in the DCS units database
     local unit = nil
-    for type, u in pairs(veafUnits.DcsUnitsDatabase) do
+    for type, u in pairs(dcsUnits.DcsUnitsDatabase) do
         if unitType:lower() == type:lower() then
             unit = u
             break
@@ -89,7 +93,9 @@ function veafUnits.findGroup(groupAlias)
 
                 -- replace all units with a simplified structure made from the DCS unit metadata structure
                 for i = 1, #group.units do
-                    local unitType = group.units[i]
+                    local u = group.units[i]
+                    local unitType = u[1]
+                    local cell = u[2]
                     local unit = veafUnits.findUnit(unitType)
                     if unit then
                         unit = veafUnits.findDcsUnit(unit.unitType)
@@ -99,7 +105,7 @@ function veafUnits.findGroup(groupAlias)
                     if not(unit) then 
                         veafUnits.logInfo("cannot find unit [" .. unitType .. "] listed in group [" .. group.groupName .. "]")
                     end
-                    group.units[i] = veafUnits.makeUnitFromDcsStructure(unit)
+                    group.units[i] = veafUnits.makeUnitFromDcsStructure(unit, cell)
                 end
                 break
             end
@@ -129,7 +135,7 @@ function veafUnits.findUnit(unitAlias)
 end
 
 --- Creates a simple structure from DCS complex metadata structure
-function veafUnits.makeUnitFromDcsStructure(dcsUnit)
+function veafUnits.makeUnitFromDcsStructure(dcsUnit, cell)
     local result = {}
     if not(dcsUnit) then 
         return nil 
@@ -139,9 +145,123 @@ function veafUnits.makeUnitFromDcsStructure(dcsUnit)
     result.displayName = dcsUnit.desc.displayName
     result.naval = (dcsUnit.desc.attributes.Ships == true)
     result.size = { x = dcsUnit.desc.box.max.x - dcsUnit.desc.box.min.x, y = dcsUnit.desc.box.max.y - dcsUnit.desc.box.min.y, z = dcsUnit.desc.box.max.z - dcsUnit.desc.box.min.z}
+    result.width = result.size.x
+    result.height= result.size.y -- TODO check if this is correct ; may as well be z !
+    -- invert if width > height
+    if result.width > result.height then
+        local width = result.width
+        result.width = result.height
+        result.height = width
+    end
+    result.cell = cell
 
     return result
 end
+
+--- Adds a placement point to every unit of the group, centering the whole group around the spawnPoint, and adding an optional spacing
+function placeUnitsOfGroup(spawnPoint, group, spacing)
+-- {
+--     aliases = {"Tarawa"},
+--     group = {
+--         disposition = { h = 3, w = 3},
+--         units = {{"tarawa", 2}, {"PERRY", 7}, {"PERRY", 9}},
+--         description = "Tarawa battle group",
+--         groupName = "Tarawa",
+--     }
+-- }
+
+    local defaultWidth = 10
+    local defaultHeight = 10
+    local nRows = group.disposition.h
+    local nCols = group.disposition.w
+
+    -- sort the units by occupied cell
+    local fixedUnits = {}
+    local freeUnits = {}
+    for _, unit in pairs(group.units) do
+        unit.spawnPoint = {}
+        unit.spawnPoint.x = nil
+        unit.spawnPoint.y = nil
+        if unit.cell then
+            table.insert(fixedUnits, unit)
+        else
+            table.insert(freeUnits, unit)
+        end
+    end
+
+    -- place units in the cells, adding the spacing
+    local cells = {}
+    for cellNum = 1, nRows*nCols do
+        -- place units in the cells
+        local found = false
+        -- browse the fixed units, searching for one that wants to go in this cell
+        for u = 1, #fixedUnits do
+            local unit = fixedUnits[u]
+            if unit.cell == cellNum then
+                -- found a fixed unit, place it
+                cells[cellNum] = {}
+                cells[cellNum].unit = unit
+                if unit.width and unit.width > 0 then 
+                    cells[cellNum].width = unit.width + spacing
+                else
+                    cells[cellNum].width = defaultWidth + spacing
+                end
+                if unit.height and unit.height > 0 then 
+                    cells[cellNum].height = unit.height + spacing
+                else
+                    cells[cellNum].height = defaultHeight + spacing
+                end
+                found = true
+                table.remove(fixedUnits, u)
+                break
+            end
+        end
+        if not(found) then
+            -- place one of the free units
+            local unit = freeUnits[1]
+            cells[cellNum] = {}
+            cells[cellNum].unit = unit
+            found = true
+            table.remove(freeUnits, 1)
+        end
+    end
+
+    -- compute the size of the rows and columns
+    local cols = {}
+    local rows = {}
+    for nRow = 1, nRows do 
+        for nCol = 1, nCols do
+            local cellNum = (nRow - 1) * nCols + nCol
+            local cell = cells[cellNum]
+            local colWidth = defaultWidth
+            local rowHeight = defaultHeight
+            if cols[nCol] then 
+                colWidth = cols[nCol].width
+            end
+            if rows[nRow] then 
+                rowHeight = rows[nRow].height
+            end
+            if cell then
+                if cell.width > colWidth then
+                    colWidth = cell.width
+                end
+                if cell.height > rowHeight then
+                    rowHeight = cell.height
+                end
+            end
+            cols[nCol] = {}
+            cols[nCol].width = colWidth
+            rows[nRow] = {}
+            rows[nRow].height = rowHeight
+        end
+    end
+
+    -- compute the size of the grid and the position of the cells
+    local totalWidth = 0
+    local totalHeight = 0
+end
+
+
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Units databases
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -165,27 +285,40 @@ veafUnits.UnitsDatabase = {
 -- Groups databases
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+--- Syntax :
+------------
+-- 
+--  aliases     = list of aliases which can be used to designate this group, case insensitive
+--  layout      = height and width (in cells) of the group layout template (see picture unitSpawnGridExplanation-01)
+--  units       = list of all the units composing the group. Each unit in the list is composed of :
+--          alias   = alias of the unit in the VEAF units database, or actual DCS type name in the DCS units database
+--          cell    = preferred layout cell ; the unit will be spawned in this cell, in the layout defined in the *layout* field
+--                    (see pictures unitSpawnGridExplanation-02 and unitSpawnGridExplanation-03)
+--  description = human-friendly name for the group
+--  groupName   = name used when spawning this group (will be flavored with a numerical suffix)
+
 veafUnits.GroupsDatabase = {
     {
         aliases = {"sa9", "sa-9"},
         group = {
-            units = {"Strela-1 9P31"},
-            description = "SA9 SAM site",
+            units = {{"sa-9",}},
+            description = "SA-9 SAM site",
             groupName = "SA9"
         },
     },
     {
         aliases = {"sa13", "sa-13"},
         group = {
-            units = {"Strela-10M3"},
-            description = "SA13 SAM site",
+            units = {{"sa-13",}},
+            description = "SA-13 SAM site",
             groupName = "SA13"
         }
     },
     {
         aliases = {"Tarawa"},
         group = {
-            units = {"tarawa", "PERRY", "PERRY"},
+            disposition = { h = 3, w = 3},
+            units = {{"tarawa", 2}, {"PERRY", 7}, {"PERRY", 9}, {"MOLNIYA"}},
             description = "Tarawa battle group",
             groupName = "Tarawa",
         }
