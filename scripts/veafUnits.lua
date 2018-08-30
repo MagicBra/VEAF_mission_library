@@ -116,6 +116,7 @@ function veafUnits.findGroup(groupAlias)
                     if not(unit) then 
                         veafUnits.logInfo("cannot find unit [" .. unitType .. "] listed in group [" .. group.groupName .. "]")
                     else 
+                        unit.cell = cell
                         group.units[i] = unit
                     end
                 end
@@ -182,7 +183,7 @@ function veafUnits.makeUnitFromDcsStructure(dcsUnit, cell)
 end
 
 --- Adds a placement point to every unit of the group, centering the whole group around the spawnPoint, and adding an optional spacing
-function placeUnitsOfGroup(spawnPoint, group, spacing)
+function veafUnits.placeGroup(group, spawnPoint, spacing)
 -- {
 --     aliases = {"Tarawa"},
 --     group = {
@@ -238,6 +239,7 @@ function placeUnitsOfGroup(spawnPoint, group, spacing)
             -- place the found unit
             cells[cellNum] = {}
             cells[cellNum].unit = foundUnit
+            cells[cellNum].unit.cell = cellNum
             if foundUnit.width and foundUnit.width > 0 then 
                 cells[cellNum].width = foundUnit.width + spacing
             else
