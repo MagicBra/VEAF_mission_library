@@ -36,7 +36,7 @@ veafUnits = {}
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Identifier. All output in DCS.log will start with this.
-veafUnits.Id = "VEAFUNITS - "
+veafUnits.Id = "UNITS - "
 
 --- Version.
 veafUnits.Version = "0.1.1"
@@ -56,15 +56,93 @@ veafUnits.DefaultCellHeight = 10
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function veafUnits.logInfo(message)
-    veaf.logInfo(veafUnits.Id .. message)
+    if message then
+        veaf.logInfo(veafUnits.Id .. message)
+    end
 end
 
 function veafUnits.logDebug(message)
-    veaf.logDebug(veafUnits.Id .. message)
+    if message then
+        veaf.logDebug(veafUnits.Id .. message)
+    end
 end
 
 function veafUnits.logTrace(message)
-    veaf.logTrace(veafUnits.Id .. message)
+    if message then
+        veaf.logTrace(veafUnits.Id .. message)
+    end
+end
+
+function debugGroup(group, cells)
+    veafUnits.logTrace("")
+    veafUnits.logTrace(" Group : " .. group.description)
+    veafUnits.logTrace("")
+    local nCols = group.disposition.w
+    local nRows = group.disposition.h
+    
+    local line1 = "|    |" 
+    local line2 = "|----|" 
+    
+    for nCol = 1, nCols do
+        line1 = line1 .. "            ".. string.format("%02d", nCol) .."          |" 
+        line2 = line2 .. "------------------------|"
+    end
+    veafUnits.logTrace(line1)
+    veafUnits.logTrace(line2)
+
+    local unitCounter = 1
+    for nRow = 1, nRows do 
+        local line1 = "|    |"
+        local line2 = "| " .. string.format("%02d", nRow) .. " |"
+        local line3 = "|    |"
+        local line4 = "|----|"
+        for nCol = 1, nCols do
+            local cellNum = (nRow - 1) * nCols + nCol
+            local cell = cells[cellNum]
+            local left = "    "
+            local top = "    "
+            local right = "    "
+            local bottom = "    "
+            local center = "                "
+            
+            if cell then 
+            
+                local unit = cell.unit
+                if unit then
+                    local unitName = unit.typeName
+                    if unitName:len() > 11 then
+                        unitName = unitName:sub(1,11)
+                    end
+                    unitName = string.format("%02d", unitCounter) .. "-" .. unitName
+                    local spaces = 14 - unitName:len()
+                    for i=1, math.floor(spaces/2) do
+                        unitName = " " .. unitName
+                    end
+                    for i=1, math.ceil(spaces/2) do
+                        unitName = unitName .. " "
+                    end
+                    center = " " .. unitName .. " "
+                    unitCounter = unitCounter + 1
+                end
+
+                left = string.format("%04d",math.floor(cell.left))
+                top = string.format("%04d",math.floor(cell.top))
+                right = string.format("%04d",math.floor(cell.right))
+                bottom = string.format("%04d",math.floor(cell.bottom))
+            end
+            
+            line1 = line1 .. "  " .. top .. "                  " .. "|"
+            line2 = line2 .. "" .. left .. center .. right.. "|"
+            line3 = line3 .. "                  "  .. bottom.. "  |"
+            line4 = line4 .. "------------------------|"
+
+        end
+        veafUnits.logTrace(line1)
+        veafUnits.logTrace(line2)
+        veafUnits.logTrace(line3)
+        veafUnits.logTrace(line4)
+    end
+    
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -214,46 +292,44 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
         end
     end
 
-    -- place units in the cells, adding the spacing
     local cells = {}
+    local allCells = {}
     for cellNum = 1, nRows*nCols do
-        -- place units in the cells
-        local foundUnit = nil
-        -- browse the fixed units, searching for one that wants to go in this cell
-        for u = 1, #fixedUnits do
-            local unit = fixedUnits[u]
-            if unit.cell == cellNum then
-                -- found a fixed unit, set it
-                foundUnit = unit
-                table.remove(fixedUnits, u)
+        allCells[cellNum] = cellNum
+    end
+        
+    -- place fixed units in their designated cells
+    for i = 1, #fixedUnits do 
+        local unit = fixedUnits[i]
+        cells[unit.cell] = {}
+        cells[unit.cell].unit = unit
+        
+        -- remove this cell from the list of available cells
+        for cellNum = 1, #allCells do
+            if allCells[cellNum] == unit.cell then
+                table.remove(allCells, cellNum)
                 break
             end
         end
-        if not(foundUnit) then
-            -- place one of the free units
-            foundUnit = freeUnits[1]
-            table.remove(freeUnits, 1)
-        end
+    end
+    -- randomly place non-fixed units in the remaining cells
+    for i = 1, #freeUnits do 
+        local randomCellNum = allCells[math.random(1, #allCells)]
+        local unit = freeUnits[i]
+        unit.cell = randomCellNum
+        cells[unit.cell] = {}
+        cells[randomCellNum].unit = unit
         
-        if foundUnit then
-            -- place the found unit
-            cells[cellNum] = {}
-            cells[cellNum].unit = foundUnit
-            cells[cellNum].unit.cell = cellNum
-            if foundUnit.width and foundUnit.width > 0 then 
-                cells[cellNum].width = foundUnit.width + spacing
-            else
-                cells[cellNum].width = veafUnits.DefaultCellWidth + spacing
-            end
-            if foundUnit.height and foundUnit.height > 0 then 
-                cells[cellNum].height = foundUnit.height + spacing
-            else
-                cells[cellNum].height = veafUnits.DefaultCellHeight + spacing
+        -- remove this cell from the list of available cells
+        for cellNum = 1, #allCells do
+            if allCells[cellNum] == unit.cell then
+                table.remove(allCells, cellNum)
+                break
             end
         end
     end
-
-    -- compute the size of the rows and columns
+    
+    -- compute the size of the cells, rows and columns
     local cols = {}
     local rows = {}
     for nRow = 1, nRows do 
@@ -269,6 +345,19 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
                 rowHeight = rows[nRow].height
             end
             if cell then
+                cell.width = veafUnits.DefaultCellWidth + spacing
+                cell.height = veafUnits.DefaultCellHeight + spacing
+                local unit = cell.unit
+                if unit then
+                    unit.cell = cellNum
+                    if unit.width and unit.width > 0 then 
+                        cell.width = unit.width + spacing
+                    end
+                    if unit.height and unit.height > 0 then 
+                        cell.height = unit.height + spacing
+                    end
+                end
+
                 if cell.width > colWidth then
                     colWidth = cell.width
                 end
@@ -323,6 +412,8 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
             unit.spawnPoint.y = cell.center.y + math.random(-spacing/2, spacing/2)
         end
     end 
+    
+    return group, cells
 end
 
 
@@ -387,7 +478,7 @@ veafUnits.GroupsDatabase = {
         aliases = {"Tarawa"},
         group = {
             disposition = { h = 3, w = 3},
-            units = {{"tarawa", 2}, {"PERRY", 7}, {"PERRY", 9}, {"MOLNIYA"}},
+            units = {{"Tarawa", 2}, {"Perry", 7}, {"Perry", 9}, {"Molniya"}},
             description = "Tarawa battle group",
             groupName = "Tarawa",
         }

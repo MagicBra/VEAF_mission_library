@@ -2,15 +2,15 @@ mist = {}
 veaf = {}
 
 function veaf.logInfo(text)
-  print(" I " .. text)
+  print("INFO VEAF - " .. text)
 end
 
 function veaf.logDebug(text)
-  print(" D " .. text)
+  print("DEBUG VEAF - " .. text)
 end
 
 function veaf.logTrace(text)
-  print(" T " .. text)
+  print("TRACE VEAF - " .. text)
 end
 
 dofile("C:\\Users\\dpierron001\\dev\\private\\VEAF_mission_library\\scripts\\dcsUnits.lua")
@@ -24,6 +24,8 @@ function veafCasMission.generateInfantryGroup(groupId, spawnSpot, defense, armor
     local group = {}
     group.units = {}
     group.disposition = { h = 4, w = 3}
+    group.description = "Random Infantry Group #" .. groupId
+    
     -- generate an infantry group
     local groupCount = math.random(3, 7)
     local dispersion = (groupCount+1) * 5 + 25
@@ -51,20 +53,32 @@ function veafCasMission.generateInfantryGroup(groupId, spawnSpot, defense, armor
         -- for defense = 0, don't spawn any manpad
     end
 
-    veafUnits.placeGroup(group, spawnSpot, spacing)
     return group
 end
 
---local group = veafUnits.findGroup("tarawa")
-local spawnPoint = { x = 0, y = 0, z = 0 }
-local group = veafCasMission.generateInfantryGroup(1, spawnPoint, 4, 1, "Random", 10)
-
-print(group.description)
-for _, u in pairs(group.units) do
-    print("   - " .. u.displayName)
-    if u.cell then 
-        print("        cell=" .. u.cell)
+--- Generates an infantry group along with its manpad units and tranport vehicles
+function veafCasMission.generateInfantryGroup2(groupId, spawnSpot, defense, armor, skill, spacing)
+    local group = {}
+    group.units = {}
+    group.disposition = { h = 5, w = 5}
+    group.description = "Random Infantry Group #" .. groupId
+    
+    -- generate an infantry group
+    local groupCount = math.random(15, 22)
+    local dispersion = (groupCount+1) * 5 + 25
+    for i = 1, groupCount do
+        group.units[i] = veafUnits.findUnit("INF Soldier AK")
     end
-    print("        x=" .. u.spawnPoint.x)
-    print("        y=" .. u.spawnPoint.y)
+
+    return group
 end
+
+
+
+local spawnPoint = { x = 0, y = 0, z = 0 }
+local spacing = 10
+--local group = veafUnits.findGroup("tarawa")
+local group = veafCasMission.generateInfantryGroup2(1, spawnPoint, 4, 1, "Random", 10)
+local group, cells = veafUnits.placeGroup(group, spawnPoint, spacing)
+
+debugGroup(group, cells)
