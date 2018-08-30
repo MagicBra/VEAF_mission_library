@@ -20,7 +20,7 @@ veafUnits.initialize()
 veafCasMission = {}
 
 --- Generates an infantry group along with its manpad units and tranport vehicles
-function veafCasMission.generateInfantryGroup(groupId, spawnSpot, defense, armor, skill, spacing)
+function veafCasMission.generateInfantryGroup(groupId, spawnSpot, defense, armor, skill)
     local group = {}
     group.units = {}
     group.disposition = { h = 4, w = 3}
@@ -57,7 +57,7 @@ function veafCasMission.generateInfantryGroup(groupId, spawnSpot, defense, armor
 end
 
 --- Generates an infantry group along with its manpad units and tranport vehicles
-function veafCasMission.generateInfantryGroup2(groupId, spawnSpot, defense, armor, skill, spacing)
+function veafCasMission.generateInfantryGroup2(groupId, spawnSpot, defense, armor, skill)
     local group = {}
     group.units = {}
     group.disposition = { h = 5, w = 5}
@@ -76,9 +76,9 @@ end
 
 
 local spawnPoint = { x = 0, y = 0, z = 0 }
-local spacing = 10
+local spacing = 2
 --local group = veafUnits.findGroup("tarawa")
-local group = veafCasMission.generateInfantryGroup2(1, spawnPoint, 4, 1, "Random", 10)
+local group = veafCasMission.generateInfantryGroup(1, spawnPoint, 4, 1, "Random")
 local group, cells = veafUnits.placeGroup(group, spawnPoint, spacing)
 
 debugGroup(group, cells)

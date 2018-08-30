@@ -336,8 +336,8 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
         for nCol = 1, nCols do
             local cellNum = (nRow - 1) * nCols + nCol
             local cell = cells[cellNum]
-            local colWidth = veafUnits.DefaultCellWidth
-            local rowHeight = veafUnits.DefaultCellHeight
+            local colWidth = 0
+            local rowHeight = 0
             if cols[nCol] then 
                 colWidth = cols[nCol].width
             end
