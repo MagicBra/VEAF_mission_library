@@ -41,6 +41,12 @@ veafUnits.Id = "VEAFUNITS - "
 --- Version.
 veafUnits.Version = "0.1.1"
 
+--- If no unit is spawned in a cell, it will default to this width
+veafUnits.DefaultCellWidth = 10
+
+--- If no unit is spawned in a cell, it will default to this height
+veafUnits.DefaultCellHeight = 10
+    
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Do not change anything below unless you know what you are doing!
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -95,19 +101,23 @@ function veafUnits.findGroup(groupAlias)
 
                 -- replace all units with a simplified structure made from the DCS unit metadata structure
                 for i = 1, #group.units do
+                    local unitType
+                    local cell
                     local u = group.units[i]
-                    local unitType = u[1]
-                    local cell = u[2]
-                    local unit = veafUnits.findUnit(unitType)
-                    if unit then
-                        unit = veafUnits.findDcsUnit(unit.unitType)
+                    if type(u) == "string" then 
+                        -- cell information was skipped using simplified syntax
+                        unitType = u
+                        cell = nil
                     else
-                        unit = veafUnits.findDcsUnit(unitType)
+                        unitType = u[1]
+                        cell = u[2]
                     end
+                    local unit = veafUnits.findUnit(unitType)
                     if not(unit) then 
                         veafUnits.logInfo("cannot find unit [" .. unitType .. "] listed in group [" .. group.groupName .. "]")
+                    else 
+                        group.units[i] = unit
                     end
-                    group.units[i] = veafUnits.makeUnitFromDcsStructure(unit, cell)
                 end
                 break
             end
@@ -133,6 +143,17 @@ function veafUnits.findUnit(unitAlias)
         end
     end
        
+    if unit then
+        unit = veafUnits.findDcsUnit(unit.unitType)
+    else
+        unit = veafUnits.findDcsUnit(unitAlias)
+    end
+    if not(unit) then 
+        veafUnits.logInfo("cannot find unit [" .. unitAlias .. "]")
+    else
+        unit = veafUnits.makeUnitFromDcsStructure(unit, cell)
+    end
+    
     return unit
 end
 
@@ -172,8 +193,12 @@ function placeUnitsOfGroup(spawnPoint, group, spacing)
 --     }
 -- }
 
-    local defaultWidth = 10
-    local defaultHeight = 10
+    if not(group.disposition) then 
+        -- default disposition is a square
+        local l = math.ceil(math.sqrt(#group.units))
+        group.disposition = { h = l, w = l}
+    end 
+
     local nRows = group.disposition.h
     local nCols = group.disposition.w
 
@@ -216,12 +241,12 @@ function placeUnitsOfGroup(spawnPoint, group, spacing)
             if foundUnit.width and foundUnit.width > 0 then 
                 cells[cellNum].width = foundUnit.width + spacing
             else
-                cells[cellNum].width = defaultWidth + spacing
+                cells[cellNum].width = veafUnits.DefaultCellWidth + spacing
             end
             if foundUnit.height and foundUnit.height > 0 then 
                 cells[cellNum].height = foundUnit.height + spacing
             else
-                cells[cellNum].height = defaultHeight + spacing
+                cells[cellNum].height = veafUnits.DefaultCellHeight + spacing
             end
         end
     end
@@ -233,8 +258,8 @@ function placeUnitsOfGroup(spawnPoint, group, spacing)
         for nCol = 1, nCols do
             local cellNum = (nRow - 1) * nCols + nCol
             local cell = cells[cellNum]
-            local colWidth = defaultWidth
-            local rowHeight = defaultHeight
+            local colWidth = veafUnits.DefaultCellWidth
+            local rowHeight = veafUnits.DefaultCellHeight
             if cols[nCol] then 
                 colWidth = cols[nCol].width
             end
@@ -260,14 +285,14 @@ function placeUnitsOfGroup(spawnPoint, group, spacing)
     local totalWidth = 0
     local totalHeight = 0
     for nCol = 1, #cols do
-        cols[nCol].left = totalWidth
+        cols[nCol].left = totalWidth + spawnPoint.x
         totalWidth = totalWidth + cols[nCol].width
-        cols[nCol].right= totalWidth
+        cols[nCol].right= totalWidth + spawnPoint.x
     end
     for nRow = 1, #rows do
-        rows[nRow].top = totalHeight
+        rows[nRow].top = totalHeight + spawnPoint.y
         totalHeight = totalHeight + rows[nRow].height
-        rows[nRow].bottom = totalHeight
+        rows[nRow].bottom = totalHeight + spawnPoint.y
     end
     
     -- compute the centers and extents of the cells
@@ -295,12 +320,15 @@ function placeUnitsOfGroup(spawnPoint, group, spacing)
             unit.spawnPoint.x = cell.center.x + math.random(-spacing/2, spacing/2)
             unit.spawnPoint.y = cell.center.y + math.random(-spacing/2, spacing/2)
         end
-    end
-
-   
+    end 
 end
 
 
+function veafUnits.initialize()
+    -- initialize the random number generator to make it almost random
+    math.randomseed(os.time())
+    math.random(); math.random(); math.random()
+end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Units databases
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -340,7 +368,7 @@ veafUnits.GroupsDatabase = {
     {
         aliases = {"sa9", "sa-9"},
         group = {
-            units = {{"sa-9",}},
+            units = {"sa-9"},
             description = "SA-9 SAM site",
             groupName = "SA9"
         },
@@ -348,7 +376,7 @@ veafUnits.GroupsDatabase = {
     {
         aliases = {"sa13", "sa-13"},
         group = {
-            units = {{"sa-13",}},
+            units = {"sa-13"},
             description = "SA-13 SAM site",
             groupName = "SA13"
         }
@@ -361,5 +389,5 @@ veafUnits.GroupsDatabase = {
             description = "Tarawa battle group",
             groupName = "Tarawa",
         }
-    }
+    }  
 }
