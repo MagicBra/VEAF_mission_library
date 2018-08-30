@@ -765,10 +765,8 @@ function veafCasMission.buildHumanGroups()
 
     -- build menu for each player
     for name, unit in pairs(mist.DBs.humansByName) do
-
         -- not already in groups list ?
         if veafCasMission.humanGroups[unit.groupName] == nil then
-
             veafCasMission.humanGroups[unit.groupId] = unit.groupName
         end
     end
