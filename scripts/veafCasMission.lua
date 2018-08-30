@@ -710,20 +710,20 @@ function veafCasMission.cleanupAfterMission()
     veafCasMission.groupAliveCheckTaskID = 'none'
 
 	-- build menu for each player
-	for name, player in pairs(mist.DBs.humansByName) do
-		-- update the radio menu
-		veafCasMission.logTrace("update the radio menu 1")
-		missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target information'})
-	end
+    for name, player in pairs(mist.DBs.humansByName) do
+        -- update the radio menu
+        veafCasMission.logTrace("update the radio menu 1")
+        missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target information'})
+    end
 
-	veafCasMission.logTrace("update the radio menu 2")
-	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Skip current objective'})
-	veafCasMission.logTrace("update the radio menu 3")
-	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Get current objective situation'})
-	veafCasMission.logTrace("update the radio menu 4")
-	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers'})
+    veafCasMission.logTrace("update the radio menu 2")
+    missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Skip current objective'})
+    veafCasMission.logTrace("update the radio menu 3")
+    missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Get current objective situation'})
+    veafCasMission.logTrace("update the radio menu 4")
+    missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers'})
 
-	veafCasMission.logTrace("skipCasTarget DONE")
+    veafCasMission.logTrace("skipCasTarget DONE")
 
 end
 
@@ -734,12 +734,12 @@ end
 --- Build the initial radio menu
 function veafCasMission.buildRadioMenu()
 
-	veafCasMission.rootPath = missionCommands.addSubMenu(veafCasMission.RadioMenuName, veaf.radioMenuPath)
+    veafCasMission.rootPath = missionCommands.addSubMenu(veafCasMission.RadioMenuName, veaf.radioMenuPath)
 
-	-- build menu for each group	
-	for groupId, group in pairs(veafCasMission.humanGroups) do
-		missionCommands.addCommandForGroup(groupId, "HELP", veafCasMission.rootPath, veafCasMission.help)
-	end
+    -- build menu for each group	
+    for groupId, group in pairs(veafCasMission.humanGroups) do
+        missionCommands.addCommandForGroup(groupId, "HELP", veafCasMission.rootPath, veafCasMission.help)
+    end
 	
 end
 
