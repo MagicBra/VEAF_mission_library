@@ -5,7 +5,7 @@
 -- Features:
 -- ---------
 -- * Listen to marker change events and creates a CAS training mission, with optional parameters
--- * Possibilities : 
+-- * Possibilities :
 -- *    - create a CAS target group, protected by SAM, AAA and manpads, to use for CAS training
 -- * Works with all current and future maps (Caucasus, NTTR, Normandy, PG, ...)
 --
@@ -84,10 +84,10 @@ veafCasMission.SecondsBetweenSmokeRequests = 180
 --- Number of seconds between each flare request on the CAS targets group
 veafCasMission.SecondsBetweenFlareRequests = 120
 
---- Name of the CAS targets vehicles group 
+--- Name of the CAS targets vehicles group
 veafCasMission.RedCasVehiclesGroupName = "Red CAS Group Vehicles"
 
---- Name of the CAS targets infantry group 
+--- Name of the CAS targets infantry group
 veafCasMission.RedCasInfantryGroupName = "Red CAS Group Infantry"
 
 veafCasMission.RadioMenuName = "CAS MISSION (" .. veafCasMission.Version .. ")"
@@ -244,7 +244,7 @@ function veafCasMission.markTextAnalysis(text)
             veafCasMission.logDebug("Keyword disperse is set")
             switch.disperseOnAttack = true
         end
-        
+
     end
 
     return switch
@@ -263,10 +263,10 @@ function veafCasMission.generateAirDefenseGroup(groupId, spawnSpot, defense, arm
     local groupCount = mist.random(2, 4)
     local dispersion = (groupCount+1) * 10 + 25
     local samType
-    local samTypeRand 
+    local samTypeRand
     for i = 1, 1 do
         samTypeRand = mist.random(100)
-				
+
         if samTypeRand > (90-(3*(defense-1))) then
             samType = 'Tor 9A331'
         elseif samTypeRand > (75-(4*(defense-1))) then
@@ -285,7 +285,7 @@ function veafCasMission.generateAirDefenseGroup(groupId, spawnSpot, defense, arm
     -- generate a secondary air defense platoon
     for i = 2, groupCount do
         samTypeRand = mist.random(100)
-				
+
         if samTypeRand > (75-(4*(defense-1))) then
             samType = '2S6 Tunguska'
         elseif samTypeRand > (65-(5*(defense-1))) then
@@ -314,13 +314,13 @@ function veafCasMission.generateTransportCompany(groupId, spawnSpot, defense, ar
     local dispersion = (groupCount+1) * 10 + 25
     local transportType
     local transportRand
-  
+
     for i = 1, groupCount do
         transportRand = mist.random(8)
         if transportRand == 1 then
             transportType = 'ATMZ-5'
         elseif transportRand == 2 then
-            transportType = 'Ural-4320 APA-5D'            
+            transportType = 'Ural-4320 APA-5D'
         elseif transportRand == 3 then
             transportType = 'SKP-11'
         elseif transportRand == 4 then
@@ -338,7 +338,7 @@ function veafCasMission.generateTransportCompany(groupId, spawnSpot, defense, ar
     end
 
     -- add an air defense vehicle
-    if defense > 2 then 
+    if defense > 2 then
         -- defense = 3-5 : add a Shilka
         veaf.addUnit(vehiclesGroup, spawnSpot, dispersion, "ZSU-23-4 Shilka", veafCasMission.RedCasVehiclesGroupName .. " Transport Company #" .. groupId .. " Air Defense Unit", skill)
     elseif defense > 0 then
@@ -400,12 +400,12 @@ function veafCasMission.generateArmorPlatoon(groupId, spawnSpot, defense, armor,
             elseif armorRand == 5 then
                 armorType = 'T-90'
             end
-        end        
+        end
         veaf.addUnit(vehiclesGroup, spawnSpot, dispersion, armorType, veafCasMission.RedCasVehiclesGroupName .. " Armor Platoon #" .. groupId .. " unit #" .. i, skill)
     end
 
     -- add an air defense vehicle
-    if defense > 3 then 
+    if defense > 3 then
         -- defense = 4-5 : add a Tunguska
         veaf.addUnit(vehiclesGroup, spawnSpot, dispersion, "2S6 Tunguska", veafCasMission.RedCasVehiclesGroupName .. " Armor Platoon #" .. groupId .. " Air Defense Unit", skill)
     elseif defense > 0 then
@@ -459,7 +459,7 @@ function veafCasMission.generateCasMission(spawnSpot, size, defense, armor, spac
 
     if veafCasMission.groupAliveCheckTaskID ~= 'none' then
         trigger.action.outText("A CAS target group already exists !", 5)
-        return 
+        return
     end
 
     -- Move reaper
@@ -557,17 +557,17 @@ function veafCasMission.generateCasMission(spawnSpot, size, defense, armor, spac
     controller:setOption(9, 2) -- set alarm state to red
     controller:setOption(AI.Option.Ground.id.DISPERSE_ON_ATTACK, disperseOnAttack) -- set disperse on attack according to the option
 
-	-- build menu for each player
-	for groupId, group in pairs(veafCasMission.humanGroups) do
-		-- add radio menu for target information (by player group)
-		missionCommands.addCommandForGroup(groupId, 'Target information', veafCasMission.rootPath, veafCasMission.reportTargetInformation, groupId)
-	end
+    -- build menu for each player
+    for groupId, group in pairs(veafCasMission.humanGroups) do
+        -- add radio menu for target information (by player group)
+        missionCommands.addCommandForGroup(groupId, 'Target information', veafCasMission.rootPath, veafCasMission.reportTargetInformation, groupId)
+    end
 
-	-- add radio menus for commands
-	missionCommands.addCommand('Skip current objective', veafCasMission.rootPath, veafCasMission.skipCasTarget)
-	veafCasMission.targetMarkersPath = missionCommands.addSubMenu("Target markers", veafCasMission.rootPath)
-	missionCommands.addCommand('Request smoke on target area', veafCasMission.targetMarkersPath, veafCasMission.smokeCasTargetGroup)
-	missionCommands.addCommand('Request illumination flare over target area', veafCasMission.targetMarkersPath, veafCasMission.flareCasTargetGroup)
+    -- add radio menus for commands
+    missionCommands.addCommand('Skip current objective', veafCasMission.rootPath, veafCasMission.skipCasTarget)
+    veafCasMission.targetMarkersPath = missionCommands.addSubMenu("Target markers", veafCasMission.rootPath)
+    missionCommands.addCommand('Request smoke on target area', veafCasMission.targetMarkersPath, veafCasMission.smokeCasTargetGroup)
+    missionCommands.addCommand('Request illumination flare over target area', veafCasMission.targetMarkersPath, veafCasMission.flareCasTargetGroup)
 
     trigger.action.outText("An enemy group of " .. #vehiclesUnits .. " vehicles and " .. #infantryUnits .. " soldiers has been located. Consult your F10 radio commands for more information.", 5)
 
@@ -590,12 +590,12 @@ function veafCasMission.reportTargetInformation(groupId)
     local lat, lon = coord.LOtoLL(averageGroupPosition)
     local mgrsString = mist.tostringMGRS(coord.LLtoMGRS(lat, lon), 3)
     local bullseye = mist.utils.makeVec3(mist.DBs.missionData.bullseye.blue, 0)
-	local vec = {x = averageGroupPosition.x - bullseye.x, y = averageGroupPosition.y - bullseye.y, z = averageGroupPosition.z - bullseye.z}
-	local dir = mist.utils.round(mist.utils.toDegree(mist.utils.getDir(vec, bullseye)), 0)
-	local dist = mist.utils.get2DDist(averageGroupPosition, bullseye)
-	local distMetric = mist.utils.round(dist/1000, 0)
-	local distImperial = mist.utils.round(mist.utils.metersToNM(dist), 0)
-	local fromBullseye = string.format('%03d', dir) .. ' for ' .. distMetric .. 'km /' .. distImperial .. 'nm'
+    local vec = {x = averageGroupPosition.x - bullseye.x, y = averageGroupPosition.y - bullseye.y, z = averageGroupPosition.z - bullseye.z}
+    local dir = mist.utils.round(mist.utils.toDegree(mist.utils.getDir(vec, bullseye)), 0)
+    local dist = mist.utils.get2DDist(averageGroupPosition, bullseye)
+    local distMetric = mist.utils.round(dist/1000, 0)
+    local distImperial = mist.utils.round(mist.utils.metersToNM(dist), 0)
+    local fromBullseye = string.format('%03d', dir) .. ' for ' .. distMetric .. 'km /' .. distImperial .. 'nm'
 
     message = message .. "LAT LON (decimal): " .. mist.tostringLL(lat, lon, 2) .. ".\n"
     message = message .. "LAT LON (DMS)    : " .. mist.tostringLL(lat, lon, 0, true) .. ".\n"
@@ -618,8 +618,8 @@ function veafCasMission.reportTargetInformation(groupId)
     end
     message = message .. 'WIND OVER TARGET : ' .. windText
 
-	-- send message only for the group
-	trigger.action.outTextForGroup(groupId, message, 30)
+    -- send message only for the group
+    trigger.action.outTextForGroup(groupId, message, 30)
 end
 
 --- add a smoke marker over the target area
@@ -627,13 +627,13 @@ function veafCasMission.smokeCasTargetGroup()
     veafCasMission.logTrace("veafCasMission.smokeCasTargetGroup START")
     veafCasMission.logTrace("veafSpawn.spawnSmoke")
     veafSpawn.spawnSmoke(veaf.getAveragePosition(veafCasMission.RedCasVehiclesGroupName), trigger.smokeColor.Red)
-	trigger.action.outText('Copy smoke requested, RED smoke on the deck!',5)
+    trigger.action.outText('Copy smoke requested, RED smoke on the deck!',5)
     veafCasMission.logTrace("missionCommands.removeItem")
-	
-	veafCasMission.logTrace("missionCommands.addCommand")
-	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Request smoke on target area'})
-	missionCommands.addCommand('Target is marked with red smoke', veafCasMission.targetMarkersPath, veaf.emptyFunction)
-	
+
+    veafCasMission.logTrace("missionCommands.addCommand")
+    missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Request smoke on target area'})
+    missionCommands.addCommand('Target is marked with red smoke', veafCasMission.targetMarkersPath, veaf.emptyFunction)
+
     veafCasMission.logTrace("mist.scheduleFunction")
     veafCasMission.smokeResetTaskID = mist.scheduleFunction(veafCasMission.smokeReset,{},timer.getTime()+veafCasMission.SecondsBetweenSmokeRequests)
     veafCasMission.logTrace("veafCasMission.smokeCasTargetGroup END")
@@ -642,19 +642,19 @@ end
 --- Reset the smoke request radio menu
 function veafCasMission.smokeReset()
 
-	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Target is marked with red smoke'})
-	missionCommands.addCommand('Request smoke on target area', veafCasMission.targetMarkersPath, veafCasMission.smokeCasTargetGroup)
+    missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Target is marked with red smoke'})
+    missionCommands.addCommand('Request smoke on target area', veafCasMission.targetMarkersPath, veafCasMission.smokeCasTargetGroup)
 
-	trigger.action.outText('Smoke marker available',5)
+    trigger.action.outText('Smoke marker available',5)
 end
 
 --- add an illumination flare over the target area
 function veafCasMission.flareCasTargetGroup()
     veafSpawn.spawnIlluminationFlare(veaf.getAveragePosition(veafCasMission.RedCasVehiclesGroupName))
-	trigger.action.outText('Copy illumination flare requested, illumination flare over target area!',5)
+    trigger.action.outText('Copy illumination flare requested, illumination flare over target area!',5)
 
-	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Request illumination flare over target area'})
-	missionCommands.addCommand('Target area is marked with illumination flare', veafCasMission.targetMarkersPath, veaf.emptyFunction)
+    missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Request illumination flare over target area'})
+    missionCommands.addCommand('Target area is marked with illumination flare', veafCasMission.targetMarkersPath, veaf.emptyFunction)
 
     veafCasMission.flareResetTaskID = mist.scheduleFunction(veafCasMission.flareReset,{},timer.getTime()+veafCasMission.SecondsBetweenFlareRequests)
 end
@@ -662,14 +662,14 @@ end
 --- Reset the flare request radio menu
 function veafCasMission.flareReset()
 
-	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Target area is marked with illumination flare'})
-	missionCommands.addCommand('Request illumination flare over target area', veafCasMission.targetMarkersPath, veafCasMission.flareCasTargetGroup)
+    missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Target area is marked with illumination flare'})
+    missionCommands.addCommand('Request illumination flare over target area', veafCasMission.targetMarkersPath, veafCasMission.flareCasTargetGroup)
 
-	trigger.action.outText('Target illumination available',5)
+    trigger.action.outText('Target illumination available',5)
 end
 
 --- Checks if the vehicles group is still alive, and if not announces the end of the CAS mission
-function veafCasMission.casGroupWatchdog() 
+function veafCasMission.casGroupWatchdog()
     local group = Group.getByName(veafCasMission.RedCasVehiclesGroupName)
     if group and group:isExist() == true and #group:getUnits() > 0 then
         veafCasMission.logTrace("Group is still alive with "..#group:getUnits().." units")
@@ -709,7 +709,7 @@ function veafCasMission.cleanupAfterMission()
     end
     veafCasMission.groupAliveCheckTaskID = 'none'
 
-	-- build menu for each player
+    -- build menu for each player
     for name, player in pairs(mist.DBs.humansByName) do
         -- update the radio menu
         veafCasMission.logTrace("update the radio menu 1")
@@ -736,24 +736,24 @@ function veafCasMission.buildRadioMenu()
 
     veafCasMission.rootPath = missionCommands.addSubMenu(veafCasMission.RadioMenuName, veaf.radioMenuPath)
 
-    -- build menu for each group	
+    -- build menu for each group
     for groupId, group in pairs(veafCasMission.humanGroups) do
         missionCommands.addCommandForGroup(groupId, "HELP", veafCasMission.rootPath, veafCasMission.help)
     end
-	
+
 end
 
 function veafCasMission.help()
-    local text = 
+    local text =
         'Create a marker and type "veaf cas mission" in the text\n' ..
         'This will create a default CAS target group\n' ..
         'You can add options (comma separated) :\n' ..
-        '	"defense 0" completely disables air defenses\n' ..
-        '	"defense [1-5]" specifies air defense cover (1 = light, 5 = heavy)\n' ..
-        '	"size [1-5]" changes the group size (1 = small, 5 = huge)\n' ..
-        '	"armor [1-5]" specifies armor presence (1 = light, 5 = heavy)\n' ..
-        '	"spacing [1-5]" changes the groups spacing (1 = dense, 3 = default, 5 = sparse)'
-        
+        '   "defense 0" completely disables air defenses\n' ..
+        '   "defense [1-5]" specifies air defense cover (1 = light, 5 = heavy)\n' ..
+        '   "size [1-5]" changes the group size (1 = small, 5 = huge)\n' ..
+        '   "armor [1-5]" specifies armor presence (1 = light, 5 = heavy)\n' ..
+        '   "spacing [1-5]" changes the groups spacing (1 = dense, 3 = default, 5 = sparse)'
+
     trigger.action.outText(text, 30)
 end
 
@@ -761,17 +761,17 @@ end
 -- prepare humans groups
 function veafCasMission.buildHumanGroups()
 
-	veafCasMission.humanGroups = {}
+    veafCasMission.humanGroups = {}
 
-	-- build menu for each player
-	for name, unit in pairs(mist.DBs.humansByName) do
+    -- build menu for each player
+    for name, unit in pairs(mist.DBs.humansByName) do
 
-		-- not already in groups list ?
-		if veafCasMission.humanGroups[unit.groupName] == nil then
-		
-			veafCasMission.humanGroups[unit.groupId] = unit.groupName
-		end
-	end
+        -- not already in groups list ?
+        if veafCasMission.humanGroups[unit.groupName] == nil then
+
+            veafCasMission.humanGroups[unit.groupId] = unit.groupName
+        end
+    end
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -780,8 +780,8 @@ end
 
 function veafCasMission.initialize()
 
-	veafCasMission.buildHumanGroups()
-	veafCasMission.buildRadioMenu()
+    veafCasMission.buildHumanGroups()
+    veafCasMission.buildRadioMenu()
     veafMarkers.registerEventHandler(veafMarkers.MarkerChange, veafCasMission.onEventMarkChange)
 end
 
