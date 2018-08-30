@@ -1,5 +1,6 @@
 mist = {}
 veaf = {}
+math.randomseed(os.time())
 
 function veaf.logInfo(text)
   print("INFO VEAF - " .. text)
@@ -13,9 +14,8 @@ function veaf.logTrace(text)
   print("TRACE VEAF - " .. text)
 end
 
-dofile("C:\\Users\\dpierron001\\dev\\private\\VEAF_mission_library\\scripts\\dcsUnits.lua")
-dofile("C:\\Users\\dpierron001\\dev\\private\\VEAF_mission_library\\scripts\\veafUnits.lua")
-veafUnits.initialize()
+dofile("dcsUnits.lua")
+dofile("veafUnits.lua")
 
 veafCasMission = {}
 
@@ -77,8 +77,8 @@ end
 
 local spawnPoint = { x = 0, y = 0, z = 0 }
 local spacing = 2
---local group = veafUnits.findGroup("tarawa")
-local group = veafCasMission.generateInfantryGroup(1, spawnPoint, 4, 1, "Random")
+local group = veafUnits.findGroup("infsec")
+--local group = veafCasMission.generateInfantryGroup(1, spawnPoint, 4, 1, "Random")
 local group, cells = veafUnits.placeGroup(group, spawnPoint, spacing)
 
-debugGroup(group, cells)
+veafUnits.debugGroup(group, cells)

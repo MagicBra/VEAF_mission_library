@@ -152,7 +152,6 @@ function veafMarkers.onEvent(event, eventHandlersTable)
             -- call the event handler
             local eventHandler = eventHandlersTable[i]
             veafMarkers.logDebug("Calling eventHandler #" .. eventHandler.id)
-            veafMarkers.logTrace(string.format("Marker text:\n%s", event.text))
             local err, errmsg = pcall(eventHandler.f, vec3, event)
             if not err then
                 veafMarkers.logInfo('Error in event handler #' .. eventHandler.id .. ' : '.. errmsg)

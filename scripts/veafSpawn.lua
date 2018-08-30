@@ -69,7 +69,7 @@ veafSpawn = {}
 veafSpawn.Id = "SPAWN - "
 
 --- Version.
-veafSpawn.Version = "1.0.0"
+veafSpawn.Version = "1.0.1"
 
 --- Key phrase to look for in the mark text which triggers the weather report.
 veafSpawn.Keyphrase = "veaf spawn "
@@ -179,6 +179,8 @@ function veafSpawn.markTextAnalysis(text)
     -- Check for correct keywords.
     if text:lower():find(veafSpawn.Keyphrase .. "unit") then
         switch.unit = true
+    elseif text:lower():find(veafSpawn.Keyphrase .. "group") then
+        switch.group = true
     elseif text:lower():find(veafSpawn.Keyphrase .. "smoke") then
         switch.smoke = true
     elseif text:lower():find(veafSpawn.Keyphrase .. "flare") then
@@ -263,7 +265,7 @@ function veafSpawn.markTextAnalysis(text)
     end
 
     -- check mandatory parameter "alias" for command "group"
-    if switch.group and not(switch.alias) then return nil end
+    if switch.group and not(switch.groupAlias) then return nil end
     
     return switch
 end
@@ -291,13 +293,18 @@ function veafSpawn.spawnGroup(spawnSpot, groupAlias)
     
     veafSpawn.logDebug("spawnGroup group.naval = " .. tostring(group.naval))
     
+    -- place group units on the map
+    local group, cells = veafUnits.placeGroup(group, spawnSpot, 5)
+    veafUnits.debugGroup(group, cells)
+    
     local groupName = group.groupName .. " #" .. veafSpawn.spawnedUnitsCounter
 
     for i=1, #group.units do
-        local unitType = group.units[i]
-        local unitName = groupName .. " / " .. unitType .. " #" .. i
+        local unit = group.units[i]
+        local unitType = unit.typeName
+        local unitName = groupName .. " / " .. unit.displayName .. " #" .. i
         
-        local spawnPosition = veaf.findPointInZone(spawnSpot, 50, group.naval)
+        local spawnPosition = unit.spawnPoint
         if spawnPosition == nil then
             veafSpawn.logInfo("cannot find a suitable position for spawning unit "..unitType)
             trigger.action.outText("cannot find a suitable position for spawning unit "..unitType, 5)
@@ -340,7 +347,7 @@ function veafSpawn.spawnUnit(spawnSpot, unitAlias)
     veafSpawn.logDebug(string.format("spawnUnit: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
     
     -- find the desired unit in the groups database
-    local unit = veafUnits.findUnit(groupAlias)
+    local unit = veafUnits.findUnit(unitAlias)
     if not(unit) then  -- default value is that unitAlias is the actual DCS unit type
         unit = {
             aliases = {unitAlias},

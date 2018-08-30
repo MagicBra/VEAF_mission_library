@@ -73,7 +73,7 @@ function veafUnits.logTrace(message)
     end
 end
 
-function debugGroup(group, cells)
+function veafUnits.debugGroup(group, cells)
     veafUnits.logTrace("")
     veafUnits.logTrace(" Group : " .. group.description)
     veafUnits.logTrace("")
@@ -165,37 +165,69 @@ function veafUnits.findDcsUnit(unitType)
     return unit
 end
 
+--{
+--    aliases = {"infantry section", "infsec"},
+--    group = {
+--        disposition = { h= 5, w= 4},
+--        units = {{"IFV BTR-80", cell=18},{"IFV BTR-80", cell=19},{"INF Soldier AK", number = {min=8, max=16}}, {"SA-18 Igla manpad", number = {min=0, max=2}}}
+--        description = "Mechanized infantry section with APCs",
+--        groupName = "Mechanized infantry section"
+--    }
+--},
+
 --- searches the database for a group having this alias (case insensitive)
 function veafUnits.findGroup(groupAlias)
     veafUnits.logTrace("veafUnits.findGroup(groupAlias=" .. groupAlias .. ")")
 
     -- find the desired group in the groups database
-    local group = nil
+    local result = nil
 
     for _, g in pairs(veafUnits.GroupsDatabase) do
         for _, alias in pairs(g.aliases) do
             if alias:lower() == groupAlias:lower() then
                 group = g.group
-
+                result = {}
+                result.disposition = {}
+                result.disposition.h = group.disposition.h
+                result.disposition.w = group.disposition.w
+                result.description = group.description
+                result.groupName = group.groupName
+                result.units = {}
+                local unitNumber = 1
                 -- replace all units with a simplified structure made from the DCS unit metadata structure
                 for i = 1, #group.units do
                     local unitType
-                    local cell
+                    local cell = nil
+                    local number = 1
                     local u = group.units[i]
                     if type(u) == "string" then 
-                        -- cell information was skipped using simplified syntax
+                        -- information was skipped using simplified syntax
                         unitType = u
-                        cell = nil
                     else
                         unitType = u[1]
-                        cell = u[2]
+                        cell = u.cell
+                        number = u.number
                     end
-                    local unit = veafUnits.findUnit(unitType)
-                    if not(unit) then 
-                        veafUnits.logInfo("cannot find unit [" .. unitType .. "] listed in group [" .. group.groupName .. "]")
-                    else 
-                        unit.cell = cell
-                        group.units[i] = unit
+                    if not(number) then 
+                      number = 1
+                    end
+                    if type(number) == "table" then 
+                        -- create a random number of units
+                        local min = number.min
+                        local max = number.max
+                        if not(min) then min = 1 end
+                        if not(max) then max = 1 end
+                        number = math.random(min, max)
+                    end
+                    for numUnit = 1, number do
+                        local unit = veafUnits.findUnit(unitType)
+                        if not(unit) then 
+                            veafUnits.logInfo("cannot find unit [" .. unitType .. "] listed in group [" .. group.groupName .. "]")
+                        else 
+                            unit.cell = cell
+                            result.units[unitNumber] = unit
+                            unitNumber = unitNumber + 1
+                        end
                     end
                 end
                 break
@@ -203,7 +235,7 @@ function veafUnits.findGroup(groupAlias)
         end
     end
        
-    return group
+    return result
 end
 
 --- searches the database for a unit having this alias (case insensitive)
@@ -262,16 +294,7 @@ end
 
 --- Adds a placement point to every unit of the group, centering the whole group around the spawnPoint, and adding an optional spacing
 function veafUnits.placeGroup(group, spawnPoint, spacing)
--- {
---     aliases = {"Tarawa"},
---     group = {
---         disposition = { h = 3, w = 3},
---         units = {{"tarawa", 2}, {"PERRY", 7}, {"PERRY", 9}},
---         description = "Tarawa battle group",
---         groupName = "Tarawa",
---     }
--- }
-
+    
     if not(group.disposition) then 
         -- default disposition is a square
         local l = math.ceil(math.sqrt(#group.units))
@@ -408,20 +431,14 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
         local unit = cell.unit
         if unit then
             unit.spawnPoint = {}
-            unit.spawnPoint.x = cell.center.x + math.random(-spacing/2, spacing/2)
-            unit.spawnPoint.y = cell.center.y + math.random(-spacing/2, spacing/2)
+            unit.spawnPoint.y = cell.center.x + math.random(-spacing/2, spacing/2)
+            unit.spawnPoint.x = cell.center.y + math.random(-spacing/2, spacing/2)
         end
     end 
     
     return group, cells
 end
 
-
-function veafUnits.initialize()
-    -- initialize the random number generator to make it almost random
-    math.randomseed(os.time())
-    math.random(); math.random(); math.random()
-end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Units databases
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -472,6 +489,15 @@ veafUnits.GroupsDatabase = {
             units = {"sa-13"},
             description = "SA-13 SAM site",
             groupName = "SA13"
+        }
+    },
+    {
+        aliases = {"infantry section", "infsec"},
+        group = {
+            disposition = { h= 10, w= 4},
+            units = {{"IFV BTR-80", cell=38},{"IFV BTR-80", cell=39},{"INF Soldier AK", number = {min=12, max=30}}, {"SA-18 Igla manpad", number = {min=0, max=2}}},
+            description = "Mechanized infantry section with APCs",
+            groupName = "Mechanized infantry section"
         }
     },
     {
