@@ -19,4 +19,9 @@ local group = veafUnits.findGroup("tarawa")
 local spawnPoint = { x = 0, y = 0, z = 0 }
 placeUnitsOfGroup(spawnPoint, group, 20)
 
-print(group)
+print(group.description)
+for _, u in pairs(group.units) do
+    print("   - " .. u.displayName)
+    print("        x=" .. u.spawnPoint.x)
+    print("        y=" .. u.spawnPoint.y)
+end

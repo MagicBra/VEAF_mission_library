@@ -8,7 +8,7 @@
 --
 -- Prerequisite:
 -- ------------
--- * This script requires DCS 2.5.1 or higher
+-- * This script requires DCS 2.5.1 or higher and MIST 4.3.74 or higher.
 -- * It also requires the veaf.lua base script library (version 1.0 or higher)
 -- * It also requires the dcsUnits.lua script library (version 1.0 or higher)
 --
@@ -18,6 +18,8 @@
 -- 2.) Open your mission in the mission editor.
 -- 3.) Add a new trigger:
 --     * TYPE   "4 MISSION START"
+--     * ACTION "DO SCRIPT FILE"
+--     * OPEN --> Browse to the location of MIST and click OK.
 --     * ACTION "DO SCRIPT FILE"
 --     * OPEN --> Browse to the location of veaf.lua and click OK.
 --     * ACTION "DO SCRIPT FILE"
@@ -179,9 +181,6 @@ function placeUnitsOfGroup(spawnPoint, group, spacing)
     local fixedUnits = {}
     local freeUnits = {}
     for _, unit in pairs(group.units) do
-        unit.spawnPoint = {}
-        unit.spawnPoint.x = nil
-        unit.spawnPoint.y = nil
         if unit.cell then
             table.insert(fixedUnits, unit)
         else
@@ -193,36 +192,37 @@ function placeUnitsOfGroup(spawnPoint, group, spacing)
     local cells = {}
     for cellNum = 1, nRows*nCols do
         -- place units in the cells
-        local found = false
+        local foundUnit = nil
         -- browse the fixed units, searching for one that wants to go in this cell
         for u = 1, #fixedUnits do
             local unit = fixedUnits[u]
             if unit.cell == cellNum then
-                -- found a fixed unit, place it
-                cells[cellNum] = {}
-                cells[cellNum].unit = unit
-                if unit.width and unit.width > 0 then 
-                    cells[cellNum].width = unit.width + spacing
-                else
-                    cells[cellNum].width = defaultWidth + spacing
-                end
-                if unit.height and unit.height > 0 then 
-                    cells[cellNum].height = unit.height + spacing
-                else
-                    cells[cellNum].height = defaultHeight + spacing
-                end
-                found = true
+                -- found a fixed unit, set it
+                foundUnit = unit
                 table.remove(fixedUnits, u)
                 break
             end
         end
-        if not(found) then
+        if not(foundUnit) then
             -- place one of the free units
-            local unit = freeUnits[1]
-            cells[cellNum] = {}
-            cells[cellNum].unit = unit
-            found = true
+            foundUnit = freeUnits[1]
             table.remove(freeUnits, 1)
+        end
+        
+        if foundUnit then
+            -- place the found unit
+            cells[cellNum] = {}
+            cells[cellNum].unit = foundUnit
+            if foundUnit.width and foundUnit.width > 0 then 
+                cells[cellNum].width = foundUnit.width + spacing
+            else
+                cells[cellNum].width = defaultWidth + spacing
+            end
+            if foundUnit.height and foundUnit.height > 0 then 
+                cells[cellNum].height = foundUnit.height + spacing
+            else
+                cells[cellNum].height = defaultHeight + spacing
+            end
         end
     end
 
@@ -256,9 +256,48 @@ function placeUnitsOfGroup(spawnPoint, group, spacing)
         end
     end
 
-    -- compute the size of the grid and the position of the cells
+    -- compute the size of the grid
     local totalWidth = 0
     local totalHeight = 0
+    for nCol = 1, #cols do
+        cols[nCol].left = totalWidth
+        totalWidth = totalWidth + cols[nCol].width
+        cols[nCol].right= totalWidth
+    end
+    for nRow = 1, #rows do
+        rows[nRow].top = totalHeight
+        totalHeight = totalHeight + rows[nRow].height
+        rows[nRow].bottom = totalHeight
+    end
+    
+    -- compute the centers and extents of the cells
+    for nRow = 1, nRows do 
+        for nCol = 1, nCols do
+            local cellNum = (nRow - 1) * nCols + nCol
+            local cell = cells[cellNum]
+            if cell then
+                cell.top = rows[nRow].top
+                cell.bottom = rows[nRow].bottom
+                cell.left = cols[nCol].left
+                cell.right = cols[nCol].right
+                cell.center = {}
+                cell.center.x = cell.left + (cell.right - cell.left) / 2
+                cell.center.y = cell.top + (cell.bottom - cell.top) / 2
+            end            
+        end
+    end
+    
+    -- randomly place the units
+    for _, cell in pairs(cells) do
+        local unit = cell.unit
+        if unit then
+            unit.spawnPoint = {}
+            unit.spawnPoint.x = cell.center.x + math.random(-spacing/2, spacing/2)
+            unit.spawnPoint.y = cell.center.y + math.random(-spacing/2, spacing/2)
+        end
+    end
+
+   
 end
 
 
