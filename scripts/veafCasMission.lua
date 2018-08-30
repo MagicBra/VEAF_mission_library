@@ -108,10 +108,13 @@ env.setErrorMessageBoxEnabled(false)
 veafCasMission.groupAliveCheckTaskID = 'none'
 
 -- Smoke reset function id
-veafCasMission.smokeResetTaskID = 'none'    
+veafCasMission.smokeResetTaskID = 'none'
 
 -- Flare reset function id
-veafCasMission.flareResetTaskID = 'none'    
+veafCasMission.flareResetTaskID = 'none'
+
+-- Humans Groups (associative array groupId => group)
+veafCasMission.humanGroups = {}
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Utility methods
@@ -555,16 +558,16 @@ function veafCasMission.generateCasMission(spawnSpot, size, defense, armor, spac
     controller:setOption(AI.Option.Ground.id.DISPERSE_ON_ATTACK, disperseOnAttack) -- set disperse on attack according to the option
 
 	-- build menu for each player
-	for name, player in pairs(mist.DBs.humansByName) do
-		-- add radio menu for target information
-		missionCommands.addCommandForGroup(player.groupId, 'Target information', veafCasMission.rootPath, veafCasMission.reportTargetInformation, player)
-		
-		-- add radio menus for commands
-		missionCommands.addCommandForGroup(player.groupId, 'Skip current objective', veafCasMission.rootPath, veafCasMission.skipCasTarget, player)
-		veafCasMission.targetMarkersPath = missionCommands.addSubMenuForGroup(player.groupId, "Target markers", veafCasMission.rootPath)
-		missionCommands.addCommandForGroup(player.groupId, 'Request smoke on target area', veafCasMission.targetMarkersPath, veafCasMission.smokeCasTargetGroup, player)
-		missionCommands.addCommandForGroup(player.groupId, 'Request illumination flare over target area', veafCasMission.targetMarkersPath, veafCasMission.flareCasTargetGroup, player)
+	for groupId, group in pairs(veafCasMission.humanGroups) do
+		-- add radio menu for target information (by player group)
+		missionCommands.addCommandForGroup(groupId, 'Target information', veafCasMission.rootPath, veafCasMission.reportTargetInformation, groupId)
 	end
+
+	-- add radio menus for commands
+	missionCommands.addCommand('Skip current objective', veafCasMission.rootPath, veafCasMission.skipCasTarget)
+	veafCasMission.targetMarkersPath = missionCommands.addSubMenu("Target markers", veafCasMission.rootPath)
+	missionCommands.addCommand('Request smoke on target area', veafCasMission.targetMarkersPath, veafCasMission.smokeCasTargetGroup)
+	missionCommands.addCommand('Request illumination flare over target area', veafCasMission.targetMarkersPath, veafCasMission.flareCasTargetGroup)
 
     trigger.action.outText("An enemy group of " .. #vehiclesUnits .. " vehicles and " .. #infantryUnits .. " soldiers has been located. Consult your F10 radio commands for more information.", 5)
 
@@ -572,8 +575,9 @@ function veafCasMission.generateCasMission(spawnSpot, size, defense, armor, spac
     veafCasMission.casGroupWatchdog()
 end
 
--- @param Unit player
-function veafCasMission.reportTargetInformation(player)
+-- Ask a report
+-- @param int groupId
+function veafCasMission.reportTargetInformation(groupId)
     -- generate information dispatch
     local vehiclesUnits = Group.getByName(veafCasMission.RedCasVehiclesGroupName):getUnits()
     local infantryUnits = Group.getByName(veafCasMission.RedCasInfantryGroupName):getUnits()
@@ -615,12 +619,11 @@ function veafCasMission.reportTargetInformation(player)
     message = message .. 'WIND OVER TARGET : ' .. windText
 
 	-- send message only for the group
-	trigger.action.outTextForGroup(player.groupId, message, 30)
+	trigger.action.outTextForGroup(groupId, message, 30)
 end
 
--- @param Unit playerNotUsed
 --- add a smoke marker over the target area
-function veafCasMission.smokeCasTargetGroup(playerNotUsed)
+function veafCasMission.smokeCasTargetGroup()
     veafCasMission.logTrace("veafCasMission.smokeCasTargetGroup START")
     veafCasMission.logTrace("veafSpawn.spawnSmoke")
     veafSpawn.spawnSmoke(veaf.getAveragePosition(veafCasMission.RedCasVehiclesGroupName), trigger.smokeColor.Red)
@@ -628,11 +631,8 @@ function veafCasMission.smokeCasTargetGroup(playerNotUsed)
     veafCasMission.logTrace("missionCommands.removeItem")
 	
 	veafCasMission.logTrace("missionCommands.addCommand")
-	-- build menu for each player
-	for name, player in pairs(mist.DBs.humansByName) do
-		missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Request smoke on target area'})
-		missionCommands.addCommandForGroup(player.groupId, 'Target is marked with red smoke', veafCasMission.targetMarkersPath, veaf.emptyFunction)
-	end
+	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Request smoke on target area'})
+	missionCommands.addCommand('Target is marked with red smoke', veafCasMission.targetMarkersPath, veaf.emptyFunction)
 	
     veafCasMission.logTrace("mist.scheduleFunction")
     veafCasMission.smokeResetTaskID = mist.scheduleFunction(veafCasMission.smokeReset,{},timer.getTime()+veafCasMission.SecondsBetweenSmokeRequests)
@@ -640,42 +640,30 @@ function veafCasMission.smokeCasTargetGroup(playerNotUsed)
 end
 
 --- Reset the smoke request radio menu
--- @param Unit playerNotUsed
-function veafCasMission.smokeReset(playerNotUsed)
+function veafCasMission.smokeReset()
 
-	-- build menu for each player
-	for name, player in pairs(mist.DBs.humansByName) do
-		missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Target is marked with red smoke'})
-		missionCommands.addCommandForGroup(player.groupId, 'Request smoke on target area', veafCasMission.targetMarkersPath, veafCasMission.smokeCasTargetGroup)
-	end
+	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Target is marked with red smoke'})
+	missionCommands.addCommand('Request smoke on target area', veafCasMission.targetMarkersPath, veafCasMission.smokeCasTargetGroup)
 
 	trigger.action.outText('Smoke marker available',5)
 end
 
 --- add an illumination flare over the target area
--- @param Unit playerNotUsed
-function veafCasMission.flareCasTargetGroup(playerNotUsed)
+function veafCasMission.flareCasTargetGroup()
     veafSpawn.spawnIlluminationFlare(veaf.getAveragePosition(veafCasMission.RedCasVehiclesGroupName))
 	trigger.action.outText('Copy illumination flare requested, illumination flare over target area!',5)
 
-	-- build menu for each player
-	for name, player in pairs(mist.DBs.humansByName) do
-		missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Request illumination flare over target area'})
-		missionCommands.addCommandForGroup(player.groupId, 'Target area is marked with illumination flare', veafCasMission.targetMarkersPath, veaf.emptyFunction)
-	end
+	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Request illumination flare over target area'})
+	missionCommands.addCommand('Target area is marked with illumination flare', veafCasMission.targetMarkersPath, veaf.emptyFunction)
 
     veafCasMission.flareResetTaskID = mist.scheduleFunction(veafCasMission.flareReset,{},timer.getTime()+veafCasMission.SecondsBetweenFlareRequests)
 end
 
 --- Reset the flare request radio menu
--- @param Unit playerNotUsed
-function veafCasMission.flareReset(playerNotUsed)
+function veafCasMission.flareReset()
 
-	-- build menu for each player
-	for name, player in pairs(mist.DBs.humansByName) do
-		missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Target area is marked with illumination flare'})
-		missionCommands.addCommandForGroup(player.groupId, 'Request illumination flare over target area', veafCasMission.targetMarkersPath, veafCasMission.flareCasTargetGroup)
-	end
+	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Target area is marked with illumination flare'})
+	missionCommands.addCommand('Request illumination flare over target area', veafCasMission.targetMarkersPath, veafCasMission.flareCasTargetGroup)
 
 	trigger.action.outText('Target illumination available',5)
 end
@@ -726,15 +714,16 @@ function veafCasMission.cleanupAfterMission()
 		-- update the radio menu
 		veafCasMission.logTrace("update the radio menu 1")
 		missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target information'})
-		veafCasMission.logTrace("update the radio menu 2")
-		missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Skip current objective'})
-		veafCasMission.logTrace("update the radio menu 3")
-		missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Get current objective situation'})
-		veafCasMission.logTrace("update the radio menu 4")
-		missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers'})
 	end
 
-    veafCasMission.logTrace("skipCasTarget DONE")
+	veafCasMission.logTrace("update the radio menu 2")
+	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Skip current objective'})
+	veafCasMission.logTrace("update the radio menu 3")
+	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Get current objective situation'})
+	veafCasMission.logTrace("update the radio menu 4")
+	missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers'})
+
+	veafCasMission.logTrace("skipCasTarget DONE")
 
 end
 
@@ -745,12 +734,13 @@ end
 --- Build the initial radio menu
 function veafCasMission.buildRadioMenu()
 
-	-- build menu for each player
-	for name, player in pairs(mist.DBs.humansByName) do
-		veafCasMission.rootPath = missionCommands.addSubMenuForGroup(player.groupId, veafCasMission.RadioMenuName, veaf.radioMenuPath)
-		missionCommands.addCommandForGroup(player.groupId, "HELP", veafCasMission.rootPath, veafCasMission.help)
-	end
+	veafCasMission.rootPath = missionCommands.addSubMenu(veafCasMission.RadioMenuName, veaf.radioMenuPath)
 
+	-- build menu for each group	
+	for groupId, group in pairs(veafCasMission.humanGroups) do
+		missionCommands.addCommandForGroup(groupId, "HELP", veafCasMission.rootPath, veafCasMission.help)
+	end
+	
 end
 
 function veafCasMission.help()
@@ -768,13 +758,30 @@ function veafCasMission.help()
 end
 
 
+-- prepare humans groups
+function veafCasMission.buildHumanGroups()
+
+	veafCasMission.humanGroups = {}
+
+	-- build menu for each player
+	for name, unit in pairs(mist.DBs.humansByName) do
+
+		-- not already in groups list ?
+		if veafCasMission.humanGroups[unit.groupName] == nil then
+		
+			veafCasMission.humanGroups[unit.groupId] = unit.groupName
+		end
+	end
+end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- initialisation
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function veafCasMission.initialize()
-    veafCasMission.buildRadioMenu()
+
+	veafCasMission.buildHumanGroups()
+	veafCasMission.buildRadioMenu()
     veafMarkers.registerEventHandler(veafMarkers.MarkerChange, veafCasMission.onEventMarkChange)
 end
 
