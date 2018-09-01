@@ -460,14 +460,14 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
     local totalWidth = 0
     local totalHeight = 0
     for nCol = 1, #cols do
-        cols[nCol].left = totalWidth + spawnPoint.x
+        cols[nCol].left = totalWidth + spawnPoint.z
         totalWidth = totalWidth + cols[nCol].width
-        cols[nCol].right= totalWidth + spawnPoint.x
+        cols[nCol].right= totalWidth + spawnPoint.z
     end
-    for nRow = 1, #rows do
-        rows[nRow].top = totalHeight + spawnPoint.z
-        totalHeight = totalHeight + rows[nRow].height
-        rows[nRow].bottom = totalHeight + spawnPoint.z
+    for nRow = 1, #rows do -- bottom -> up
+        rows[#rows-nRow+1].top = totalHeight + spawnPoint.x
+        totalHeight = totalHeight + rows[#rows-nRow+1].height
+        rows[#rows-nRow+1].bottom = totalHeight + spawnPoint.x
     end
     
     -- compute the centers and extents of the cells
@@ -492,8 +492,8 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
         local unit = cell.unit
         if unit then
             unit.spawnPoint = {}
-            unit.spawnPoint.x = cell.center.x + math.random(-spacing/2, spacing/2)
-            unit.spawnPoint.z = cell.center.y + math.random(-spacing/2, spacing/2)
+            unit.spawnPoint.z = cell.center.x + math.random(-spacing/2, spacing/2)
+            unit.spawnPoint.x = cell.center.y + math.random(-spacing/2, spacing/2)
             unit.spawnPoint.y = spawnPoint.y
         end
     end 
