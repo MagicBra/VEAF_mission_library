@@ -84,8 +84,8 @@ function veafUnits.debugGroup(group, cells)
     local line2 = "|----|" 
     
     for nCol = 1, nCols do
-        line1 = line1 .. "            ".. string.format("%02d", nCol) .."          |" 
-        line2 = line2 .. "------------------------|"
+        line1 = line1 .. "                ".. string.format("%02d", nCol) .."              |" 
+        line2 = line2 .. "--------------------------------|"
     end
     veafUnits.logTrace(line1)
     veafUnits.logTrace(line2)
@@ -99,10 +99,10 @@ function veafUnits.debugGroup(group, cells)
         for nCol = 1, nCols do
             local cellNum = (nRow - 1) * nCols + nCol
             local cell = cells[cellNum]
-            local left = "    "
-            local top = "    "
-            local right = "    "
-            local bottom = "    "
+            local left = "        "
+            local top = "        "
+            local right = "        "
+            local bottom = "        "
             local center = "                "
             
             if cell then 
@@ -125,16 +125,16 @@ function veafUnits.debugGroup(group, cells)
                     unitCounter = unitCounter + 1
                 end
 
-                left = string.format("%04d",math.floor(cell.left))
-                top = string.format("%04d",math.floor(cell.top))
-                right = string.format("%04d",math.floor(cell.right))
-                bottom = string.format("%04d",math.floor(cell.bottom))
+                left = string.format("%08d",math.floor(cell.left))
+                top = string.format("%08d",math.floor(cell.top))
+                right = string.format("%08d",math.floor(cell.right))
+                bottom = string.format("%08d",math.floor(cell.bottom))
             end
             
-            line1 = line1 .. "  " .. top .. "                  " .. "|"
+            line1 = line1 .. "  " .. top .. "                      " .. "|"
             line2 = line2 .. "" .. left .. center .. right.. "|"
-            line3 = line3 .. "                  "  .. bottom.. "  |"
-            line4 = line4 .. "------------------------|"
+            line3 = line3 .. "                      "  .. bottom.. "  |"
+            line4 = line4 .. "--------------------------------|"
 
         end
         veafUnits.logTrace(line1)
@@ -142,7 +142,19 @@ function veafUnits.debugGroup(group, cells)
         veafUnits.logTrace(line3)
         veafUnits.logTrace(line4)
     end
-    
+end
+
+function veafUnits.debugUnit(unit)
+    if unit then 
+        local airnaval = ""
+        if unit.naval then
+            airnaval = ", naval"
+        elseif unit.air then
+            airnaval = ", air"
+        end
+        
+        veafUnits.logDebug("unit " .. unit.displayName .. ", dcsType=" .. unit.typeName .. airnaval)
+    end
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -234,6 +246,19 @@ function veafUnits.findGroup(groupAlias)
             end
         end
     end
+    
+    -- check group type (WARNING : unit types should not be mixed !)
+    for _, unit in pairs(result.units) do
+        if unit.naval then 
+            result.naval = true
+            break
+        end
+        if unit.air then
+            result.air = true
+            break
+        end
+    end
+    
        
     return result
 end
@@ -278,6 +303,7 @@ function veafUnits.makeUnitFromDcsStructure(dcsUnit, cell)
     result.typeName = dcsUnit.desc.typeName
     result.displayName = dcsUnit.desc.displayName
     result.naval = (dcsUnit.desc.attributes.Ships == true)
+    result.air = (dcsUnit.desc.attributes.Air == true)
     result.size = { x = dcsUnit.desc.box.max.x - dcsUnit.desc.box.min.x, y = dcsUnit.desc.box.max.y - dcsUnit.desc.box.min.y, z = dcsUnit.desc.box.max.z - dcsUnit.desc.box.min.z}
     result.width = result.size.x
     result.height= result.size.y -- TODO check if this is correct ; may as well be z !
@@ -290,6 +316,41 @@ function veafUnits.makeUnitFromDcsStructure(dcsUnit, cell)
     result.cell = cell
 
     return result
+end
+
+--- checks if position is correct for the unit type
+function veafUnits.correctPositionForUnit(spawnPosition, unit)
+    veafUnits.logDebug("correctPositionForUnit()")
+    veafUnits.logTrace(string.format("correctPositionForUnit: spawnPosition  x=%.1f y=%.1f, z=%.1f", spawnPosition.x, spawnPosition.y, spawnPosition.z))
+    local vec2 = { x = spawnPosition.x, y = spawnPosition.z }
+    veafUnits.logTrace(string.format("correctPositionForUnit: vec2  x=%.1f y=%.1f", vec2.x, vec2.y))
+    local landType = land.getSurfaceType(vec2)
+    if landType == land.SurfaceType.WATER then
+        veafUnits.logTrace("landType = WATER")
+    else
+        veafUnits.logTrace("landType = GROUND")
+    end
+    veafUnits.debugUnit(unit)
+    if spawnPosition then
+        if unit.air then -- if the unit is a plane or helicopter
+            if spawnPosition.z <= 10 then -- if lower than 10m don't spawn unit
+                spawnPosition = nil
+            end
+        elseif unit.naval then -- if the unit is a naval unit
+            if landType ~= land.SurfaceType.WATER then -- don't spawn over anything but water
+                spawnPosition = nil 
+            else -- place the point on the surface
+                spawnPosition = veaf.placePointOnLand(spawnPosition)
+            end
+        else 
+            if landType == land.SurfaceType.WATER then -- don't spawn over water
+                spawnPosition = nil 
+            else -- place the point on the surface
+                spawnPosition = veaf.placePointOnLand(spawnPosition)
+            end
+        end
+    end
+    return spawnPosition
 end
 
 --- Adds a placement point to every unit of the group, centering the whole group around the spawnPoint, and adding an optional spacing
@@ -404,9 +465,9 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
         cols[nCol].right= totalWidth + spawnPoint.x
     end
     for nRow = 1, #rows do
-        rows[nRow].top = totalHeight + spawnPoint.y
+        rows[nRow].top = totalHeight + spawnPoint.z
         totalHeight = totalHeight + rows[nRow].height
-        rows[nRow].bottom = totalHeight + spawnPoint.y
+        rows[nRow].bottom = totalHeight + spawnPoint.z
     end
     
     -- compute the centers and extents of the cells
@@ -431,8 +492,9 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
         local unit = cell.unit
         if unit then
             unit.spawnPoint = {}
-            unit.spawnPoint.y = cell.center.x + math.random(-spacing/2, spacing/2)
-            unit.spawnPoint.x = cell.center.y + math.random(-spacing/2, spacing/2)
+            unit.spawnPoint.x = cell.center.x + math.random(-spacing/2, spacing/2)
+            unit.spawnPoint.z = cell.center.y + math.random(-spacing/2, spacing/2)
+            unit.spawnPoint.y = spawnPoint.y
         end
     end 
     
