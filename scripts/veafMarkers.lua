@@ -65,6 +65,10 @@ veafMarkers.onEventMarkRemoveEventHandlers = {}
 -- Utility methods
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+function veafMarkers.logError(message)
+    veaf.logError(veafMarkers.Id .. message)
+end
+
 function veafMarkers.logInfo(message)
     veaf.logInfo(veafMarkers.Id .. message)
 end
@@ -154,7 +158,7 @@ function veafMarkers.onEvent(event, eventHandlersTable)
             veafMarkers.logDebug("Calling eventHandler #" .. eventHandler.id)
             local err, errmsg = pcall(eventHandler.f, vec3, event)
             if not err then
-                veafMarkers.logInfo('Error in event handler #' .. eventHandler.id .. ' : '.. errmsg)
+                veafMarkers.logError('Error in event handler #' .. eventHandler.id .. ' : '.. errmsg)
             end
             veafMarkers.logDebug("Returning after eventHandler #" .. eventHandler.id)
         end

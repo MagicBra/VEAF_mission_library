@@ -52,19 +52,23 @@ veaf.radioMenuPath = nil
 -- Utility methods
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+function veaf.logError(message)
+    env.error(veaf.Id .. message)
+end
+
 function veaf.logInfo(message)
-    env.info(veaf.Id .. message)
+    env.info(veaf.Id .. "I - " .. message)
 end
 
 function veaf.logDebug(message)
     if veaf.Debug then
-        env.info(veaf.Id .. message)
+        env.info(veaf.Id .. "D - " .. message)
     end
 end
 
 function veaf.logTrace(message)
     if veaf.Trace then
-        env.info(veaf.Id .. message)
+        env.info(veaf.Id .."T - " ..  message)
     end
 end
 

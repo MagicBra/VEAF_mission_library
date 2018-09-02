@@ -16,6 +16,7 @@ end
 
 dofile("dcsUnits.lua")
 dofile("veafUnits.lua")
+dofile("veafSpawn.lua")
 
 veafCasMission = {}
 
@@ -73,33 +74,29 @@ function veafCasMission.generateInfantryGroup2(groupId, spawnSpot, defense, armo
     return group
 end
 
---- checks if position is correct for the unit type
-function veafUnits.correctPositionForUnit(spawnPosition, unit)
-    if spawnPosition then
-        if unit.air then -- if the unit is a plane or helicopter
-            if spawnPosition.z <= 10 then -- if lower than 10m don't spawn unit
-                spawnPosition = nil
-            end
-        elseif unit.naval then -- if the unit is a naval unit
-            local landType = land.getSurfaceType(spawnPosition)
-            if landType ~= land.SurfaceType.WATER then -- don't spawn over anything but water
-                spawnPosition = nil 
-            else -- place the point on the surface
-                spawnPosition = veaf.placePointOnLand(spawnPosition)
-            end
-        else 
-                spawnPosition = veaf.placePointOnLand(spawnPosition)
-        end
-    end
-    return spawnPosition
+
+function veafUnits.checkPositionForUnit(spawnPosition, unit)
+    return true
 end
 
-local spawnPoint = {x=-321835.9, y=562.0, z=888712.0}
+local spawnPosition = {x=-321835.9, y=562.0, z=888712.0}
 local spacing = 10
-local group = veafUnits.findGroup("infsec")
---local group = veafCasMission.generateInfantryGroup(1, spawnPoint, 4, 1, "Random")
-local group, cells = veafUnits.placeGroup(group, spawnPoint, spacing)
-veafUnits.debugGroup(group, cells)
+--local group = veafUnits.findGroup("infsec")
+--local group = veafCasMission.generateInfantryGroup(1, spawnPosition, 4, 1, "Random")
+--local group, cells = veafUnits.placeGroup(group, spawnPosition, spacing)
+--veafUnits.debugGroup(group, cells)
+veafSpawn.spawnUnit(spawnPosition, "sa9")
 --local unit = veafUnits.findUnit("sa9")
---spawnPoint = veafUnits.correctPositionForUnit(spawnPoint, unit)
+--spawnPoint = veafUnits.correctPositionForUnit(spawnPosition, unit)
 
+        local toInsert = {
+                ["x"] = spawnPosition.x,
+                ["y"] = spawnPosition.z,
+                ["alt"] = spawnPosition.y,
+                ["type"] = unit.unitType,
+                ["name"] = unitName,
+                ["heading"] = 0,
+                ["skill"] = "Random"
+            }
+
+        veafSpawn.logDebug(string.format("spawnUnit: toInsert x=%.1f y=%.1f, alt=%.1f, type=%s, name=%s, heading=%d, skill=%s", toInsert.x, toInsert.y, toInsert.alt, toInsert.type, toInsert.name, toInsert.heading, toInsert.skill ))

@@ -319,11 +319,11 @@ function veafUnits.makeUnitFromDcsStructure(dcsUnit, cell)
 end
 
 --- checks if position is correct for the unit type
-function veafUnits.correctPositionForUnit(spawnPosition, unit)
-    veafUnits.logDebug("correctPositionForUnit()")
-    veafUnits.logTrace(string.format("correctPositionForUnit: spawnPosition  x=%.1f y=%.1f, z=%.1f", spawnPosition.x, spawnPosition.y, spawnPosition.z))
+function veafUnits.checkPositionForUnit(spawnPosition, unit)
+    veafUnits.logDebug("checkPositionForUnit()")
+    veafUnits.logTrace(string.format("checkPositionForUnit: spawnPosition  x=%.1f y=%.1f, z=%.1f", spawnPosition.x, spawnPosition.y, spawnPosition.z))
     local vec2 = { x = spawnPosition.x, y = spawnPosition.z }
-    veafUnits.logTrace(string.format("correctPositionForUnit: vec2  x=%.1f y=%.1f", vec2.x, vec2.y))
+    veafUnits.logTrace(string.format("checkPositionForUnit: vec2  x=%.1f y=%.1f", vec2.x, vec2.y))
     local landType = land.getSurfaceType(vec2)
     if landType == land.SurfaceType.WATER then
         veafUnits.logTrace("landType = WATER")
@@ -334,23 +334,19 @@ function veafUnits.correctPositionForUnit(spawnPosition, unit)
     if spawnPosition then
         if unit.air then -- if the unit is a plane or helicopter
             if spawnPosition.z <= 10 then -- if lower than 10m don't spawn unit
-                spawnPosition = nil
+                return false
             end
         elseif unit.naval then -- if the unit is a naval unit
             if landType ~= land.SurfaceType.WATER then -- don't spawn over anything but water
-                spawnPosition = nil 
-            else -- place the point on the surface
-                spawnPosition = veaf.placePointOnLand(spawnPosition)
+                return false
             end
         else 
             if landType == land.SurfaceType.WATER then -- don't spawn over water
-                spawnPosition = nil 
-            else -- place the point on the surface
-                spawnPosition = veaf.placePointOnLand(spawnPosition)
+                return false
             end
         end
     end
-    return spawnPosition
+    return true
 end
 
 --- Adds a placement point to every unit of the group, centering the whole group around the spawnPoint, and adding an optional spacing

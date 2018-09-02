@@ -321,15 +321,11 @@ function veafSpawn.spawnGroup(spawnSpot, groupAlias, spacing)
         local spawnPosition = unit.spawnPoint
         
         -- check if position is correct for the unit type
-        spawnPosition = veafUnits.correctPositionForUnit(spawnPosition, unit)
-        
-        if spawnPosition == nil then
+        if not veafUnits.checkPositionForUnit(spawnPosition, unit) then
             veafSpawn.logInfo("cannot find a suitable position for spawning unit ".. unitType)
             trigger.action.outText("cannot find a suitable position for spawning unit "..unitType, 5)
         else 
-            table.insert(
-                units,
-                {
+            local toInsert = {
                     ["x"] = spawnPosition.x,
                     ["y"] = spawnPosition.z,
                     ["alt"] = spawnPosition.y,
@@ -338,7 +334,9 @@ function veafSpawn.spawnGroup(spawnSpot, groupAlias, spacing)
                     ["heading"] = 0,
                     ["skill"] = "Random"
                 }
-            )
+
+            veafSpawn.logDebug(string.format("spawnGroup: toInsert x=%.1f y=%.1f, alt=%.1f, type=%s, name=%s, heading=%d, skill=%s", toInsert.x, toInsert.y, toInsert.alt, toInsert.type, toInsert.name, toInsert.heading, toInsert.skill ))
+            table.insert(units, toInsert)
         end
     end
 
@@ -360,15 +358,21 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Spawn a specific unit at a specific spot
-function veafSpawn.spawnUnit(spawnSpot, unitAlias)
+function veafSpawn.spawnUnit(spawnPosition, unitAlias)
     veafSpawn.logDebug("spawnUnit(unitAlias = " .. unitAlias .. ")")
-    veafSpawn.logDebug(string.format("spawnUnit: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
+    veafSpawn.logDebug(string.format("spawnUnit: spawnPosition  x=%.1f y=%.1f, z=%.1f", spawnPosition.x, spawnPosition.y, spawnPosition.z))
     
-    -- find the desired unit in the groups database
-    local unit = veafUnits.findUnit(unitAlias)
-  
     veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
 
+    -- find the desired unit in the groups database
+    local unit = veafUnits.findUnit(unitAlias)
+    
+    if not(unit) then
+        veafSpawn.logInfo("cannot find unit "..unitAlias)
+        trigger.action.outText("cannot find unit "..unitAlias, 5)
+        return    
+    end
+  
     local units = {}
     
     veafSpawn.logDebug("spawnUnit unit = " .. unit.displayName .. ", dcsUnit = " .. tostring(unit.typeName))
@@ -380,23 +384,23 @@ function veafSpawn.spawnUnit(spawnSpot, unitAlias)
 
 
     -- check if position is correct for the unit type
-    spawnPosition = veafUnits.correctPositionForUnit(spawnSpot, unit)
-    
-    if spawnPosition == nil then
+    if not  veafUnits.checkPositionForUnit(spawnPosition, unit) then
         veafSpawn.logInfo("cannot find a suitable position for spawning unit "..unit.displayName)
         trigger.action.outText("cannot find a suitable position for spawning unit "..unit.displayName, 5)
+        return
     else 
-        table.insert(
-            units,
-            {
+        local toInsert = {
                 ["x"] = spawnPosition.x,
-                ["y"] = spawnPosition.y,
-                ["type"] = unit.unitType,
+                ["y"] = spawnPosition.z,
+                ["alt"] = spawnPosition.y,
+                ["type"] = unit.typeName,
                 ["name"] = unitName,
                 ["heading"] = 0,
                 ["skill"] = "Random"
             }
-        )
+
+        veafSpawn.logDebug(string.format("spawnUnit: toInsert x=%.1f y=%.1f, alt=%.1f, type=%s, name=%s, heading=%d, skill=%s", toInsert.x, toInsert.y, toInsert.alt, toInsert.type, toInsert.name, toInsert.heading, toInsert.skill ))
+        table.insert(units, toInsert)       
     end
 
     -- actually spawn the unit
