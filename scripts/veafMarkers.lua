@@ -40,7 +40,7 @@ veafMarkers = {}
 veafMarkers.Id = "MARKERS - "
 
 --- Version.
-veafMarkers.Version = "1.0.0"
+veafMarkers.Version = "1.1.0"
 
 --- DCS bug regarding wrong marker vector components was fixed. If so, set to true!
 veafMarkers.DCSbugfixed = false
@@ -64,6 +64,10 @@ veafMarkers.onEventMarkRemoveEventHandlers = {}
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Utility methods
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+function veafMarkers.logError(message)
+    veaf.logError(veafMarkers.Id .. message)
+end
 
 function veafMarkers.logInfo(message)
     veaf.logInfo(veafMarkers.Id .. message)
@@ -152,10 +156,9 @@ function veafMarkers.onEvent(event, eventHandlersTable)
             -- call the event handler
             local eventHandler = eventHandlersTable[i]
             veafMarkers.logDebug("Calling eventHandler #" .. eventHandler.id)
-            veafMarkers.logTrace(string.format("Marker text:\n%s", event.text))
             local err, errmsg = pcall(eventHandler.f, vec3, event)
             if not err then
-                veafMarkers.logInfo('Error in event handler #' .. eventHandler.id .. ' : '.. errmsg)
+                veafMarkers.logError('Error in event handler #' .. eventHandler.id .. ' : '.. errmsg)
             end
             veafMarkers.logDebug("Returning after eventHandler #" .. eventHandler.id)
         end

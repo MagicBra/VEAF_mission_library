@@ -33,12 +33,12 @@ veaf = {}
 veaf.Id = "VEAF - "
 
 --- Version.
-veaf.Version = "1.0.0"
+veaf.Version = "1.1.0"
 
 --- Enable logDebug ==> give more output to DCS log file.
 veaf.Debug = true
 --- Enable logTrace ==> give even more output to DCS log file.
-veaf.Trace = true
+veaf.Trace = false
 
 veaf.RadioMenuName = "VEAF"
 
@@ -52,20 +52,45 @@ veaf.radioMenuPath = nil
 -- Utility methods
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+function veaf.logError(message)
+    env.error(veaf.Id .. message)
+end
+
 function veaf.logInfo(message)
-    env.info(veaf.Id .. message)
+    env.info(veaf.Id .. "I - " .. message)
 end
 
 function veaf.logDebug(message)
     if veaf.Debug then
-        env.info(veaf.Id .. message)
+        env.info(veaf.Id .. "D - " .. message)
     end
 end
 
 function veaf.logTrace(message)
     if veaf.Trace then
-        env.info(veaf.Id .. message)
+        env.info(veaf.Id .."T - " ..  message)
     end
+end
+
+function veaf.vecToString(vec)
+    local result = ""
+    if vec.x then
+        result = result .. string.format(" x=%.1f", vec.x)
+    end
+    if vec.y then
+        result = result .. string.format(" y=%.1f", vec.y)
+    end
+    if vec.z then
+        result = result .. string.format(" z=%.1f", vec.z)
+    end
+    return result
+end
+
+
+--- Simple round
+function veaf.round(num, numDecimalPlaces)
+  local mult = 10^(numDecimalPlaces or 0)
+  return math.floor(num * mult + 0.5) / mult
 end
 
 --- Return the height of the land at the coordinate.
@@ -81,6 +106,10 @@ end
 
 --- Return a point at the same coordinates, but on the surface
 function veaf.placePointOnLand(vec3)
+    if not vec3.y then
+        vec3.y = 0
+    end
+    
     veaf.logTrace(string.format("getLandHeight: vec3  x=%.1f y=%.1f, z=%.1f", vec3.x, vec3.y, vec3.z))
     local height = veaf.getLandHeight(vec3)
     veaf.logTrace(string.format("getLandHeight: result  height=%.1f",height))
@@ -222,6 +251,9 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- initialisation
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- initialize the random number generator to make it almost random
+math.random(); math.random(); math.random()
 
 veaf.buildRadioMenu()
 
