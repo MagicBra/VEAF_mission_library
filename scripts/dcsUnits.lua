@@ -23,7 +23,7 @@ dcsUnits = {}
 dcsUnits.Id = "DCSUNITS - "
 
 --- Version.
-dcsUnits.Version = "1.0.0"
+dcsUnits.Version = "1.1.2"
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Do not change anything below unless you know what you are doing!

@@ -310,7 +310,7 @@ end
 --- Spawn a specific group at a specific spot
 function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing)
     veafSpawn.logDebug(string.format("spawnGroup(name = %s, country=%s, speed=%d, alt=%d, hdg= %d, spacing=%d)",name, country, speed, alt, hdg, spacing))
-    veafSpawn.logDebug(string.format("spawnGroup: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
+    veafSpawn.logDebug("spawnGroup: spawnSpot " .. veaf.vecToString(spawnSpot))
     
     veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
 

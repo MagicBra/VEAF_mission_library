@@ -40,7 +40,7 @@ veafMarkers = {}
 veafMarkers.Id = "MARKERS - "
 
 --- Version.
-veafMarkers.Version = "1.0.0"
+veafMarkers.Version = "1.1.0"
 
 --- DCS bug regarding wrong marker vector components was fixed. If so, set to true!
 veafMarkers.DCSbugfixed = false

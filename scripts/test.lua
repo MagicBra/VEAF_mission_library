@@ -1,5 +1,20 @@
 mist = {}
 veaf = {}
+env = {}
+missionCommands = {}
+
+function env.setErrorMessageBoxEnabled()
+end
+
+function missionCommands.addSubMenu(radioMenuName, radioMenuPath)
+end
+
+function missionCommands.addCommand()
+end
+
+function mist.dynAdd(param)
+end
+
 math.randomseed(os.time())
 
 function veaf.logInfo(text)
@@ -19,14 +34,37 @@ function veaf.round(num, numDecimalPlaces)
   return math.floor(num * mult + 0.5) / mult
 end
 
+function veaf.findPointInZone(spawnSpot, dispersion, isShip)
+    return spawnSpot   
+end
+
+function veaf.placePointOnLand(spawnSpot)
+    return spawnSpot   
+end
+
 dofile("dcsUnits.lua")
 dofile("veafUnits.lua")
 dofile("veafSpawn.lua")
+dofile("veafCasMission.lua")
 
-veafCasMission = {}
+--veafCasMission.initialize()
+
+function veaf.vecToString(vec)
+    local result = ""
+    if vec.x then
+        result = result .. string.format(" x=%.1f", vec.x)
+    end
+    if vec.y then
+        result = result .. string.format(" y=%.1f", vec.y)
+    end
+    if vec.z then
+        result = result .. string.format(" z=%.1f", vec.z)
+    end
+    return result
+end
 
 --- Generates an infantry group along with its manpad units and tranport vehicles
-function veafCasMission.generateInfantryGroup(groupId, spawnSpot, defense, armor, skill)
+function veafCasMission.generateInfantryGroup2(groupId, spawnSpot, defense, armor)
     local group = {}
     group.units = {}
     group.disposition = { h = 4, w = 3}
@@ -63,7 +101,7 @@ function veafCasMission.generateInfantryGroup(groupId, spawnSpot, defense, armor
 end
 
 --- Generates an infantry group along with its manpad units and tranport vehicles
-function veafCasMission.generateInfantryGroup2(groupId, spawnSpot, defense, armor, skill)
+function veafCasMission.generateInfantryGroup3(groupId, spawnSpot, defense, armor, skill)
     local group = {}
     group.units = {}
     group.disposition = { h = 5, w = 5}
@@ -85,17 +123,21 @@ function veafUnits.checkPositionForUnit(spawnPosition, unit)
 end
 
 local spawnPosition = {x=500, y=0, z=250}
+local a = veaf.vecToString(spawnPosition)
+
 local speed = 10
 local heading = 0
 local spacing = 500
 
-local group = veafUnits.findGroup("sa6")
+veafCasMission.generateCasMission(spawnPosition, 5, 5, 5, 5, true)
+
+--local group = veafUnits.findGroup("sa6")
 --local group = veafCasMission.generateInfantryGroup(1, spawnPosition, 4, 1, "Random")
-local group, cells = veafUnits.placeGroup(group, spawnPosition, spacing)
-veafUnits.debugGroup(group, cells)
+--local group, cells = veafUnits.placeGroup(group, spawnPosition, spacing)
+--veafUnits.debugGroup(group, cells)
 --veafSpawn.spawnUnit(spawnPosition, "sa9")
 --local unit = veafUnits.findUnit("sa9")
 --spawnPoint = veafUnits.correctPositionForUnit(spawnPosition, unit)
-for _, u in pairs(group.units) do
-    veafUnits.debugUnit(u)
-end
+--for _, u in pairs(group.units) do
+--  veafUnits.debugUnit(u)
+--end

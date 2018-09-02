@@ -39,7 +39,7 @@ veafUnits = {}
 veafUnits.Id = "UNITS - "
 
 --- Version.
-veafUnits.Version = "0.1.2"
+veafUnits.Version = "1.1.2"
 
 --- If no unit is spawned in a cell, it will default to this width
 veafUnits.DefaultCellWidth = 10
@@ -161,6 +161,29 @@ end
 -- Core methods
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+--- Browse all the units in a group and counts the infantry and vehicles remaining
+function veafUnits.countInfantryAndVehicles(groupname) 
+    local nbVehicles = 0
+    local nbInfantry = 0
+    local group = Group.getByName(groupname)
+    if group and group:isExist() == true and #group:getUnits() > 0 then
+        for _, u in pairs(group:getUnits()) do
+            local typeName = u:getTypeName()
+            if typeName then 
+                local unit = veafUnits.findUnit(typeName)
+                if unit then 
+                    if unit.vehicle then
+                        nbVehicles = nbVehicles + 1
+                    elseif unit.infantry then
+                        nbInfantry = nbInfantry + 1
+                    end
+                end
+            end
+        end
+    end
+    return nbVehicles, nbInfantry
+end
+
 --- searches the DCS database for a unit having this type (case insensitive)
 function veafUnits.findDcsUnit(unitType)
     veafUnits.logTrace("veafUnits.findDcsUnit(unitType=" .. unitType .. ")")
@@ -191,62 +214,51 @@ end
 --    }
 --},
 
---- searches the database for a group having this alias (case insensitive)
-function veafUnits.findGroup(groupAlias)
-    veafUnits.logTrace("veafUnits.findGroup(groupAlias=" .. groupAlias .. ")")
-
-    -- find the desired group in the groups database
-    local result = nil
-
-    for _, g in pairs(veafUnits.GroupsDatabase) do
-        for _, alias in pairs(g.aliases) do
-            if alias:lower() == groupAlias:lower() then
-                group = g.group
-                result = {}
-                result.disposition = {}
-                result.disposition.h = group.disposition.h
-                result.disposition.w = group.disposition.w
-                result.description = group.description
-                result.groupName = group.groupName
-                result.units = {}
-                local unitNumber = 1
-                -- replace all units with a simplified structure made from the DCS unit metadata structure
-                for i = 1, #group.units do
-                    local unitType
-                    local cell = nil
-                    local number = 1
-                    local u = group.units[i]
-                    if type(u) == "string" then 
-                        -- information was skipped using simplified syntax
-                        unitType = u
-                    else
-                        unitType = u[1]
-                        cell = u.cell
-                        number = u.number
-                    end
-                    if not(number) then 
-                      number = 1
-                    end
-                    if type(number) == "table" then 
-                        -- create a random number of units
-                        local min = number.min
-                        local max = number.max
-                        if not(min) then min = 1 end
-                        if not(max) then max = 1 end
-                        number = math.random(min, max)
-                    end
-                    for numUnit = 1, number do
-                        local unit = veafUnits.findUnit(unitType)
-                        if not(unit) then 
-                            veafUnits.logInfo("cannot find unit [" .. unitType .. "] listed in group [" .. group.groupName .. "]")
-                        else 
-                            unit.cell = cell
-                            result.units[unitNumber] = unit
-                            unitNumber = unitNumber + 1
-                        end
-                    end
-                end
-                break
+--- process a group definition and return a usable group table
+function veafUnits.processGroup(group)
+    local result = {}
+    
+    -- initialize result table and copy metadata
+    result.disposition = {}
+    result.disposition.h = group.disposition.h
+    result.disposition.w = group.disposition.w
+    result.description = group.description
+    result.groupName = group.groupName
+    result.units = {}
+    local unitNumber = 1
+    -- replace all units with a simplified structure made from the DCS unit metadata structure
+    for i = 1, #group.units do
+        local unitType
+        local cell = nil
+        local number = 1
+        local u = group.units[i]
+        if type(u) == "string" then 
+            -- information was skipped using simplified syntax
+            unitType = u
+        else
+            unitType = u[1]
+            cell = u.cell
+            number = u.number
+        end
+        if not(number) then 
+          number = 1
+        end
+        if type(number) == "table" then 
+            -- create a random number of units
+            local min = number.min
+            local max = number.max
+            if not(min) then min = 1 end
+            if not(max) then max = 1 end
+            number = math.random(min, max)
+        end
+        for numUnit = 1, number do
+            local unit = veafUnits.findUnit(unitType)
+            if not(unit) then 
+                veafUnits.logInfo("cannot find unit [" .. unitType .. "] listed in group [" .. group.groupName .. "]")
+            else 
+                unit.cell = cell
+                result.units[unitNumber] = unit
+                unitNumber = unitNumber + 1
             end
         end
     end
@@ -263,7 +275,26 @@ function veafUnits.findGroup(groupAlias)
         end
     end
     
-       
+    return result
+end
+
+
+--- searches the database for a group having this alias (case insensitive)
+function veafUnits.findGroup(groupAlias)
+    veafUnits.logTrace("veafUnits.findGroup(groupAlias=" .. groupAlias .. ")")
+
+    -- find the desired group in the groups database
+    local result = nil
+
+    for _, g in pairs(veafUnits.GroupsDatabase) do
+        for _, alias in pairs(g.aliases) do
+            if alias:lower() == groupAlias:lower() then
+                result = veafUnits.processGroup(g.group)
+                break
+            end
+        end
+    end
+    
     return result
 end
 
@@ -308,6 +339,8 @@ function veafUnits.makeUnitFromDcsStructure(dcsUnit, cell)
     result.displayName = dcsUnit.desc.displayName
     result.naval = (dcsUnit.desc.attributes.Ships == true)
     result.air = (dcsUnit.desc.attributes.Air == true)
+    result.infantry = (dcsUnit.desc.attributes.Infantry == true)
+    result.vehicle = (dcsUnit.desc.attributes.Vehicles == true)
     result.size = { x = veaf.round(dcsUnit.desc.box.max.x - dcsUnit.desc.box.min.x, 1), y = veaf.round(dcsUnit.desc.box.max.y - dcsUnit.desc.box.min.y, 1), z = veaf.round(dcsUnit.desc.box.max.z - dcsUnit.desc.box.min.z, 1)}
     result.width = result.size.z
     result.length= result.size.x -- TODO check if this is correct ; may as well be z !
