@@ -79,7 +79,45 @@ function veafUnits.checkPositionForUnit(spawnPosition, unit)
     return true
 end
 
-local spawnPosition = {x=-321835.9, y=562.0, z=888712.0}
+--local spawnPosition = {x=-321835.9, y=562.0, z=888712.0}
+local spawnPosition = {x=500, y=0, z=250}
+local spawnPosition2 = {x=500, y=0, z=300}
+local speed = 10
+local heading = 270
+
+	-- starting position
+	local fromPosition = {
+		["x"] = eventPos.x,
+		["y"] = eventPos.z
+	}
+	
+	-- ending position
+	local toPosition = {
+		["x"] = fromPosition.x + distance * 1000 * 0.539957 * math.cos(mist.utils.toRadian(hdg)),
+		["y"] = fromPosition.y + distance * 1000 * 0.539957 * math.sin(mist.utils.toRadian(hdg))
+	}
+
+
+	-- new route point
+	local newWaypoint = {
+		["action"] = "Turning Point",
+		["alt"] = 0,
+		["alt_type"] = "BARO",
+		["form"] = "Turning Point",
+		["speed"] = speed/1.94384,  -- speed in m/s
+		["type"] = "Turning Point",
+		["x"] = eventPos.x,
+		["y"] = eventPos.z,
+	}
+
+	-- order group to new waypoint
+	mist.goRoute(groupName, {newWaypoint})
+
+local length = speed * 3600 -- m travelled in an hour
+local new = {}
+new.x = math.floor((math.cos(heading+math.pi/2) * length) + spawnPosition.x)
+new.y = math.floor((math.sin(heading+math.pi/2) * length) + spawnPosition.z)
+
 local spacing = 10
 --local group = veafUnits.findGroup("infsec")
 --local group = veafCasMission.generateInfantryGroup(1, spawnPosition, 4, 1, "Random")
