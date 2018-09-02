@@ -19,12 +19,37 @@ dcsUnits = {}
 -- Global settings. Stores the root VEAF constants
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+--- Identifier. All output in DCS.log will start with this.
+dcsUnits.Id = "DCSUNITS - "
+
 --- Version.
 dcsUnits.Version = "1.0.0"
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Do not change anything below unless you know what you are doing!
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Utility methods
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+function dcsUnits.logInfo(message)
+    if message then
+        veaf.logInfo(dcsUnits.Id .. message)
+    end
+end
+
+function dcsUnits.logDebug(message)
+    if message then
+        veaf.logDebug(dcsUnits.Id .. message)
+    end
+end
+
+function dcsUnits.logTrace(message)
+    if message then
+        veaf.logTrace(dcsUnits.Id .. message)
+    end
+end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Raw DCS units database
@@ -33163,3 +33188,5 @@ dcsUnits.DcsUnitsDatabase =
         }, -- end of ["desc"]
     } -- end of USS_Samuel_Chase
 }
+
+dcsUnits.logInfo(string.format("Loading version %s", dcsUnits.Version))

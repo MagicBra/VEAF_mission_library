@@ -14,6 +14,11 @@ function veaf.logTrace(text)
   print("TRACE VEAF - " .. text)
 end
 
+function veaf.round(num, numDecimalPlaces)
+  local mult = 10^(numDecimalPlaces or 0)
+  return math.floor(num * mult + 0.5) / mult
+end
+
 dofile("dcsUnits.lua")
 dofile("veafUnits.lua")
 dofile("veafSpawn.lua")
@@ -79,62 +84,18 @@ function veafUnits.checkPositionForUnit(spawnPosition, unit)
     return true
 end
 
---local spawnPosition = {x=-321835.9, y=562.0, z=888712.0}
 local spawnPosition = {x=500, y=0, z=250}
-local spawnPosition2 = {x=500, y=0, z=300}
 local speed = 10
-local heading = 270
+local heading = 0
+local spacing = 500
 
-	-- starting position
-	local fromPosition = {
-		["x"] = eventPos.x,
-		["y"] = eventPos.z
-	}
-	
-	-- ending position
-	local toPosition = {
-		["x"] = fromPosition.x + distance * 1000 * 0.539957 * math.cos(mist.utils.toRadian(hdg)),
-		["y"] = fromPosition.y + distance * 1000 * 0.539957 * math.sin(mist.utils.toRadian(hdg))
-	}
-
-
-	-- new route point
-	local newWaypoint = {
-		["action"] = "Turning Point",
-		["alt"] = 0,
-		["alt_type"] = "BARO",
-		["form"] = "Turning Point",
-		["speed"] = speed/1.94384,  -- speed in m/s
-		["type"] = "Turning Point",
-		["x"] = eventPos.x,
-		["y"] = eventPos.z,
-	}
-
-	-- order group to new waypoint
-	mist.goRoute(groupName, {newWaypoint})
-
-local length = speed * 3600 -- m travelled in an hour
-local new = {}
-new.x = math.floor((math.cos(heading+math.pi/2) * length) + spawnPosition.x)
-new.y = math.floor((math.sin(heading+math.pi/2) * length) + spawnPosition.z)
-
-local spacing = 10
---local group = veafUnits.findGroup("infsec")
+local group = veafUnits.findGroup("sa6")
 --local group = veafCasMission.generateInfantryGroup(1, spawnPosition, 4, 1, "Random")
---local group, cells = veafUnits.placeGroup(group, spawnPosition, spacing)
---veafUnits.debugGroup(group, cells)
-veafSpawn.spawnUnit(spawnPosition, "sa9")
+local group, cells = veafUnits.placeGroup(group, spawnPosition, spacing)
+veafUnits.debugGroup(group, cells)
+--veafSpawn.spawnUnit(spawnPosition, "sa9")
 --local unit = veafUnits.findUnit("sa9")
 --spawnPoint = veafUnits.correctPositionForUnit(spawnPosition, unit)
-
-        local toInsert = {
-                ["x"] = spawnPosition.x,
-                ["y"] = spawnPosition.z,
-                ["alt"] = spawnPosition.y,
-                ["type"] = unit.unitType,
-                ["name"] = unitName,
-                ["heading"] = 0,
-                ["skill"] = "Random"
-            }
-
-        veafSpawn.logDebug(string.format("spawnUnit: toInsert x=%.1f y=%.1f, alt=%.1f, type=%s, name=%s, heading=%d, skill=%s", toInsert.x, toInsert.y, toInsert.alt, toInsert.type, toInsert.name, toInsert.heading, toInsert.skill ))
+for _, u in pairs(group.units) do
+    veafUnits.debugUnit(u)
+end

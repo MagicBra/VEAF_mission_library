@@ -41,22 +41,12 @@
 -- Basic Usage:
 -- ------------
 -- 1.) Place a mark on the F10 map.
--- 2.) As text enter "veaf spawn [unit|group|cargo|smoke|flare]"
+-- 2.) As text enter a command
 -- 3.) Click somewhere else on the map to submit the new text.
 -- 4.) The command will be processed. A message will appear to confirm this
 -- 5.) The original mark will disappear.
 --
--- Options:
--- --------
--- Type "veaf spawn unit, type [unit type]" to spawn a specific unit ; types can be any DCS type or alias from the VEAF Units Database
--- Type "veaf spawn group, alias [group alias]" to spawn a specific group ; types can be any group alias from the VEAF Groups Database
---      add ", spacing <spacing>" to choose the (randomly modified) units spacing in meters
--- Type "veaf spawn cargo, type [cargo type]" to spawn a specific cargo ; types can be any of [ammo, barrels, container, fbar, fueltank, m117, oiltank, uh1h]
---      add ", smoke" to add a smoke marker
--- Type "veaf spawn smoke" to spawn a smoke marker
---      add ", color <Red|Green|Orange|Blue|White>" to specify the smoke color
--- Type "veaf spawn flare" to spawn an illumination flare
---      add ", alt <altitude>" to choose its initial altitude
+-- Commands and options: see online help function veafSpawn.help()
 --
 -- *** NOTE ***
 -- * All keywords are CaSE inSenSITvE.
@@ -75,7 +65,7 @@ veafSpawn = {}
 veafSpawn.Id = "SPAWN - "
 
 --- Version.
-veafSpawn.Version = "1.0.2"
+veafSpawn.Version = "1.1.2"
 
 --- Key phrase to look for in the mark text which triggers the weather report.
 veafSpawn.Keyphrase = "veaf spawn "
@@ -128,9 +118,9 @@ function veafSpawn.onEventMarkChange(eventPos, event)
         if options then
             -- Check options commands
             if options.unit then
-                veafSpawn.spawnUnit(eventPos, options.unitType, options.country, options.speed, options.altitude, options.heading)
+                veafSpawn.spawnUnit(eventPos, options.name, options.country, options.speed, options.altitude, options.heading)
             elseif options.group then
-                veafSpawn.spawnGroup(eventPos, options.groupAlias, options.country, options.speed, options.altitude, options.heading, options.spacing)
+                veafSpawn.spawnGroup(eventPos, options.name, options.country, options.speed, options.altitude, options.heading, options.spacing)
             elseif options.cargo then
                 veafSpawn.spawnCargo(eventPos, options.cargoType, options.cargoSmoke)
             elseif options.smoke then
@@ -164,11 +154,8 @@ function veafSpawn.markTextAnalysis(text)
     switch.smoke = false
     switch.flare = false
 
-    -- spawned unit type
-    switch.unitType = "BTR-80"
-
-    -- spawned group alias
-    switch.groupAlias = ""
+    -- spawned group/unit name
+    switch.name = ""
 
     -- spawned group units spacing
     switch.spacing = 5
@@ -214,16 +201,10 @@ function veafSpawn.markTextAnalysis(text)
         local key = str[1]
         local val = str[2]
 
-        if switch.unit and key:lower() == "type" then
-            -- Set unit type.
-            veafSpawn.logDebug(string.format("Keyword type = %s", val))
-            switch.unitType = val
-        end
-
-        if switch.group and key:lower() == "alias" then
-            -- Set group alias.
-            veafSpawn.logDebug(string.format("Keyword alias = %s", val))
-            switch.groupAlias = val
+        if (switch.group or switch.unit) and key:lower() == "name" then
+            -- Set name.
+            veafSpawn.logDebug(string.format("Keyword name = %s", val))
+            switch.name = val
         end
 
         if switch.group and key:lower() == "spacing" then
@@ -283,7 +264,7 @@ function veafSpawn.markTextAnalysis(text)
             switch.alt = nVal
         end
 
-        if switch.cargo and key:lower() == "type" then
+        if switch.cargo and key:lower() == "name" then
             -- Set cargo type.
             veafSpawn.logDebug(string.format("Keyword type = %s", val))
             if val:lower() == "ammo" then
@@ -310,10 +291,14 @@ function veafSpawn.markTextAnalysis(text)
             veafSpawn.logDebug("Keyword smoke is set")
             switch.cargoSmoke = true
         end
+        
     end
 
-    -- check mandatory parameter "alias" for command "group"
-    if switch.group and not(switch.groupAlias) then return nil end
+    -- check mandatory parameter "name" for command "group"
+    if switch.group and not(switch.name) then return nil end
+    
+    -- check mandatory parameter "name" for command "unit"
+    if switch.unit and not(switch.name) then return nil end
     
     return switch
 end
@@ -323,17 +308,17 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Spawn a specific group at a specific spot
-function veafSpawn.spawnGroup(spawnSpot, groupAlias, country, speed, alt, hdg, spacing)
-    veafSpawn.logDebug(string.format("spawnGroup(groupAlias = %s, country=%s, speed=%d, alt=%d, hdg= %d, spacing=%d)",groupAlias, country, speed, alt, hdg, spacing))
+function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing)
+    veafSpawn.logDebug(string.format("spawnGroup(name = %s, country=%s, speed=%d, alt=%d, hdg= %d, spacing=%d)",name, country, speed, alt, hdg, spacing))
     veafSpawn.logDebug(string.format("spawnGroup: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
     
     veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
 
     -- find the desired group in the groups database
-    local dbGroup = veafUnits.findGroup(groupAlias)
+    local dbGroup = veafUnits.findGroup(name)
     if not(dbGroup) then
-        veafSpawn.logInfo("cannot find group "..groupAlias)
-        trigger.action.outText("cannot find group "..groupAlias, 5)
+        veafSpawn.logInfo("cannot find group "..name)
+        trigger.action.outText("cannot find group "..name, 5)
         return    
     end
 
@@ -341,7 +326,7 @@ function veafSpawn.spawnGroup(spawnSpot, groupAlias, country, speed, alt, hdg, s
     local heading = mist.utils.toRadian(hdg)
 
     -- place group units on the map
-    local group, cells = veafUnits.placeGroup(dbGroup, spawnSpot, 5)
+    local group, cells = veafUnits.placeGroup(dbGroup, spawnSpot, spacing)
     veafUnits.debugGroup(group, cells)
     
     local groupName = group.groupName .. " #" .. veafSpawn.spawnedUnitsCounter
@@ -421,18 +406,18 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Spawn a specific unit at a specific spot
-function veafSpawn.spawnUnit(spawnPosition, unitAlias, country, speed, alt, hdg)
-    veafSpawn.logDebug(string.format("spawnUnit(unitAlias = %s, country=%s, speed=%d, alt=%d, hdg= %d)",unitAlias, country, speed, alt, hdg))
+function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg)
+    veafSpawn.logDebug(string.format("spawnUnit(name = %s, country=%s, speed=%d, alt=%d, hdg= %d)",name, country, speed, alt, hdg))
     veafSpawn.logDebug(string.format("spawnUnit: spawnPosition  x=%.1f y=%.1f, z=%.1f", spawnPosition.x, spawnPosition.y, spawnPosition.z))
     
     veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
 
     -- find the desired unit in the groups database
-    local unit = veafUnits.findUnit(unitAlias)
+    local unit = veafUnits.findUnit(name)
     
     if not(unit) then
-        veafSpawn.logInfo("cannot find unit "..unitAlias)
-        trigger.action.outText("cannot find unit "..unitAlias, 5)
+        veafSpawn.logInfo("cannot find unit "..name)
+        trigger.action.outText("cannot find unit "..name, 5)
         return    
     end
   
@@ -641,11 +626,11 @@ function veafSpawn.help()
         'This will spawn the requested object in the DCS world\n' ..
         'You can add options (comma separated) :\n' ..
         '"veaf spawn unit" spawns a target vehicle/ship\n' ..
-        '   "type [unit type]" spawns a specific unit ; types can be any DCS type\n' ..
-        'veaf spawn group, alias [group alias]" spawns a specific group ; alias must be a group alias from the VEAF Groups Database\n' ..
-        '   "spacing <spacing>" specifies the (randomly modified) units spacing in meters\n' ..
+        '   "name [unit name]" spawns a specific unit ; name can be any DCS type\n' ..
+        'veaf spawn group, name [group name]" spawns a specific group ; name must be a group name from the VEAF Groups Database\n' ..
+        '   "spacing <spacing>" specifies the (randomly modified) units spacing in unit size multiples\n' ..
         '"veaf spawn cargo" creates a cargo mission\n' ..
-        '   "type [cargo type]" spawns a specific cargo ; types can be any of [ammo, barrels, container, fbar, fueltank, m117, oiltank, uh1h]\n' ..
+        '   "name [cargo type]" spawns a specific cargo ; name can be any of [ammo, barrels, container, fbar, fueltank, m117, oiltank, uh1h]\n' ..
         '   "smoke adds a smoke marker\n' ..
         '"veaf spawn smoke" spawns a smoke on the ground\n' ..
         '   "color [red|green|blue|white|orange]" specifies the smoke color\n' ..

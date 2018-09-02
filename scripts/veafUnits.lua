@@ -39,7 +39,7 @@ veafUnits = {}
 veafUnits.Id = "UNITS - "
 
 --- Version.
-veafUnits.Version = "0.1.1"
+veafUnits.Version = "0.1.2"
 
 --- If no unit is spawned in a cell, it will default to this width
 veafUnits.DefaultCellWidth = 10
@@ -153,7 +153,7 @@ function veafUnits.debugUnit(unit)
             airnaval = ", air"
         end
         
-        veafUnits.logDebug("unit " .. unit.displayName .. ", dcsType=" .. unit.typeName .. airnaval)
+        veafUnits.logDebug("unit " .. unit.displayName .. ", dcsType=" .. unit.typeName .. airnaval .. ", size = { width =" .. unit.width .. ", length="..unit.length.."}")
     end
 end
 
@@ -167,8 +167,12 @@ function veafUnits.findDcsUnit(unitType)
 
     -- find the desired unit in the DCS units database
     local unit = nil
-    for type, u in pairs(dcsUnits.DcsUnitsDatabase) do
-        if unitType:lower() == type:lower() then
+    for dcsType, u in pairs(dcsUnits.DcsUnitsDatabase) do
+        local hasDesc = u.desc
+        if      (dcsType and unitType:lower() == dcsType:lower())
+            or  (u and u.desc and u.desc.displayName and unitType:lower() == u.desc.displayName:lower())
+            or  (u and u.desc and u.desc.typeName and unitType:lower() == u.desc.typeName:lower()) 
+        then
             unit = u
             break
         end
@@ -304,14 +308,14 @@ function veafUnits.makeUnitFromDcsStructure(dcsUnit, cell)
     result.displayName = dcsUnit.desc.displayName
     result.naval = (dcsUnit.desc.attributes.Ships == true)
     result.air = (dcsUnit.desc.attributes.Air == true)
-    result.size = { x = dcsUnit.desc.box.max.x - dcsUnit.desc.box.min.x, y = dcsUnit.desc.box.max.y - dcsUnit.desc.box.min.y, z = dcsUnit.desc.box.max.z - dcsUnit.desc.box.min.z}
-    result.width = result.size.x
-    result.height= result.size.y -- TODO check if this is correct ; may as well be z !
+    result.size = { x = veaf.round(dcsUnit.desc.box.max.x - dcsUnit.desc.box.min.x, 1), y = veaf.round(dcsUnit.desc.box.max.y - dcsUnit.desc.box.min.y, 1), z = veaf.round(dcsUnit.desc.box.max.z - dcsUnit.desc.box.min.z, 1)}
+    result.width = result.size.z
+    result.length= result.size.x -- TODO check if this is correct ; may as well be z !
     -- invert if width > height
-    if result.width > result.height then
+    if result.width > result.length then
         local width = result.width
-        result.width = result.height
-        result.height = width
+        result.width = result.length
+        result.length = width
     end
     result.cell = cell
 
@@ -425,16 +429,16 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
                 rowHeight = rows[nRow].height
             end
             if cell then
-                cell.width = veafUnits.DefaultCellWidth + spacing
-                cell.height = veafUnits.DefaultCellHeight + spacing
+                cell.width = veafUnits.DefaultCellWidth + (spacing * veafUnits.DefaultCellWidth)
+                cell.height = veafUnits.DefaultCellHeight + (spacing * veafUnits.DefaultCellHeight)
                 local unit = cell.unit
                 if unit then
                     unit.cell = cellNum
                     if unit.width and unit.width > 0 then 
-                        cell.width = unit.width + spacing
+                        cell.width = unit.width + (spacing * unit.width)
                     end
-                    if unit.height and unit.height > 0 then 
-                        cell.height = unit.height + spacing
+                    if unit.length and unit.length > 0 then 
+                        cell.height = unit.length + (spacing * unit.length)
                     end
                 end
 
@@ -461,9 +465,9 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
         cols[nCol].right= totalWidth + spawnPoint.z
     end
     for nRow = 1, #rows do -- bottom -> up
-        rows[#rows-nRow+1].top = totalHeight + spawnPoint.x
-        totalHeight = totalHeight + rows[#rows-nRow+1].height
         rows[#rows-nRow+1].bottom = totalHeight + spawnPoint.x
+        totalHeight = totalHeight + rows[#rows-nRow+1].height
+        rows[#rows-nRow+1].top = totalHeight + spawnPoint.x
     end
     
     -- compute the centers and extents of the cells
@@ -488,8 +492,8 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
         local unit = cell.unit
         if unit then
             unit.spawnPoint = {}
-            unit.spawnPoint.z = cell.center.x + math.random(-spacing/2, spacing/2)
-            unit.spawnPoint.x = cell.center.y + math.random(-spacing/2, spacing/2)
+            unit.spawnPoint.z = cell.center.x + math.random(-(spacing * unit.width)/2, (spacing * unit.width)/2)
+            unit.spawnPoint.x = cell.center.y + math.random(-(spacing * unit.length)/2, (spacing * unit.length)/2)
             unit.spawnPoint.y = spawnPoint.y
         end
     end 
@@ -509,6 +513,22 @@ veafUnits.UnitsDatabase = {
     {
         aliases = {"sa13", "sa-13"},
         unitType = "Strela-10M3",
+    },
+    {
+        aliases = {"sa6", "sa-6"},
+        unitType = "Kub 2P25 ln",
+    },
+    {
+        aliases = {"sa8", "sa-8"},
+        unitType = "Osa 9A33 ln",
+    },
+    {
+        aliases = {"sa15", "sa-15"},
+        unitType = "Tor 9A331",
+    },
+    {
+        aliases = {"shilka"},
+        unitType = "ZSU-23-4 Shilka",
     },
     {
         aliases = {"tarawa"},
@@ -533,6 +553,15 @@ veafUnits.UnitsDatabase = {
 --  groupName   = name used when spawning this group (will be flavored with a numerical suffix)
 
 veafUnits.GroupsDatabase = {
+    {
+        aliases = {"sa6", "sa-6"},
+        group = {
+            disposition = { h= 5, w= 5},
+            units = {{"Kub 1S91 str", cell=13}, {"Kub 2P25 ln", cell = 1}, {"Kub 2P25 ln", cell = 3}, {"Kub 2P25 ln", cell = 5}, {"Kub 2P25 ln", cell = 11}, {"Kub 2P25 ln", cell = 15}, {"Kub 2P25 ln", cell = 21}, {"Kub 2P25 ln", cell = 23}, {"Kub 2P25 ln", cell = 25}, {"Kub 2P25 ln", number = {min=0,max=5}}},
+            description = "SA-6 SAM site",
+            groupName = "SA6"
+        },
+    },
     {
         aliases = {"sa9", "sa-9"},
         group = {
@@ -568,3 +597,5 @@ veafUnits.GroupsDatabase = {
         }
     }  
 }
+
+veafUnits.logInfo(string.format("Loading version %s", veafUnits.Version))

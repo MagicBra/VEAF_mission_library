@@ -72,6 +72,12 @@ function veaf.logTrace(message)
     end
 end
 
+--- Simple round
+function veaf.round(num, numDecimalPlaces)
+  local mult = 10^(numDecimalPlaces or 0)
+  return math.floor(num * mult + 0.5) / mult
+end
+
 --- Return the height of the land at the coordinate.
 function veaf.getLandHeight(vec3)
     veaf.logTrace(string.format("getLandHeight: vec3  x=%.1f y=%.1f, z=%.1f", vec3.x, vec3.y, vec3.z))
