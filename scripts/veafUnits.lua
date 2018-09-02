@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
--- VEAF groups and units database for DCS Workd
+-- VEAF groups and units database for DCS World
 -- By zip (2018)
 --
 -- Features:
