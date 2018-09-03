@@ -617,27 +617,11 @@ veafUnits.GroupsDatabase = {
         aliases = {"sa10", "s300", "bb"},
         group = {
             disposition = { h= 10, w= 13},
-            units = {{"S-300PS 40B6M tr", cell = 7}, {"S-300PS 5P85C ln", cell = 29}, {"S-300PS 5P85D ln", cell = 37}, {"S-300PS 5P85D ln", cell = 43}, {"S-300PS 5P85C ln", cell = 49}, {"S-300PS 5P85C ln", cell = 57}, {"S-300PS 5P85D ln", cell = 61}, {"S-300PS 5P85D ln", cell = 71}, {"S-300PS 5P85C ln", cell = 73}, {"S-300PS 64H6E sr", cell = 98}, {"S-300PS 54K6 cp", cell = 118, {"S-300PS 40B6MD sr", cell = 130}},
+            units = {{"S-300PS 40B6M tr", cell = 7}, {"S-300PS 5P85C ln", cell = 29}, {"S-300PS 5P85D ln", cell = 37}, {"S-300PS 5P85D ln", cell = 43}, {"S-300PS 5P85C ln", cell = 49}, {"S-300PS 5P85C ln", cell = 57}, {"S-300PS 5P85D ln", cell = 61}, {"S-300PS 5P85D ln", cell = 71}, {"S-300PS 5P85C ln", cell = 73}, {"S-300PS 64H6E sr", cell = 98}, {"S-300PS 54K6 cp", cell = 118}, {"S-300PS 40B6MD sr", cell = 130}},
             description = "S300 SAM site",
             groupName = "S300"
         },
     },   
-    {
-        aliases = {"sa9", "sa-9"},
-        group = {
-            units = {"sa-9"},
-            description = "SA-9 SAM site",
-            groupName = "SA9"
-        },
-    },
-    {
-        aliases = {"sa13", "sa-13"},
-        group = {
-            units = {"sa-13"},
-            description = "SA-13 SAM site",
-            groupName = "SA13"
-        },
-    },
     {
         aliases = {"infantry section", "infsec"},
         group = {
@@ -678,7 +662,7 @@ veafUnits.GroupsDatabase = {
         aliases = {"Tarawa"},
         group = {
             disposition = { h = 3, w = 3},
-            units = {{"Tarawa", 2}, {"Perry", 7}, {"Perry", 9}, {"Molniya"}},
+            units = {{"Tarawa", cell=2}, {"Perry", cell=4}, {"Perry", cell=6}, {"TICONDEROG", cell=8}},
             description = "Tarawa battle group",
             groupName = "Tarawa",
         },
