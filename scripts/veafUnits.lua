@@ -587,30 +587,41 @@ veafUnits.UnitsDatabase = {
 
 veafUnits.GroupsDatabase = {
     {
-        aliases = {"sa6", "sa-6"},
+        aliases = {"sa3", "sa-3", "LB"},
         group = {
-            disposition = { h= 5, w= 5},
-            units = {{"Kub 1S91 str", cell=13}, {"Kub 2P25 ln", cell = 1}, {"Kub 2P25 ln", cell = 3}, {"Kub 2P25 ln", cell = 5}, {"Kub 2P25 ln", cell = 11}, {"Kub 2P25 ln", cell = 15}, {"Kub 2P25 ln", cell = 21}, {"Kub 2P25 ln", cell = 23}, {"Kub 2P25 ln", cell = 25}, {"Kub 2P25 ln", number = {min=0,max=5}}},
+            disposition = { h= 9, w= 9},
+            units = {{"p-19 s-125 sr", cell = 42}, {"snr s-125 tr", cell = 39}, {"5p73 s-125 ln", cell = 1}, {"5p73 s-125 ln", cell = 9}, {"5p73 s-125 ln", cell = 72}, {"5p73 s-125 ln", cell = 81}},
+            description = "SA-3 SAM site",
+            groupName = "SA3"
+        },
+    },
+    {
+        aliases = {"sa6", "sa-6", "06"},
+        group = {
+            disposition = { h= 7, w= 5},
+            units = {{"Kub 1S91 str", cell = 18}, {"Kub 2P25 ln", cell = 4}, {"Kub 2P25 ln", cell = 15}, {"Kub 2P25 ln", cell = 21}, {"Kub 2P25 ln", cell = 32}},
             description = "SA-6 SAM site",
             groupName = "SA6"
         },
     },
     {
-        aliases = {"sa9", "sa-9"},
+        aliases = {"sa11", "sa-11", "sd"},
         group = {
-            units = {"sa-9"},
-            description = "SA-9 SAM site",
-            groupName = "SA9"
+            disposition = { h= 9, w= 9},
+            units = {{"SA-11 Buk SR 9S18M1", cell = 42}, {"SA-11 Buk CC 9S470M1", cell = 39}, {"SA-11 Buk LN 9A310M1", cell = 1}, {"SA-11 Buk LN 9A310M1", cell = 5}, {"SA-11 Buk LN 9A310M1", cell = 9}, {"SA-11 Buk LN 9A310M1", cell = 72}, {"SA-11 Buk LN 9A310M1", cell = 76}, {"SA-11 Buk LN 9A310M1", cell = 81}},
+            description = "SA-11 SAM site",
+            groupName = "SA11"
         },
     },
     {
-        aliases = {"sa13", "sa-13"},
+        aliases = {"sa10", "s300", "bb"},
         group = {
-            units = {"sa-13"},
-            description = "SA-13 SAM site",
-            groupName = "SA13"
-        }
-    },
+            disposition = { h= 10, w= 13},
+            units = {{"S-300PS 40B6M tr", cell = 7}, {"S-300PS 5P85C ln", cell = 29}, {"S-300PS 5P85D ln", cell = 37}, {"S-300PS 5P85D ln", cell = 43}, {"S-300PS 5P85C ln", cell = 49}, {"S-300PS 5P85C ln", cell = 57}, {"S-300PS 5P85D ln", cell = 61}, {"S-300PS 5P85D ln", cell = 71}, {"S-300PS 5P85C ln", cell = 73}, {"S-300PS 64H6E sr", cell = 98}, {"S-300PS 54K6 cp", cell = 118}, {"S-300PS 40B6MD sr", cell = 130}},
+            description = "S300 SAM site",
+            groupName = "S300"
+        },
+    },   
     {
         aliases = {"infantry section", "infsec"},
         group = {
@@ -618,16 +629,43 @@ veafUnits.GroupsDatabase = {
             units = {{"IFV BTR-80", cell=38},{"IFV BTR-80", cell=39},{"INF Soldier AK", number = {min=12, max=30}}, {"SA-18 Igla manpad", number = {min=0, max=2}}},
             description = "Mechanized infantry section with APCs",
             groupName = "Mechanized infantry section"
-        }
+        },
+    },
+    {
+        aliases = {"roland", "rd", "mim-115"},
+        group = {
+            disposition = { h= 3, w= 3},
+            units = {{"Roland Radar", cell = 8}, {"Roland ADS", cell = 1}, {"Roland ADS", cell = 3}},
+            description = "Roland SAM site",
+            groupName = "Roland"
+        },
+    },
+    {
+        aliases = {"hawk", "ha", "mim-23"},
+        group = {
+            disposition = { h= 7, w= 3},
+            units = {{"Hawk pcp", cell = 8}, {"Hawk sr", cell = 13}, {"Hawk tr", cell = 15}, {"Hawk ln", cell = 1}, {"Hawk ln", cell = 3}, {"Hawk ln", cell = 21}},
+            description = "Hawk SAM site",
+            groupName = "Hawk"
+        },
+    },
+    {
+        aliases = {"patriot", "pa", "mim-104"},
+        group = {
+            disposition = { h= 7, w= 4},
+            units = {{"Patriot ln", cell = 1}, {"Patriot cp", cell = 8}, {"Patriot str", cell = 10}, {"Patriot AMG", cell = 19}, {"Patriot ECS", cell = 25}, {"Patriot EPP", cell = 28}},
+            description = "Patriot SAM site",
+            groupName = "Patriot"
+        },
     },
     {
         aliases = {"Tarawa"},
         group = {
             disposition = { h = 3, w = 3},
-            units = {{"Tarawa", 2}, {"Perry", 7}, {"Perry", 9}, {"Molniya"}},
+            units = {{"Tarawa", cell=2}, {"Perry", cell=4}, {"Perry", cell=6}, {"TICONDEROG", cell=8}},
             description = "Tarawa battle group",
             groupName = "Tarawa",
-        }
+        },
     }  
 }
 
