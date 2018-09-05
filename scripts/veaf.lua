@@ -238,6 +238,30 @@ function veaf.addUnit(group, spawnSpot, dispersion, unitType, unitName, skill)
     end
 end
 
+function veaf.moveGroup(groupName, pos, speed)
+	local unitGroup = Group.getByName(groupName)
+    if unitGroup == nil then
+        veaf.logError("veaf.moveGroup: " .. groupName .. ' not found')
+		return false
+	end
+    
+	-- new route point
+	local newWaypoint = {
+		["action"] = "Turning Point",
+		["alt"] = 0,
+		["alt_type"] = "BARO",
+		["form"] = "Turning Point",
+		["speed"] = speed,
+		["type"] = "Turning Point",
+		["x"] = pos.x,
+		["y"] = pos.z,
+	}
+
+	-- order group to new waypoint
+	mist.goRoute(groupName, {newWaypoint})
+end
+
+
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Radio menu methods
 -------------------------------------------------------------------------------------------------------------------------------------------------------------

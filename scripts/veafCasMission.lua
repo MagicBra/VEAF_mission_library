@@ -14,7 +14,7 @@
 -- * This script requires DCS 2.5.1 or higher and MIST 4.3.74 or higher.
 -- * It also requires the base veaf.lua script library (version 1.0 or higher)
 -- * It also requires the veafMarkers.lua script library (version 1.0 or higher)
--- * It also requires the veafCasMission.lua script library (version 1.0 or higher)
+-- * It also requires the veafSpawn.lua script library (version 1.0 or higher)
 --
 -- Load the script:
 -- ----------------
@@ -29,7 +29,7 @@
 --     * ACTION "DO SCRIPT FILE"
 --     * OPEN --> Browse to the location of veafMarkers.lua and click OK.
 --     * ACTION "DO SCRIPT FILE"
---     * OPEN --> Browse to the location of veafCasMission.lua and click OK.
+--     * OPEN --> Browse to the location of veafSpawn.lua and click OK.
 --     * ACTION "DO SCRIPT FILE"
 --     * OPEN --> Browse to the location of this script and click OK.
 --     * ACTION "DO SCRIPT"
@@ -97,9 +97,6 @@ veafCasMission.RadioMenuName = "CAS MISSION (" .. veafCasMission.Version .. ")"
 veafCasMission.targetMarkersPath = nil
 veafCasMission.targetInfoPath = nil
 veafCasMission.rootPath = nil
-
---- Enable/Disable error boxes displayed on screen.
-env.setErrorMessageBoxEnabled(false)
 
 -- CAS Group watchdog function id
 veafCasMission.groupAliveCheckTaskID = 'none'
@@ -863,12 +860,15 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function veafCasMission.initialize()
-
     veafCasMission.buildHumanGroups()
     veafCasMission.buildRadioMenu()
     veafMarkers.registerEventHandler(veafMarkers.MarkerChange, veafCasMission.onEventMarkChange)
 end
 
 veafCasMission.logInfo(string.format("Loading version %s", veafCasMission.Version))
+
+--- Enable/Disable error boxes displayed on screen.
+env.setErrorMessageBoxEnabled(false)
+
 
 
