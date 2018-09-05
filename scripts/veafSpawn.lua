@@ -323,7 +323,6 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
     end
 
     local units = {}
-    local heading = mist.utils.toRadian(hdg)
 
     -- place group units on the map
     local group, cells = veafUnits.placeGroup(dbGroup, spawnSpot, spacing)
@@ -372,29 +371,7 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
     end
 
     if speed > 0 then
-        -- generate a waypoint
-        local length = speed/1.94384 * 3600 -- m travelled in an hour
-        
-        local toPosition = {
-            ["x"] = spawnSpot.x + length  * math.cos(heading),
-            ["y"] = spawnSpot.y + length  * math.sin(heading)
-        }
-        
-        local newWaypoint = {
-            ["action"] = "Turning Point",
-            ["form"] = "Turning Point",
-            ["speed"] = speed/1.94384,  -- speed in m/s
-            ["type"] = "Turning Point",
-            ["x"] = toPosition.x,
-            ["y"] = toPosition.z,
-        }
-        if alt > 0 then
-            newWaypoint.alt = alt
-            newWaypoint.alt_type = "BARO"
-        end
-
-        -- order group to new waypoint
-        mist.goRoute(groupName, {newWaypoint})
+        veaf.moveGroupAt(groupName, hdg, speed)
     end
 
     -- message the group spawning

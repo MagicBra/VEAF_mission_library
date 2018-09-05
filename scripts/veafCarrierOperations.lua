@@ -48,7 +48,7 @@ veafCarrierOperations.Id = "CARRIER - "
 veafCarrierOperations.Version = "0.0.1"
 
 --- All the carrier groups must comply with this name
-veafCarrierOperations.CarrierGroupNamePattern = "^CSG-\\d+.*$"
+veafCarrierOperations.CarrierGroupNamePattern = "^CSG-.*$"
 
 veafCarrierOperations.RadioMenuName = "CARRIER OPS (" .. veafCarrierOperations.Version .. ")"
 
@@ -87,33 +87,41 @@ end
 
 --- Start carrier operations ; changes the radio menu item to END and make the carrier move
 function veafCarrierOperations.startCarrierOperations(groupName)
+    veafCarrierOperations.logDebug("startCarrierOperations(".. groupName .. ")")
+
     local carrier = veafCarrierOperations.carriers[groupName]
 
     if not(carrier) then
-        trigger.action.outText("Cannot find the carrier group "..groupName, 5)
+        local text = "Cannot find the carrier group "..groupName
+        veafCarrierOperations.logError(text)
+        trigger.action.outText(text, 5)
         return
     end
 
-    if carrier.carrier.stopMenuName then
+    if carrier.stopMenuName then
         -- there's already a END menu, this means the air operations have already started ; should never happen but who knows...
-        trigger.action.outText("The carrier group "..groupName.." is already conducting carrier air operations", 5)
+        local text = "The carrier group "..groupName.." is already conducting carrier air operations"
+        veafCarrierOperations.logError(text)
+        trigger.action.outText(text, 5)
         return
     end
 
     -- take note of the starting position
-    carrier.startPosition = mist.getAvgGroupPos(groupName)
+    carrier.startPosition = veaf.getAvgGroupPos(groupName)
 
     -- make the carrier move
-    local startPosition = table.unpack(carrier.startPosition)
-    if startPosition ~= nil then
-        startPosition.y=startPosition.y+1
+    if carrier.startPosition ~= nil then
+	
+        local startPosition = { x=carrier.startPosition.x, z=carrier.startPosition.z, y=carrier.startPosition.y+1}
+        veafCarrierOperations.logTrace("startPosition="..veaf.vecToString(startPosition))
 
         --get wind info
         local wind = atmosphere.getWind(startPosition)
         local windspeed = mist.vec.mag(wind)
+        veafCarrierOperations.logTrace("windspeed="..windspeed)
 
         --get wind direction sorted
-        local dir = math.atan2(wind.z, wind.x) * 180 / math.pi
+        local dir = veaf.round(math.atan2(wind.z, wind.x) * 180 / math.pi,0)
         if dir < 0 then
             dir = dir + 360 --converts to positive numbers		
         end
@@ -129,27 +137,127 @@ function veafCarrierOperations.startCarrierOperations(groupName)
             dir = dir - 360
         end
 
+        veafCarrierOperations.logTrace("dir="..dir)
+
         local speed = 1
-        local dirrad = mist.utils.toRadian(dir)
         if windspeed < 12.8611 then
             speed = 12.8611 - windspeed
-        else
-            -- compute a new waypoint
-            local newPosition = {x = ((math.cos(dir) * 3600 * speed) + startPosition.x), z = ((math.sin(dir) * 3600 * speed) + startPosition.z), y = 0}
-            veaf.moveGroup(newPosition, groupName, speed)
         end
+        veafCarrierOperations.logTrace("speed="..speed)
+
+        -- compute a new waypoint
+        if speed > 0 then
+
+            veaf.moveGroupAt(groupName, dir, speed)
+
+            local text = "The carrier group "..groupName.." is moving. BRC is " .. dir .. " at " .. veaf.round(speed * 1.94384, 0) .. " kn"
+
+            veafCarrierOperations.logInfo(text)
+            trigger.action.outText(text, 5)
+    
+            -- change the menu
+            veafCarrierOperations.logTrace("change the menu")
+            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.startMenuName})
+            carrier.startMenuName = nil
+            carrier.stopMenuName = groupName .. " - End carrier air operations - BRC is " .. dir .. " at " .. veaf.round(speed * 1.94384, 0) .. " kn"
+            missionCommands.addCommand(carrier.stopMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.stopCarrierOperations, groupName)
+
+        end
+    
     end
-
-    -- change the menu
-
 end
 
 --- Ends carrier operations ; changes the radio menu item to START and send the carrier back to its starting point
 function veafCarrierOperations.stopCarrierOperations(groupName)
+    veafCarrierOperations.logDebug("stopCarrierOperations(".. groupName .. ")")
+
+    local carrier = veafCarrierOperations.carriers[groupName]
+
+    if not(carrier) then
+        local text = "Cannot find the carrier group "..groupName
+        veafCarrierOperations.logError(text)
+        trigger.action.outText(text, 5)
+        return
+    end
+
+    if carrier.startMenuName then
+        -- there's already a START menu, this means the air operations have already ended ; should never happen but who knows...
+        local text = "The carrier group "..groupName.." is not conducting carrier air operations"
+        veafCarrierOperations.logError(text)
+        trigger.action.outText(text, 5)
+        return
+    end
+
+    -- make the carrier move
+    if carrier.startPosition ~= nil then
+	
+        veafCarrierOperations.logTrace("carrier.startPosition="..veaf.vecToString(carrier.startPosition))
+
+        local newWaypoint = {
+            ["action"] = "Turning Point",
+            ["form"] = "Turning Point",
+            ["speed"] = 300,  -- ahead flank !
+            ["type"] = "Turning Point",
+            ["x"] = carrier.startPosition.x,
+            ["y"] = carrier.startPosition.z,
+        }
+
+        -- order group to new waypoint
+        mist.goRoute(groupName, {newWaypoint})
+
+        local text = "The carrier group "..groupName.." is moving back to its starting position"
+        veafCarrierOperations.logInfo(text)
+        trigger.action.outText(text, 5)
+
+        -- change the menu
+        veafCarrierOperations.logTrace("change the menu")
+        missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.stopMenuName})
+        carrier.stopMenuName = nil
+        carrier.startMenuName = groupName .. " - Restart carrier air operations"
+        missionCommands.addCommand(carrier.startMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.startCarrierOperations, groupName)
+    end
 end
 
 --- Resets the carrier position ; sends the carrier to its initial position (at mission start)
 function veafCarrierOperations.resetCarrierPosition(groupName)
+    veafCarrierOperations.logDebug("resetCarrierPosition(".. groupName .. ")")
+
+    local carrier = veafCarrierOperations.carriers[groupName]
+
+    if not(carrier) then
+        local text = "Cannot find the carrier group "..groupName
+        veafCarrierOperations.logError(text)
+        trigger.action.outText(text, 5)
+        return
+    end
+
+    -- make the carrier move
+    if carrier.initialPosition ~= nil then
+	
+        veafCarrierOperations.logTrace("carrier.initialPosition="..veaf.vecToString(carrier.initialPosition))
+
+        local newWaypoint = {
+            ["action"] = "Turning Point",
+            ["form"] = "Turning Point",
+            ["speed"] = 300,  -- ahead flank !
+            ["type"] = "Turning Point",
+            ["x"] = carrier.initialPosition.x,
+            ["y"] = carrier.initialPosition.z,
+        }
+
+        -- order group to new waypoint
+        mist.goRoute(groupName, {newWaypoint})
+
+        local text = "The carrier group "..groupName.." is moving back to its initial position"
+        veafCarrierOperations.logInfo(text)
+        trigger.action.outText(text, 5)
+
+        -- change the menu
+        veafCarrierOperations.logTrace("change the menu")
+        carrier.stopMenuName = nil
+        carrier.startMenuName = groupName .. " - Start carrier air operations"
+        missionCommands.addCommand(carrier.startMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.startCarrierOperations, groupName)
+    end
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -158,6 +266,7 @@ end
 
 --- Build the initial radio menu
 function veafCarrierOperations.buildRadioMenu()
+    veafCarrierOperations.logDebug("veafCarrierOperations.buildRadioMenu")
 
     veafCarrierOperations.rootPath = missionCommands.addSubMenu(veafCarrierOperations.RadioMenuName, veaf.radioMenuPath)
 
@@ -168,14 +277,16 @@ function veafCarrierOperations.buildRadioMenu()
 
     -- find the carriers and add them to the veafCarrierOperations.carriers table, store its initial location and create the menus
     for name, group in pairs(mist.DBs.groupsByName) do
+        veafCarrierOperations.logTrace("found group "..name)
         if name:match(veafCarrierOperations.CarrierGroupNamePattern) then
             veafCarrierOperations.carriers[name] = {}
             local carrier = veafCarrierOperations.carriers[name]
-            carrier.initialPosition = mist.getAvgGroupPos(name)
+            veafCarrierOperations.logTrace("found carrier !")
+            carrier.initialPosition = veaf.getAvgGroupPos(name)
             carrier.startMenuName = name .. " - Start carrier air operations"
-            missionCommands.addCommand(carrier.startMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.startCarrierOperations, { name })
+            missionCommands.addCommand(carrier.startMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.startCarrierOperations, name)
             carrier.resetMenuName = name .. " - Send carrier to its original location (at mission start)"
-            missionCommands.addCommand(carrier.resetMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.resetCarrierPosition, { name })
+            missionCommands.addCommand(carrier.resetMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.resetCarrierPosition, name)
         end
     end
 end
@@ -200,7 +311,7 @@ function veafCarrierOperations.buildHumanGroups() -- TODO make this player-centr
     for name, unit in pairs(mist.DBs.humansByName) do
         -- not already in groups list ?
         if veafCarrierOperations.humanGroups[unit.groupName] == nil then
-            veafCarrierOperations.logInfo(string.format("human player found name=%s, unit=%s", name, unit.groupName))
+            veafCarrierOperations.logInfo(string.format("human player found name=%s, groupName=%s", name, unit.groupName))
             veafCarrierOperations.humanGroups[unit.groupId] = unit.groupName
         end
     end
@@ -214,7 +325,7 @@ end
 function veafCarrierOperations.initialize()
     veafCarrierOperations.buildHumanGroups()
     veafCarrierOperations.buildRadioMenu()
-    veafMarkers.registerEventHandler(veafMarkers.MarkerChange, veafCarrierOperations.onEventMarkChange)
+    --veafMarkers.registerEventHandler(veafMarkers.MarkerChange, veafCarrierOperations.onEventMarkChange)
 end
 
 veafCarrierOperations.logInfo(string.format("Loading version %s", veafCarrierOperations.Version))

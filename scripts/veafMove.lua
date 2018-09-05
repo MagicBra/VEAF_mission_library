@@ -252,7 +252,7 @@ function veafMove.moveGroup(eventPos, groupName, speed)
     veafMove.logDebug("veafMove.moveGroup(groupName = " .. groupName .. ", speed = " .. speed)
     veafSpawn.logDebug(string.format("veafMove.moveGroup: eventPos  x=%.1f z=%.1f", eventPos.x, eventPos.z))
 
-    local result = veaf.moveGroup(groupName, eventPos, speed/1.94384)
+    local result = veaf.moveGroupTo(groupName, eventPos, speed/1.94384)
     if not(result) then
         trigger.action.outText(groupName .. ' not found for move group command' , 10)
     end

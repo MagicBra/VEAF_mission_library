@@ -122,14 +122,13 @@ function veafUnits.checkPositionForUnit(spawnPosition, unit)
     return true
 end
 
-local spawnPosition = {x=500, y=0, z=250}
-local a = veaf.vecToString(spawnPosition)
+--local spawnPosition = {x=500, y=0, z=250}
+--local a = veaf.vecToString(spawnPosition)
+--local speed = 10
+--local heading = 0
+--local spacing = 500
 
-local speed = 10
-local heading = 0
-local spacing = 500
-
-veafCasMission.generateCasMission(spawnPosition, 5, 5, 5, 5, true)
+--veafCasMission.generateCasMission(spawnPosition, 5, 5, 5, 5, true)
 
 --local group = veafUnits.findGroup("sa6")
 --local group = veafCasMission.generateInfantryGroup(1, spawnPosition, 4, 1, "Random")
@@ -141,3 +140,9 @@ veafCasMission.generateCasMission(spawnPosition, 5, 5, 5, 5, true)
 --for _, u in pairs(group.units) do
 --  veafUnits.debugUnit(u)
 --end
+
+local name = "CSG-74 Stennis"
+local CarrierGroupNamePattern = "^CSG-\\d+.*$"
+local m = name:match(CarrierGroupNamePattern)
+local spawnPosition = {x=500, y=0, z=250}
+
