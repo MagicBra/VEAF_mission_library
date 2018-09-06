@@ -406,7 +406,6 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg)
     end
     
     local units = {}
-    local heading = mist.utils.toRadian(hdg)
     
     veafSpawn.logDebug("spawnUnit unit = " .. unit.displayName .. ", dcsUnit = " .. tostring(unit.typeName))
     
@@ -453,28 +452,7 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg)
     end
 
     if speed > 0 then
-        -- generate a waypoint
-        local length = speed/1.94384 * 3600 -- m travelled in an hour
-        local toPosition = {
-            ["x"] = spawnPosition.x + length  * math.cos(heading),
-            ["y"] = spawnPosition.y + length  * math.sin(heading)
-        }
-        
-        local newWaypoint = {
-            ["action"] = "Turning Point",
-            ["form"] = "Turning Point",
-            ["speed"] = speed/1.94384,  -- speed in m/s
-            ["type"] = "Turning Point",
-            ["x"] = toPosition.x,
-            ["y"] = toPosition.z,
-        }
-        if alt > 0 then
-            newWaypoint.alt = alt
-            newWaypoint.alt_type = "BARO"
-        end
-
-        -- order group to new waypoint
-        mist.goRoute(groupName, {newWaypoint})
+        veaf.moveGroupAt(groupName, hdg, speed)
     end
 
     -- message the unit spawning

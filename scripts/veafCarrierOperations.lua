@@ -149,8 +149,12 @@ function veafCarrierOperations.startCarrierOperations(groupName)
         if speed > 0 then
 
             veaf.moveGroupAt(groupName, dir, speed)
+            carrier.heading = dir
+            carrier.speed = veaf.round(speed * 1.94384, 0)
+            carrier.tacan = "12Y" -- TODO find actual tacan
+            carrier.tower = "127.500" -- TODO find actual tower frequency
 
-            local text = "The carrier group "..groupName.." is moving. BRC is " .. dir .. " at " .. veaf.round(speed * 1.94384, 0) .. " kn"
+            local text = "The carrier group "..groupName.." is moving to heading " .. carrier.heading .. ", sailing at " .. carrier.speed .. " kn"
 
             veafCarrierOperations.logInfo(text)
             trigger.action.outText(text, 5)
@@ -159,13 +163,53 @@ function veafCarrierOperations.startCarrierOperations(groupName)
             veafCarrierOperations.logTrace("change the menu")
             missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.startMenuName})
             carrier.startMenuName = nil
-            carrier.stopMenuName = groupName .. " - End carrier air operations - BRC is " .. dir .. " at " .. veaf.round(speed * 1.94384, 0) .. " kn"
+            carrier.stopMenuName = groupName .. " - End air operations"
             missionCommands.addCommand(carrier.stopMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.stopCarrierOperations, groupName)
 
+            carrier.getInfoMenuName = groupName .. " - ATC - Request informations"
+
+            -- radio commands specific to each player
+            for groupId, group in pairs(veafCarrierOperations.humanGroups) do
+                -- radio menu for ATC information (by player group)
+                missionCommands.addCommandForGroup(groupId, carrier.getInfoMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.getAtcForCarrierOperations, {groupName, groupId})
+            end
         end
     
     end
 end
+
+--- Gets informations about current carrier operations
+function veafCarrierOperations.getAtcForCarrierOperations(parameters)
+    local groupName, groupId = unpack(parameters)
+    veafCarrierOperations.logDebug("getAtcForCarrierOperations(".. groupName .. ")")
+
+    local carrier = veafCarrierOperations.carriers[groupName]
+
+    if not(carrier) then
+        local text = "Cannot find the carrier group "..groupName
+        veafCarrierOperations.logError(text)
+        trigger.action.outText(text, 5)
+        return
+    end
+
+    if carrier.startMenuName then
+        -- there's already a START menu, this means the air operations have already ended ; should never happen but who knows...
+        local text = "The carrier group "..groupName.." is not conducting carrier air operations"
+        veafCarrierOperations.logError(text)
+        trigger.action.outText(text, 5)
+        return
+    end
+    
+    local result = "The carrier group "..groupName.." is conducting air operations :\n" ..
+    "  - Base Recovery Course " .. carrier.heading .. "\n" ..
+    "  - Speed " .. carrier.speed .. " kn"..
+    "  - TACAN " .. carrier.tacan .. "\n" ..
+    "  - ATC " .. carrier.tower .. "\n"
+
+    trigger.action.outTextForGroup(groupId, result, 15)
+
+end
+
 
 --- Ends carrier operations ; changes the radio menu item to START and send the carrier back to its starting point
 function veafCarrierOperations.stopCarrierOperations(groupName)
@@ -211,8 +255,18 @@ function veafCarrierOperations.stopCarrierOperations(groupName)
 
         -- change the menu
         veafCarrierOperations.logTrace("change the menu")
-        missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.stopMenuName})
-        carrier.stopMenuName = nil
+        if carrier.stopMenuName then
+            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.stopMenuName})
+            carrier.stopMenuName = nil
+        end
+        if carrier.getInfoMenuName then
+            -- radio commands specific to each player
+            for groupId, group in pairs(veafCarrierOperations.humanGroups) do
+                -- radio menu for ATC information (by player group)
+                missionCommands.removeItemForGroup(groupId, {veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.getInfoMenuName})
+            end
+            carrier.getInfoMenuName = nil
+        end
         carrier.startMenuName = groupName .. " - Restart carrier air operations"
         missionCommands.addCommand(carrier.startMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.startCarrierOperations, groupName)
     end
@@ -254,8 +308,23 @@ function veafCarrierOperations.resetCarrierPosition(groupName)
 
         -- change the menu
         veafCarrierOperations.logTrace("change the menu")
-        carrier.stopMenuName = nil
-        carrier.startMenuName = groupName .. " - Start carrier air operations"
+        if carrier.stopMenuName then
+            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.stopMenuName})
+            carrier.stopMenuName = nil
+        end
+        if carrier.getInfoMenuName then
+            -- radio commands specific to each player
+            for groupId, group in pairs(veafCarrierOperations.humanGroups) do
+                -- radio menu for ATC information (by player group)
+                missionCommands.removeItemForGroup(groupId, {veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.getInfoMenuName})
+            end
+            carrier.getInfoMenuName = nil
+        end
+        if carrier.startMenuName then
+            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.startMenuName})
+            carrier.startMenuName = nil
+        end
+        carrier.startMenuName = groupName .. " - Start air operations"
         missionCommands.addCommand(carrier.startMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.startCarrierOperations, groupName)
     end
 end

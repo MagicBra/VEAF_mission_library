@@ -238,6 +238,7 @@ function veaf.addUnit(group, spawnSpot, dispersion, unitType, unitName, skill)
     end
 end
 
+--- Makes a group move to a waypoint set at a specific heading and at a distance covered at a specific speed in an hour
 function veaf.moveGroupAt(groupName, heading, speed)
 	local unitGroup = Group.getByName(groupName)
     if unitGroup == nil then
@@ -267,12 +268,12 @@ function veaf.moveGroupAt(groupName, heading, speed)
 	}
 
 	-- order group to new waypoint
-    mist.goRoute(groupName, {newWaypoint})
-    
-    return true
+    return veaf.moveGroupTo(groupName, newWaypoint, speed)
 end
 
+-- Makes a group move to a specific waypoint at a specific speed
 function veaf.moveGroupTo(groupName, pos, speed)
+    
 	local unitGroup = Group.getByName(groupName)
     if unitGroup == nil then
         veaf.logError("veaf.moveGroupTo: " .. groupName .. ' not found')
