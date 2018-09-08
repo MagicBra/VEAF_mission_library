@@ -1,0 +1,29 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Test mission",
+            "type": "shell",
+            "command": "./build_fr.cmd",
+            "options": {
+                "cwd": "${workspaceRoot}\\..\\VEAF-Test-Mission"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build OpenTraining mission",
+            "type": "shell",
+            "command": "./build_fr.cmd",
+            "options": {
+                "cwd": "${workspaceRoot}\\..\\VEAF-Open-Training-Mission"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

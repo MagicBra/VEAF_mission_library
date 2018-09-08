@@ -252,30 +252,11 @@ function veafMove.moveGroup(eventPos, groupName, speed)
     veafMove.logDebug("veafMove.moveGroup(groupName = " .. groupName .. ", speed = " .. speed)
     veafSpawn.logDebug(string.format("veafMove.moveGroup: eventPos  x=%.1f z=%.1f", eventPos.x, eventPos.z))
 
-
-	local unitGroup = Group.getByName(groupName)
-    if unitGroup == nil then
-        veafMove.logInfo(groupName .. ' not found for move group command')
-		trigger.action.outText(groupName .. ' not found for move group command' , 10)
-		return false
-	end
-	
-	-- new route point
-	local newWaypoint = {
-		["action"] = "Turning Point",
-		["alt"] = 0,
-		["alt_type"] = "BARO",
-		["form"] = "Turning Point",
-		["speed"] = speed/1.94384,  -- speed in m/s
-		["type"] = "Turning Point",
-		["x"] = eventPos.x,
-		["y"] = eventPos.z,
-	}
-
-	-- order group to new waypoint
-	mist.goRoute(groupName, {newWaypoint})
-
-    return true
+    local result = veaf.moveGroupTo(groupName, eventPos, speed/1.94384)
+    if not(result) then
+        trigger.action.outText(groupName .. ' not found for move group command' , 10)
+    end
+    return resut
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------

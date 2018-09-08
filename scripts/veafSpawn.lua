@@ -65,7 +65,7 @@ veafSpawn = {}
 veafSpawn.Id = "SPAWN - "
 
 --- Version.
-veafSpawn.Version = "1.1.2"
+veafSpawn.Version = "1.1.3"
 
 --- Key phrase to look for in the mark text which triggers the weather report.
 veafSpawn.Keyphrase = "veaf spawn "
@@ -323,7 +323,6 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
     end
 
     local units = {}
-    local heading = mist.utils.toRadian(hdg)
 
     -- place group units on the map
     local group, cells = veafUnits.placeGroup(dbGroup, spawnSpot, spacing)
@@ -372,29 +371,7 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
     end
 
     if speed > 0 then
-        -- generate a waypoint
-        local length = speed/1.94384 * 3600 -- m travelled in an hour
-        
-        local toPosition = {
-            ["x"] = spawnSpot.x + length  * math.cos(heading),
-            ["y"] = spawnSpot.y + length  * math.sin(heading)
-        }
-        
-        local newWaypoint = {
-            ["action"] = "Turning Point",
-            ["form"] = "Turning Point",
-            ["speed"] = speed/1.94384,  -- speed in m/s
-            ["type"] = "Turning Point",
-            ["x"] = toPosition.x,
-            ["y"] = toPosition.z,
-        }
-        if alt > 0 then
-            newWaypoint.alt = alt
-            newWaypoint.alt_type = "BARO"
-        end
-
-        -- order group to new waypoint
-        mist.goRoute(groupName, {newWaypoint})
+        veaf.moveGroupAt(groupName, hdg, speed)
     end
 
     -- message the group spawning
@@ -429,7 +406,6 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg)
     end
     
     local units = {}
-    local heading = mist.utils.toRadian(hdg)
     
     veafSpawn.logDebug("spawnUnit unit = " .. unit.displayName .. ", dcsUnit = " .. tostring(unit.typeName))
     
@@ -476,28 +452,7 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg)
     end
 
     if speed > 0 then
-        -- generate a waypoint
-        local length = speed/1.94384 * 3600 -- m travelled in an hour
-        local toPosition = {
-            ["x"] = spawnPosition.x + length  * math.cos(heading),
-            ["y"] = spawnPosition.y + length  * math.sin(heading)
-        }
-        
-        local newWaypoint = {
-            ["action"] = "Turning Point",
-            ["form"] = "Turning Point",
-            ["speed"] = speed/1.94384,  -- speed in m/s
-            ["type"] = "Turning Point",
-            ["x"] = toPosition.x,
-            ["y"] = toPosition.z,
-        }
-        if alt > 0 then
-            newWaypoint.alt = alt
-            newWaypoint.alt_type = "BARO"
-        end
-
-        -- order group to new waypoint
-        mist.goRoute(groupName, {newWaypoint})
+        veaf.moveGroupAt(groupName, hdg, speed)
     end
 
     -- message the unit spawning
@@ -618,6 +573,8 @@ end
 function veafSpawn.buildRadioMenu()
     veafSpawn.rootPath = missionCommands.addSubMenu(veafSpawn.RadioMenuName, veaf.radioMenuPath)
     missionCommands.addCommand("HELP", veafSpawn.rootPath, veafSpawn.help)
+    missionCommands.addCommand("HELP - all units", veafSpawn.rootPath, veafSpawn.helpAllUnits)
+    missionCommands.addCommand("HELP - all groups", veafSpawn.rootPath, veafSpawn.helpAllGroups)
 end
 
 function veafSpawn.help()
@@ -637,6 +594,34 @@ function veafSpawn.help()
         '"veaf spawn flare" lights things up with a flare\n' ..
         '   "alt <altitude in meters agl>" specifies the initial altitude'
             
+    trigger.action.outText(text, 30)
+end
+
+function veafSpawn.helpAllGroups()
+    local text = 'List of all groups defined in dcsUnits :\n'
+            
+    for _, g in pairs(veafUnits.GroupsDatabase) do
+        text = text .. " - " .. (g.group.description or g.group.groupName) .. " -> "
+        for i=1, #g.aliases do
+            text = text .. g.aliases[i]
+            if i < #g.aliases then text = text .. ", " end
+        end
+        text = text .. "\n"
+    end
+    trigger.action.outText(text, 30)
+end
+
+function veafSpawn.helpAllUnits()
+    local text = 'List of all units defined in dcsUnits :\n'
+            
+    for _, u in pairs(veafUnits.UnitsDatabase) do
+        text = text .. " - " .. u.unitType .. " -> "
+        for i=1, #u.aliases do
+            text = text .. u.aliases[i]
+            if i < #u.aliases then text = text .. ", " end
+        end
+        text = text .. "\n"
+    end
     trigger.action.outText(text, 30)
 end
 

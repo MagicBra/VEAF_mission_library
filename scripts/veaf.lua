@@ -38,7 +38,7 @@ veaf.Version = "1.1.0"
 --- Enable logDebug ==> give more output to DCS log file.
 veaf.Debug = true
 --- Enable logTrace ==> give even more output to DCS log file.
-veaf.Trace = false
+veaf.Trace = true
 
 veaf.RadioMenuName = "VEAF"
 
@@ -86,6 +86,21 @@ function veaf.vecToString(vec)
     return result
 end
 
+function veaf.discover(o)
+    local text = ""
+    for key,value in pairs(getmetatable(o)) do
+       text = text .. " - ".. key.."\n";
+    end
+	return text
+end
+
+function veaf.discoverTable(o)
+    local text = ""
+    for key,value in pairs(o) do
+       text = text .. " - ".. key.."\n";
+    end
+	return text
+end
 
 --- Simple round
 function veaf.round(num, numDecimalPlaces)
@@ -236,6 +251,113 @@ function veaf.addUnit(group, spawnSpot, dispersion, unitType, unitName, skill)
     else
         veaf.logInfo("cannot find a suitable position for unit "..unitType)
     end
+end
+
+--- Makes a group move to a waypoint set at a specific heading and at a distance covered at a specific speed in an hour
+function veaf.moveGroupAt(groupName, leadUnitName, heading, speed, timeInSeconds)
+    veaf.logDebug("veaf.moveGroupAt(groupName=" .. groupName .. ", heading="..heading.. ", speed=".. speed..", timeInSeconds="..(timeInSeconds or 0))
+
+    local unitGroup = Group.getByName(groupName)
+    if unitGroup == nil then
+        veaf.logError("veaf.moveGroupAt: " .. groupName .. ' not found')
+		return false
+    end
+    
+    local leadUnit = unitGroup:getUnits()[1]
+    if leadUnitName then
+        leadUnit = Unit.getByName(leadUnitName)
+    end
+    if leadUnit == nil then
+        veaf.logError("veaf.moveGroupAt: " .. leadUnitName .. ' not found')
+		return false
+    end
+    
+    local headingRad = mist.utils.toRadian(heading)
+    veafCarrierOperations.logTrace("headingRad="..headingRad)
+    local fromPosition = leadUnit:getPosition().p
+    veafCarrierOperations.logTrace("fromPosition="..veaf.vecToString(fromPosition))
+
+    -- new route point
+	local newWaypoint = {
+		["action"] = "Turning Point",
+		["alt"] = 0,
+		["alt_type"] = "BARO",
+		["form"] = "Turning Point",
+		["speed"] = 999, -- ahead flank
+		["type"] = "Turning Point",
+		["x"] = fromPosition.x + 2000 * math.cos(headingRad),
+		["y"] = fromPosition.z + 2000  * math.sin(headingRad),
+	}
+    veafCarrierOperations.logTrace("newWaypoint="..veaf.vecToString(newWaypoint))
+
+    local length
+    if timeInSeconds then 
+        length = speed * timeInSeconds
+    else
+        length = speed * 7200 -- m travelled in 2 hours
+    end
+    veafCarrierOperations.logTrace("length="..length)
+
+    -- new route point
+	local newWaypoint2 = {
+		["action"] = "Turning Point",
+		["alt"] = 0,
+		["alt_type"] = "BARO",
+		["form"] = "Turning Point",
+		["speed"] = speed,
+		["type"] = "Turning Point",
+		["x"] = newWaypoint.x + length * math.cos(headingRad),
+		["y"] = newWaypoint.y + length * math.sin(headingRad),
+	}
+    veafCarrierOperations.logTrace("newWaypoint2="..veaf.vecToString(newWaypoint2))
+
+    -- order group to new waypoint
+	mist.goRoute(groupName, {newWaypoint, newWaypoint2})
+
+    return true
+end
+
+-- Makes a group move to a specific waypoint at a specific speed
+function veaf.moveGroupTo(groupName, pos, speed)
+    veaf.logDebug("veaf.moveGroupTo(groupName=" .. groupName .. ", speed=".. speed)
+    veaf.logDebug("pos="..veaf.vecToString(pos))
+
+	local unitGroup = Group.getByName(groupName)
+    if unitGroup == nil then
+        veaf.logError("veaf.moveGroupTo: " .. groupName .. ' not found')
+		return false
+	end
+    
+	-- new route point
+	local newWaypoint = {
+		["action"] = "Turning Point",
+		["alt"] = 0,
+		["alt_type"] = "BARO",
+		["form"] = "Turning Point",
+		["speed"] = speed,
+		["type"] = "Turning Point",
+		["x"] = pos.x,
+		["y"] = pos.z,
+	}
+    veafCarrierOperations.logTrace("newWaypoint="..veaf.vecToString(newWaypoint))
+
+	-- order group to new waypoint
+	mist.goRoute(groupName, {newWaypoint})
+
+    return true
+end
+
+function veaf.getAvgGroupPos(groupName) -- stolen from Mist and corrected
+	local group = groupName -- sometimes this parameter is actually a group
+	if type(groupName) == 'string' and Group.getByName(groupName) and Group.getByName(groupName):isExist() == true then
+		group = Group.getByName(groupName)
+	end
+	local units = {}
+	for i = 1, group:getSize() do
+		table.insert(units, group:getUnit(i):getName())
+	end
+
+	return mist.getAvgPos(units)
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
