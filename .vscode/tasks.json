@@ -4,13 +4,26 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build test mission",
+            "label": "Build Test mission",
             "type": "shell",
-            "command": "c:\\Users\\david\\dev\\private\\VEAF-Test-Mission\\build_fr.cmd",
+            "command": "./build_fr.cmd",
+            "options": {
+                "cwd": "${workspaceRoot}\\..\\VEAF-Test-Mission"
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build OpenTraining mission",
+            "type": "shell",
+            "command": "./build_fr.cmd",
+            "options": {
+                "cwd": "${workspaceRoot}\\..\\VEAF-Open-Training-Mission"
+            },
+            "problemMatcher": []
         }
     ]
 }

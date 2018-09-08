@@ -86,6 +86,21 @@ function veaf.vecToString(vec)
     return result
 end
 
+function veaf.discover(o)
+    local text = ""
+    for key,value in pairs(getmetatable(o)) do
+       text = text .. " - ".. key.."\n";
+    end
+	return text
+end
+
+function veaf.discoverTable(o)
+    local text = ""
+    for key,value in pairs(o) do
+       text = text .. " - ".. key.."\n";
+    end
+	return text
+end
 
 --- Simple round
 function veaf.round(num, numDecimalPlaces)
@@ -239,21 +254,28 @@ function veaf.addUnit(group, spawnSpot, dispersion, unitType, unitName, skill)
 end
 
 --- Makes a group move to a waypoint set at a specific heading and at a distance covered at a specific speed in an hour
-function veaf.moveGroupAt(groupName, heading, speed)
-	local unitGroup = Group.getByName(groupName)
+function veaf.moveGroupAt(groupName, leadUnitName, heading, speed, timeInSeconds)
+    veaf.logDebug("veaf.moveGroupAt(groupName=" .. groupName .. ", heading="..heading.. ", speed=".. speed..", timeInSeconds="..(timeInSeconds or 0))
+
+    local unitGroup = Group.getByName(groupName)
     if unitGroup == nil then
         veaf.logError("veaf.moveGroupAt: " .. groupName .. ' not found')
 		return false
-	end
+    end
     
-    local length = speed * 3600 -- m travelled in an hour
-    veafCarrierOperations.logTrace("length="..length)
-
+    local leadUnit = unitGroup:getUnits()[1]
+    if leadUnitName then
+        leadUnit = Unit.getByName(leadUnitName)
+    end
+    if leadUnit == nil then
+        veaf.logError("veaf.moveGroupAt: " .. leadUnitName .. ' not found')
+		return false
+    end
+    
     local headingRad = mist.utils.toRadian(heading)
     veafCarrierOperations.logTrace("headingRad="..headingRad)
-    local fromPosition = veaf.getAvgGroupPos(groupName)
-    local waypointPos = {x = fromPosition.x + length * math.cos(headingRad), z = fromPosition.z + length  * math.sin(headingRad)}
-    veafCarrierOperations.logTrace("waypointPos="..veaf.vecToString(waypointPos))
+    local fromPosition = leadUnit:getPosition().p
+    veafCarrierOperations.logTrace("fromPosition="..veaf.vecToString(fromPosition))
 
     -- new route point
 	local newWaypoint = {
@@ -261,19 +283,45 @@ function veaf.moveGroupAt(groupName, heading, speed)
 		["alt"] = 0,
 		["alt_type"] = "BARO",
 		["form"] = "Turning Point",
+		["speed"] = 999, -- ahead flank
+		["type"] = "Turning Point",
+		["x"] = fromPosition.x + 2000 * math.cos(headingRad),
+		["y"] = fromPosition.z + 2000  * math.sin(headingRad),
+	}
+    veafCarrierOperations.logTrace("newWaypoint="..veaf.vecToString(newWaypoint))
+
+    local length
+    if timeInSeconds then 
+        length = speed * timeInSeconds
+    else
+        length = speed * 7200 -- m travelled in 2 hours
+    end
+    veafCarrierOperations.logTrace("length="..length)
+
+    -- new route point
+	local newWaypoint2 = {
+		["action"] = "Turning Point",
+		["alt"] = 0,
+		["alt_type"] = "BARO",
+		["form"] = "Turning Point",
 		["speed"] = speed,
 		["type"] = "Turning Point",
-		["x"] = waypointPos.x,
-		["y"] = waypointPos.z,
+		["x"] = newWaypoint.x + length * math.cos(headingRad),
+		["y"] = newWaypoint.y + length * math.sin(headingRad),
 	}
+    veafCarrierOperations.logTrace("newWaypoint2="..veaf.vecToString(newWaypoint2))
 
-	-- order group to new waypoint
-    return veaf.moveGroupTo(groupName, newWaypoint, speed)
+    -- order group to new waypoint
+	mist.goRoute(groupName, {newWaypoint, newWaypoint2})
+
+    return true
 end
 
 -- Makes a group move to a specific waypoint at a specific speed
 function veaf.moveGroupTo(groupName, pos, speed)
-    
+    veaf.logDebug("veaf.moveGroupTo(groupName=" .. groupName .. ", speed=".. speed)
+    veaf.logDebug("pos="..veaf.vecToString(pos))
+
 	local unitGroup = Group.getByName(groupName)
     if unitGroup == nil then
         veaf.logError("veaf.moveGroupTo: " .. groupName .. ' not found')
@@ -291,6 +339,7 @@ function veaf.moveGroupTo(groupName, pos, speed)
 		["x"] = pos.x,
 		["y"] = pos.z,
 	}
+    veafCarrierOperations.logTrace("newWaypoint="..veaf.vecToString(newWaypoint))
 
 	-- order group to new waypoint
 	mist.goRoute(groupName, {newWaypoint})

@@ -31,7 +31,7 @@
 --
 -- Basic Usage:
 -- ------------
--- Use the F10 radio menu to start and end carrier operations for every detected carrier group
+-- Use the F10 radio menu to start and end carrier operations for every detected carrier group (having a group name like "CSG-*")
 --
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -45,12 +45,19 @@ veafCarrierOperations = {}
 veafCarrierOperations.Id = "CARRIER - "
 
 --- Version.
-veafCarrierOperations.Version = "0.0.1"
+veafCarrierOperations.Version = "1.0.0"
 
 --- All the carrier groups must comply with this name
 veafCarrierOperations.CarrierGroupNamePattern = "^CSG-.*$"
 
 veafCarrierOperations.RadioMenuName = "CARRIER OPS (" .. veafCarrierOperations.Version .. ")"
+
+veafCarrierOperations.AllCarriers = 
+{
+    ["LHA_Tarawa"] = 0,
+    ["Stennis"] = 8, 
+    ["KUZNECOW"] = 0
+}
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Do not change anything below unless you know what you are doing!
@@ -98,22 +105,38 @@ function veafCarrierOperations.startCarrierOperations(groupName)
         return
     end
 
-    if carrier.stopMenuName then
-        -- there's already a END menu, this means the air operations have already started ; should never happen but who knows...
-        local text = "The carrier group "..groupName.." is already conducting carrier air operations"
-        veafCarrierOperations.logError(text)
-        trigger.action.outText(text, 5)
-        return
+    -- find the actual carrier unit
+    local group = Group.getByName(groupName)
+    local carrierUnit = nil
+    for _, unit in pairs(group:getUnits()) do
+        local unitType = unit:getDesc()["typeName"]
+        for knownCarrierType, knownCarrierDeckAngle in pairs(veafCarrierOperations.AllCarriers) do
+            if unitType == knownCarrierType then
+                carrier.carrierUnitName = unit:getName()
+                carrier.deckAngle = knownCarrierDeckAngle
+                carrierUnit = unit -- temporary
+                break
+            end
+        end
     end
 
-    -- take note of the starting position
+    -- take note of the starting position, heading and speed
     carrier.startPosition = veaf.getAvgGroupPos(groupName)
+    veafCarrierOperations.logTrace("carrier.startPosition="..veaf.vecToString(carrier.startPosition))
+    carrier.startSpeed = mist.vec.mag(carrierUnit:getVelocity())
+    veafCarrierOperations.logTrace("carrier.startSpeed="..carrier.startSpeed)
+    local angles = mist.getAttitude(carrierUnit)
+    if angles then
+        carrier.startHeading = mist.utils.toDegree(angles.Heading)
+    else
+        carrier.startHeading = 0
+    end
+    veafCarrierOperations.logTrace("carrier.startHeading="..carrier.startHeading)
 
     -- make the carrier move
     if carrier.startPosition ~= nil then
 	
         local startPosition = { x=carrier.startPosition.x, z=carrier.startPosition.z, y=carrier.startPosition.y+1}
-        veafCarrierOperations.logTrace("startPosition="..veaf.vecToString(startPosition))
 
         --get wind info
         local wind = atmosphere.getWind(startPosition)
@@ -131,7 +154,7 @@ function veafCarrierOperations.startCarrierOperations(groupName)
             dir = dir - 180
         end
 
-        dir = dir + 8 --to account for angle of landing deck and movement of the ship
+        dir = dir + carrier.deckAngle --to account for angle of landing deck and movement of the ship
         
         if dir > 360 then
             dir = dir - 360
@@ -148,7 +171,7 @@ function veafCarrierOperations.startCarrierOperations(groupName)
         -- compute a new waypoint
         if speed > 0 then
 
-            veaf.moveGroupAt(groupName, dir, speed)
+            veaf.moveGroupAt(groupName, carrier.carrierUnitName, dir, speed, 1800) -- move for 30 minutes
             carrier.heading = dir
             carrier.speed = veaf.round(speed * 1.94384, 0)
             carrier.tacan = "12Y" -- TODO find actual tacan
@@ -159,22 +182,13 @@ function veafCarrierOperations.startCarrierOperations(groupName)
             veafCarrierOperations.logInfo(text)
             trigger.action.outText(text, 5)
     
+            carrier.conductingAirOperations = true
+
             -- change the menu
             veafCarrierOperations.logTrace("change the menu")
-            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.startMenuName})
-            carrier.startMenuName = nil
-            carrier.stopMenuName = groupName .. " - End air operations"
-            missionCommands.addCommand(carrier.stopMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.stopCarrierOperations, groupName)
+            veafCarrierOperations.rebuildRadioMenu()
 
-            carrier.getInfoMenuName = groupName .. " - ATC - Request informations"
-
-            -- radio commands specific to each player
-            for groupId, group in pairs(veafCarrierOperations.humanGroups) do
-                -- radio menu for ATC information (by player group)
-                missionCommands.addCommandForGroup(groupId, carrier.getInfoMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.getAtcForCarrierOperations, {groupName, groupId})
-            end
-        end
-    
+        end  
     end
 end
 
@@ -192,19 +206,24 @@ function veafCarrierOperations.getAtcForCarrierOperations(parameters)
         return
     end
 
-    if carrier.startMenuName then
-        -- there's already a START menu, this means the air operations have already ended ; should never happen but who knows...
-        local text = "The carrier group "..groupName.." is not conducting carrier air operations"
-        veafCarrierOperations.logError(text)
-        trigger.action.outText(text, 5)
-        return
-    end
+    local result = ""
     
-    local result = "The carrier group "..groupName.." is conducting air operations :\n" ..
-    "  - Base Recovery Course " .. carrier.heading .. "\n" ..
-    "  - Speed " .. carrier.speed .. " kn"..
-    "  - TACAN " .. carrier.tacan .. "\n" ..
-    "  - ATC " .. carrier.tower .. "\n"
+    if carrier.conductingAirOperations then
+        result = "The carrier group "..groupName.." is conducting air operations :\n" ..
+        "  - Base Recovery Course " .. carrier.heading .. "\n" ..
+        "  - Speed " .. carrier.speed .. " kn"
+    else
+        result = "The carrier group "..groupName.." is not conducting carrier air operations"
+    end
+
+    -- add wind information
+    local windDirection, windStrength = veaf.getWind(veaf.placePointOnLand(veaf.getAvgGroupPos(groupName)))
+    local windText =     'no wind.\n'
+    if windStrength > 0 then
+        windText = string.format(
+                         'from %s at %s m/s.\n', windDirection, windStrength)
+    end
+    result = result .. '\nWIND: ' .. windText
 
     trigger.action.outTextForGroup(groupId, result, 15)
 
@@ -224,52 +243,18 @@ function veafCarrierOperations.stopCarrierOperations(groupName)
         return
     end
 
-    if carrier.startMenuName then
-        -- there's already a START menu, this means the air operations have already ended ; should never happen but who knows...
-        local text = "The carrier group "..groupName.." is not conducting carrier air operations"
-        veafCarrierOperations.logError(text)
-        trigger.action.outText(text, 5)
-        return
-    end
+  -- make the carrier move as it did before starting air operations
+    veaf.moveGroupAt(groupName, carrier.carrierUnitName, carrier.startHeading, carrier.startSpeed)
 
-    -- make the carrier move
-    if carrier.startPosition ~= nil then
-	
-        veafCarrierOperations.logTrace("carrier.startPosition="..veaf.vecToString(carrier.startPosition))
+    local text = "The carrier group "..groupName.." has stopped air operations"
+    veafCarrierOperations.logInfo(text)
+    trigger.action.outText(text, 5)
 
-        local newWaypoint = {
-            ["action"] = "Turning Point",
-            ["form"] = "Turning Point",
-            ["speed"] = 300,  -- ahead flank !
-            ["type"] = "Turning Point",
-            ["x"] = carrier.startPosition.x,
-            ["y"] = carrier.startPosition.z,
-        }
+    carrier.conductingAirOperations = false
 
-        -- order group to new waypoint
-        mist.goRoute(groupName, {newWaypoint})
-
-        local text = "The carrier group "..groupName.." is moving back to its starting position"
-        veafCarrierOperations.logInfo(text)
-        trigger.action.outText(text, 5)
-
-        -- change the menu
-        veafCarrierOperations.logTrace("change the menu")
-        if carrier.stopMenuName then
-            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.stopMenuName})
-            carrier.stopMenuName = nil
-        end
-        if carrier.getInfoMenuName then
-            -- radio commands specific to each player
-            for groupId, group in pairs(veafCarrierOperations.humanGroups) do
-                -- radio menu for ATC information (by player group)
-                missionCommands.removeItemForGroup(groupId, {veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.getInfoMenuName})
-            end
-            carrier.getInfoMenuName = nil
-        end
-        carrier.startMenuName = groupName .. " - Restart carrier air operations"
-        missionCommands.addCommand(carrier.startMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.startCarrierOperations, groupName)
-    end
+    -- change the menu
+    veafCarrierOperations.logTrace("change the menu")
+    veafCarrierOperations.rebuildRadioMenu()
 end
 
 --- Resets the carrier position ; sends the carrier to its initial position (at mission start)
@@ -289,6 +274,8 @@ function veafCarrierOperations.resetCarrierPosition(groupName)
     if carrier.initialPosition ~= nil then
 	
         veafCarrierOperations.logTrace("carrier.initialPosition="..veaf.vecToString(carrier.initialPosition))
+        veafCarrierOperations.logTrace("carrier.initialSpeed="..carrier.initialSpeed)
+        veafCarrierOperations.logTrace("carrier.initialHeading="..carrier.initialHeading)
 
         local newWaypoint = {
             ["action"] = "Turning Point",
@@ -299,39 +286,100 @@ function veafCarrierOperations.resetCarrierPosition(groupName)
             ["y"] = carrier.initialPosition.z,
         }
 
-        -- order group to new waypoint
-        mist.goRoute(groupName, {newWaypoint})
+        local length = carrier.initialSpeed * 7200 -- m travelled in 2 hours
+   
+        local headingRad = mist.utils.toRadian(carrier.initialHeading)
+        veafCarrierOperations.logTrace("headingRad="..headingRad)
+    
+        -- new route point
+        local newWaypoint2 = {
+            ["action"] = "Turning Point",
+            ["alt"] = 0,
+            ["alt_type"] = "BARO",
+            ["form"] = "Turning Point",
+            ["speed"] = speed,
+            ["type"] = "Turning Point",
+            ["x"] = newWaypoint.x + length * math.cos(headingRad),
+            ["y"] = newWaypoint.y + length  * math.sin(headingRad),
+        }
+        veafCarrierOperations.logTrace("newWaypoint2="..veaf.vecToString(newWaypoint2))
 
-        local text = "The carrier group "..groupName.." is moving back to its initial position"
+        -- order group to new waypoint
+        mist.goRoute(groupName, {newWaypoint, newWaypoint2})
+
+        local text = "The carrier group "..groupName.." is moving back to its initial position, and then after will sail to ".. carrier.initialHeading .. " at " .. carrier.initialSpeed .." kn"
         veafCarrierOperations.logInfo(text)
         trigger.action.outText(text, 5)
 
         -- change the menu
         veafCarrierOperations.logTrace("change the menu")
-        if carrier.stopMenuName then
-            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.stopMenuName})
-            carrier.stopMenuName = nil
+        veafCarrierOperations.rebuildRadioMenu(false)
         end
-        if carrier.getInfoMenuName then
-            -- radio commands specific to each player
-            for groupId, group in pairs(veafCarrierOperations.humanGroups) do
-                -- radio menu for ATC information (by player group)
-                missionCommands.removeItemForGroup(groupId, {veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.getInfoMenuName})
-            end
-            carrier.getInfoMenuName = nil
-        end
-        if carrier.startMenuName then
-            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.startMenuName})
-            carrier.startMenuName = nil
-        end
-        carrier.startMenuName = groupName .. " - Start air operations"
-        missionCommands.addCommand(carrier.startMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.startCarrierOperations, groupName)
-    end
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Radio menu and help
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
+--- Rebuild the radio menu
+function veafCarrierOperations.rebuildRadioMenu()
+    veafCarrierOperations.logDebug("veafCarrierOperations.rebuildRadioMenu()")
+
+    -- find the carriers in the veafCarrierOperations.carriers table and prepare their menus
+    for name, carrier in pairs(veafCarrierOperations.carriers) do
+        veafCarrierOperations.logTrace("rebuildRadioMenu processing "..name)
+        
+        -- remove the start menu
+        if carrier.startMenuName then
+            veafCarrierOperations.logTrace("remove carrier.startMenuName="..carrier.startMenuName)
+            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.startMenuName})
+        end
+
+        -- remove the stop menu
+        if carrier.stopMenuName then
+            veafCarrierOperations.logTrace("remove carrier.stopMenuName="..carrier.stopMenuName)
+            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.stopMenuName})
+        end
+
+        -- remove the reset menu
+        if carrier.resetMenuName then
+            veafCarrierOperations.logTrace("remove carrier.resetMenuName="..carrier.resetMenuName)
+            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.resetMenuName})
+        end
+
+        -- remove the ATC menu (by player group)
+        if carrier.getInfoMenuName then
+            veafCarrierOperations.logTrace("remove carrier.getInfoMenuName="..carrier.getInfoMenuName)
+            for groupId, group in pairs(veafCarrierOperations.humanGroups) do
+                missionCommands.removeItemForGroup(groupId, {veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.getInfoMenuName})
+            end
+        end
+
+        if carrier.conductingAirOperations then
+            -- add the stop menu
+            carrier.stopMenuName = name .. " - End air operations"
+            veafCarrierOperations.logTrace("add carrier.stopMenuName="..carrier.stopMenuName)
+            missionCommands.addCommand(carrier.stopMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.stopCarrierOperations, name)
+        else
+            -- add the start menu
+            carrier.startMenuName = name .. " - Start carrier air operations"
+            veafCarrierOperations.logTrace("add carrier.startMenuName="..carrier.startMenuName)
+            missionCommands.addCommand(carrier.startMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.startCarrierOperations, name)
+        end
+
+        -- add the reset menu
+        carrier.resetMenuName = name .. " - Send carrier to its original location (at mission start)"
+        veafCarrierOperations.logTrace("add carrier.resetMenuName="..carrier.resetMenuName)
+        missionCommands.addCommand(carrier.resetMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.resetCarrierPosition, name)
+
+        -- add the ATC menu (by player group)
+        carrier.getInfoMenuName = name .. " - ATC - Request informations"
+        veafCarrierOperations.logTrace("add carrier.getInfoMenuName="..carrier.getInfoMenuName)
+        for groupId, group in pairs(veafCarrierOperations.humanGroups) do
+            missionCommands.addCommandForGroup(groupId, carrier.getInfoMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.getAtcForCarrierOperations, {name, groupId})
+        end
+
+    end
+end
 
 --- Build the initial radio menu
 function veafCarrierOperations.buildRadioMenu()
@@ -351,13 +399,39 @@ function veafCarrierOperations.buildRadioMenu()
             veafCarrierOperations.carriers[name] = {}
             local carrier = veafCarrierOperations.carriers[name]
             veafCarrierOperations.logTrace("found carrier !")
+
+            -- find the actual carrier unit
+            local group = Group.getByName(name)
+            local carrierUnit = nil
+            for _, unit in pairs(group:getUnits()) do
+                local unitType = unit:getDesc()["typeName"]
+                for knownCarrierType, knownCarrierDeckAngle in pairs(veafCarrierOperations.AllCarriers) do
+                    if unitType == knownCarrierType then
+                        carrier.carrierUnitName = unit:getName()
+                        carrier.deckAngle = knownCarrierDeckAngle
+                        carrierUnit = unit -- temporary
+                        break
+                    end
+                end
+            end
+
+            -- take note of the starting position, heading and speed
             carrier.initialPosition = veaf.getAvgGroupPos(name)
-            carrier.startMenuName = name .. " - Start carrier air operations"
-            missionCommands.addCommand(carrier.startMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.startCarrierOperations, name)
-            carrier.resetMenuName = name .. " - Send carrier to its original location (at mission start)"
-            missionCommands.addCommand(carrier.resetMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.resetCarrierPosition, name)
+            veafCarrierOperations.logTrace("carrier.initialPosition="..veaf.vecToString(carrier.initialPosition))
+            carrier.initialSpeed = mist.vec.mag(carrierUnit:getVelocity())
+            veafCarrierOperations.logTrace("carrier.initialSpeed="..carrier.initialSpeed)
+            local angles = mist.getAttitude(carrierUnit)
+            if angles then
+                carrier.initialHeading = mist.utils.toDegree(angles.Heading)
+            else
+                carrier.initialHeading = 0
+            end
+            veafCarrierOperations.logTrace("carrier.initialHeading="..carrier.initialHeading)
+
         end
     end
+
+    veafCarrierOperations.rebuildRadioMenu()
 end
 
 function veafCarrierOperations.help()
@@ -380,7 +454,7 @@ function veafCarrierOperations.buildHumanGroups() -- TODO make this player-centr
     for name, unit in pairs(mist.DBs.humansByName) do
         -- not already in groups list ?
         if veafCarrierOperations.humanGroups[unit.groupName] == nil then
-            veafCarrierOperations.logInfo(string.format("human player found name=%s, groupName=%s", name, unit.groupName))
+            veafCarrierOperations.logTrace(string.format("human player found name=%s, groupName=%s", name, unit.groupName))
             veafCarrierOperations.humanGroups[unit.groupId] = unit.groupName
         end
     end
