@@ -120,24 +120,14 @@ function veafCarrierOperations.startCarrierOperations(groupName)
         end
     end
 
-    -- take note of the starting position, heading and speed
-    carrier.startPosition = veaf.getAvgGroupPos(groupName)
-    veafCarrierOperations.logTrace("carrier.startPosition="..veaf.vecToString(carrier.startPosition))
-    carrier.startSpeed = mist.vec.mag(carrierUnit:getVelocity())
-    veafCarrierOperations.logTrace("carrier.startSpeed="..carrier.startSpeed)
-    local angles = mist.getAttitude(carrierUnit)
-    if angles then
-        carrier.startHeading = mist.utils.toDegree(angles.Heading)
-    else
-        carrier.startHeading = 0
-    end
-    veafCarrierOperations.logTrace("carrier.startHeading="..carrier.startHeading)
+    -- take note of the starting position
+    local startPosition = veaf.getAvgGroupPos(groupName)
+    startPosition = { x=startPosition.x, z=startPosition.z, y=startPosition.y+1} -- one meter above the water
+    veafCarrierOperations.logTrace("startPosition="..veaf.vecToString(carrier.startPosition))
 
     -- make the carrier move
-    if carrier.startPosition ~= nil then
+    if startPosition ~= nil then
 	
-        local startPosition = { x=carrier.startPosition.x, z=carrier.startPosition.z, y=carrier.startPosition.y+1}
-
         --get wind info
         local wind = atmosphere.getWind(startPosition)
         local windspeed = mist.vec.mag(wind)
@@ -174,8 +164,6 @@ function veafCarrierOperations.startCarrierOperations(groupName)
             veaf.moveGroupAt(groupName, carrier.carrierUnitName, dir, speed, 1800) -- move for 30 minutes
             carrier.heading = dir
             carrier.speed = veaf.round(speed * 1.94384, 0)
-            carrier.tacan = "12Y" -- TODO find actual tacan
-            carrier.tower = "127.500" -- TODO find actual tower frequency
 
             local text = "The carrier group "..groupName.." is moving to heading " .. carrier.heading .. ", sailing at " .. carrier.speed .. " kn"
 
@@ -229,7 +217,6 @@ function veafCarrierOperations.getAtcForCarrierOperations(parameters)
 
 end
 
-
 --- Ends carrier operations ; changes the radio menu item to START and send the carrier back to its starting point
 function veafCarrierOperations.stopCarrierOperations(groupName)
     veafCarrierOperations.logDebug("stopCarrierOperations(".. groupName .. ")")
@@ -243,39 +230,10 @@ function veafCarrierOperations.stopCarrierOperations(groupName)
         return
     end
 
-  -- make the carrier move as it did before starting air operations
-    veaf.moveGroupAt(groupName, carrier.carrierUnitName, carrier.startHeading, carrier.startSpeed)
-
-    local text = "The carrier group "..groupName.." has stopped air operations"
-    veafCarrierOperations.logInfo(text)
-    trigger.action.outText(text, 5)
-
-    carrier.conductingAirOperations = false
-
-    -- change the menu
-    veafCarrierOperations.logTrace("change the menu")
-    veafCarrierOperations.rebuildRadioMenu()
-end
-
---- Resets the carrier position ; sends the carrier to its initial position (at mission start)
-function veafCarrierOperations.resetCarrierPosition(groupName)
-    veafCarrierOperations.logDebug("resetCarrierPosition(".. groupName .. ")")
-
-    local carrier = veafCarrierOperations.carriers[groupName]
-
-    if not(carrier) then
-        local text = "Cannot find the carrier group "..groupName
-        veafCarrierOperations.logError(text)
-        trigger.action.outText(text, 5)
-        return
-    end
-
-    -- make the carrier move
+    -- make the carrier move to its initial position
     if carrier.initialPosition ~= nil then
 	
         veafCarrierOperations.logTrace("carrier.initialPosition="..veaf.vecToString(carrier.initialPosition))
-        veafCarrierOperations.logTrace("carrier.initialSpeed="..carrier.initialSpeed)
-        veafCarrierOperations.logTrace("carrier.initialHeading="..carrier.initialHeading)
 
         local newWaypoint = {
             ["action"] = "Turning Point",
@@ -286,35 +244,20 @@ function veafCarrierOperations.resetCarrierPosition(groupName)
             ["y"] = carrier.initialPosition.z,
         }
 
-        local length = carrier.initialSpeed * 7200 -- m travelled in 2 hours
-   
-        local headingRad = mist.utils.toRadian(carrier.initialHeading)
-        veafCarrierOperations.logTrace("headingRad="..headingRad)
-    
-        -- new route point
-        local newWaypoint2 = {
-            ["action"] = "Turning Point",
-            ["alt"] = 0,
-            ["alt_type"] = "BARO",
-            ["form"] = "Turning Point",
-            ["speed"] = speed,
-            ["type"] = "Turning Point",
-            ["x"] = newWaypoint.x + length * math.cos(headingRad),
-            ["y"] = newWaypoint.y + length  * math.sin(headingRad),
-        }
-        veafCarrierOperations.logTrace("newWaypoint2="..veaf.vecToString(newWaypoint2))
-
         -- order group to new waypoint
-        mist.goRoute(groupName, {newWaypoint, newWaypoint2})
+        mist.goRoute(groupName, {newWaypoint})
 
-        local text = "The carrier group "..groupName.." is moving back to its initial position, and then after will sail to ".. carrier.initialHeading .. " at " .. carrier.initialSpeed .." kn"
+        local text = "The carrier group "..groupName.." has stopped air operations ; it's moving back to its initial position"
         veafCarrierOperations.logInfo(text)
         trigger.action.outText(text, 5)
 
+        carrier.conductingAirOperations = false
+
         -- change the menu
         veafCarrierOperations.logTrace("change the menu")
-        veafCarrierOperations.rebuildRadioMenu(false)
-        end
+        veafCarrierOperations.rebuildRadioMenu()
+    end
+
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -340,12 +283,6 @@ function veafCarrierOperations.rebuildRadioMenu()
             missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.stopMenuName})
         end
 
-        -- remove the reset menu
-        if carrier.resetMenuName then
-            veafCarrierOperations.logTrace("remove carrier.resetMenuName="..carrier.resetMenuName)
-            missionCommands.removeItem({veaf.RadioMenuName, veafCarrierOperations.RadioMenuName, carrier.resetMenuName})
-        end
-
         -- remove the ATC menu (by player group)
         if carrier.getInfoMenuName then
             veafCarrierOperations.logTrace("remove carrier.getInfoMenuName="..carrier.getInfoMenuName)
@@ -365,11 +302,6 @@ function veafCarrierOperations.rebuildRadioMenu()
             veafCarrierOperations.logTrace("add carrier.startMenuName="..carrier.startMenuName)
             missionCommands.addCommand(carrier.startMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.startCarrierOperations, name)
         end
-
-        -- add the reset menu
-        carrier.resetMenuName = name .. " - Send carrier to its original location (at mission start)"
-        veafCarrierOperations.logTrace("add carrier.resetMenuName="..carrier.resetMenuName)
-        missionCommands.addCommand(carrier.resetMenuName, veafCarrierOperations.rootPath, veafCarrierOperations.resetCarrierPosition, name)
 
         -- add the ATC menu (by player group)
         carrier.getInfoMenuName = name .. " - ATC - Request informations"
@@ -418,15 +350,6 @@ function veafCarrierOperations.buildRadioMenu()
             -- take note of the starting position, heading and speed
             carrier.initialPosition = veaf.getAvgGroupPos(name)
             veafCarrierOperations.logTrace("carrier.initialPosition="..veaf.vecToString(carrier.initialPosition))
-            carrier.initialSpeed = mist.vec.mag(carrierUnit:getVelocity())
-            veafCarrierOperations.logTrace("carrier.initialSpeed="..carrier.initialSpeed)
-            local angles = mist.getAttitude(carrierUnit)
-            if angles then
-                carrier.initialHeading = mist.utils.toDegree(angles.Heading)
-            else
-                carrier.initialHeading = 0
-            end
-            veafCarrierOperations.logTrace("carrier.initialHeading="..carrier.initialHeading)
 
         end
     end
