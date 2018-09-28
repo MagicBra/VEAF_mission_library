@@ -254,7 +254,7 @@ function veaf.addUnit(group, spawnSpot, dispersion, unitType, unitName, skill)
 end
 
 --- Makes a group move to a waypoint set at a specific heading and at a distance covered at a specific speed in an hour
-function veaf.moveGroupAt(groupName, leadUnitName, heading, speed, timeInSeconds)
+function veaf.moveGroupAt(groupName, leadUnitName, heading, speed, timeInSeconds, endPosition)
     veaf.logDebug("veaf.moveGroupAt(groupName=" .. groupName .. ", heading="..heading.. ", speed=".. speed..", timeInSeconds="..(timeInSeconds or 0))
 
     local unitGroup = Group.getByName(groupName)
@@ -273,49 +273,108 @@ function veaf.moveGroupAt(groupName, leadUnitName, heading, speed, timeInSeconds
     end
     
     local headingRad = mist.utils.toRadian(heading)
-    veafCarrierOperations.logTrace("headingRad="..headingRad)
+    veaf.logTrace("headingRad="..headingRad)
     local fromPosition = leadUnit:getPosition().p
-    veafCarrierOperations.logTrace("fromPosition="..veaf.vecToString(fromPosition))
+    veaf.logTrace("fromPosition="..veaf.vecToString(fromPosition))
 
     -- new route point
-	local newWaypoint = {
-		["action"] = "Turning Point",
-		["alt"] = 0,
-		["alt_type"] = "BARO",
-		["form"] = "Turning Point",
-		["speed"] = 999, -- ahead flank
-		["type"] = "Turning Point",
-		["x"] = fromPosition.x + 2000 * math.cos(headingRad),
-		["y"] = fromPosition.z + 2000  * math.sin(headingRad),
+	local newWaypoint1 = {
+		x = fromPosition.x + 2000 * math.cos(headingRad),
+		y = fromPosition.z + 2000 * math.sin(headingRad),
 	}
-    veafCarrierOperations.logTrace("newWaypoint="..veaf.vecToString(newWaypoint))
+    veaf.logTrace("newWaypoint1="..veaf.vecToString(newWaypoint1))
 
     local length
     if timeInSeconds then 
         length = speed * timeInSeconds
     else
-        length = speed * 7200 -- m travelled in 2 hours
+        length = speed * 3600 -- m travelled in 1 hour
     end
-    veafCarrierOperations.logTrace("length="..length)
+    veaf.logTrace("length="..length)
 
     -- new route point
 	local newWaypoint2 = {
-		["action"] = "Turning Point",
-		["alt"] = 0,
-		["alt_type"] = "BARO",
-		["form"] = "Turning Point",
-		["speed"] = speed,
-		["type"] = "Turning Point",
-		["x"] = newWaypoint.x + length * math.cos(headingRad),
-		["y"] = newWaypoint.y + length * math.sin(headingRad),
+		x = newWaypoint1.x + length * math.cos(headingRad),
+		y = newWaypoint1.y + length * math.sin(headingRad),
 	}
-    veafCarrierOperations.logTrace("newWaypoint2="..veaf.vecToString(newWaypoint2))
+    veaf.logTrace("newWaypoint2="..veaf.vecToString(newWaypoint2))
 
-    -- order group to new waypoint
-	mist.goRoute(groupName, {newWaypoint, newWaypoint2})
+    local mission = { 
+		id = 'Mission', 
+		params = { 
+			["communication"] = true,
+			["start_time"] = 0,
+			route = { 
+				points = { 
+					-- first point
+                    [1] = 
+                    {
+                        ["alt"] = 0,
+                        ["type"] = "Turning Point",
+                        ["formation_template"] = "Diamond",
+                        ["alt_type"] = "BARO",
+                        ["x"] = fromPosition.x,
+                        ["y"] = fromPosition.z,
+                        ["name"] = "Starting position",
+                        ["action"] = "Turning Point",
+                        ["speed"] = 9999, -- ahead flank
+                        ["speed_locked"] = true,
+                    }, -- end of [1]
+					-- second point
+                    [2] = 
+                    {
+                        ["alt"] = 0,
+                        ["type"] = "Turning Point",
+                        ["formation_template"] = "Diamond",
+                        ["alt_type"] = "BARO",
+                        ["x"] = newWaypoint1.x,
+                        ["y"] = newWaypoint1.y,
+                        ["name"] = "Air Operations START",
+                        ["action"] = "Turning Point",
+                        ["speed"] = 9999, -- ahead flank
+                        ["speed_locked"] = true,
+					}, -- end of [2]
+					-- thirs point
+                    [3] = 
+                    {
+                        ["alt"] = 0,
+                        ["type"] = "Turning Point",
+                        ["formation_template"] = "Diamond",
+                        ["alt_type"] = "BARO",
+                        ["x"] = newWaypoint2.x,
+                        ["y"] = newWaypoint2.y,
+                        ["name"] = "Air Operations END",
+                        ["action"] = "Turning Point",
+                        ["speed"] = speed,
+                        ["speed_locked"] = true,
+					}, -- end of [3]
+				}, 
+			} 
+		} 
+	}
 
+    if endPosition then
+        mission.params.route.points[4] =
+        {
+            ["alt"] = 0,
+            ["type"] = "Turning Point",
+            ["formation_template"] = "Diamond",
+            ["alt_type"] = "BARO",
+            ["x"] = endPosition.x,
+            ["y"] = endPosition.z,
+            ["name"] = "Back to starting position",
+            ["action"] = "Turning Point",
+            ["speed"] = 9999, -- ahead flank
+            ["speed_locked"] = true,
+        }
+    end
+
+	-- replace whole mission
+	unitGroup:getController():setTask(mission)
+    
     return true
 end
+
 
 -- Makes a group move to a specific waypoint at a specific speed
 function veaf.moveGroupTo(groupName, pos, speed)
@@ -339,7 +398,7 @@ function veaf.moveGroupTo(groupName, pos, speed)
 		["x"] = pos.x,
 		["y"] = pos.z,
 	}
-    veafCarrierOperations.logTrace("newWaypoint="..veaf.vecToString(newWaypoint))
+    veaf.logTrace("newWaypoint="..veaf.vecToString(newWaypoint))
 
 	-- order group to new waypoint
 	mist.goRoute(groupName, {newWaypoint})

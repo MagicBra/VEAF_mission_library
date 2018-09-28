@@ -45,7 +45,7 @@ veafCarrierOperations = {}
 veafCarrierOperations.Id = "CARRIER - "
 
 --- Version.
-veafCarrierOperations.Version = "1.0.0"
+veafCarrierOperations.Version = "1.1.1"
 
 --- All the carrier groups must comply with this name
 veafCarrierOperations.CarrierGroupNamePattern = "^CSG-.*$"
@@ -123,7 +123,7 @@ function veafCarrierOperations.startCarrierOperations(groupName)
     -- take note of the starting position
     local startPosition = veaf.getAvgGroupPos(groupName)
     startPosition = { x=startPosition.x, z=startPosition.z, y=startPosition.y+1} -- one meter above the water
-    veafCarrierOperations.logTrace("startPosition="..veaf.vecToString(carrier.startPosition))
+    veafCarrierOperations.logTrace("startPosition="..veaf.vecToString(startPosition))
 
     -- make the carrier move
     if startPosition ~= nil then
@@ -161,7 +161,7 @@ function veafCarrierOperations.startCarrierOperations(groupName)
         -- compute a new waypoint
         if speed > 0 then
 
-            veaf.moveGroupAt(groupName, carrier.carrierUnitName, dir, speed, 1800) -- move for 30 minutes
+            veaf.moveGroupAt(groupName, carrier.carrierUnitName, dir, speed, 1800, carrier.initialPosition) -- move for 30 minutes
             carrier.heading = dir
             carrier.speed = veaf.round(speed * 1.94384, 0)
 
@@ -179,6 +179,7 @@ function veafCarrierOperations.startCarrierOperations(groupName)
         end  
     end
 end
+
 
 --- Gets informations about current carrier operations
 function veafCarrierOperations.getAtcForCarrierOperations(parameters)
