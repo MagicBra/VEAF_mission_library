@@ -39,7 +39,7 @@ veafUnits = {}
 veafUnits.Id = "UNITS - "
 
 --- Version.
-veafUnits.Version = "1.1.2"
+veafUnits.Version = "1.2.0"
 
 --- If no unit is spawned in a cell, it will default to this width
 veafUnits.DefaultCellWidth = 10
@@ -586,11 +586,38 @@ veafUnits.UnitsDatabase = {
 --  groupName   = name used when spawning this group (will be flavored with a numerical suffix)
 
 veafUnits.GroupsDatabase = {
-    {
-        aliases = {"sa3", "sa-3", "LB"},
+        {
+        aliases = {"sa2", "sa-2", "fs"},
         group = {
-            disposition = { h= 9, w= 9},
-            units = {{"p-19 s-125 sr", cell = 42}, {"snr s-125 tr", cell = 39}, {"5p73 s-125 ln", cell = 1}, {"5p73 s-125 ln", cell = 9}, {"5p73 s-125 ln", cell = 72}, {"5p73 s-125 ln", cell = 81}},
+            disposition = { h= 6, w= 8},
+            units = {{"SNR_75V", cell = 20}, {"p-19 s-125 sr", cell = 48}, {"S_75M_Volhov", cell = 3}, {"S_75M_Volhov", cell = 5}, {"S_75M_Volhov", cell = 17}, {"S_75M_Volhov", cell = 35}, {"S_75M_Volhov", cell = 37}},
+            description = "SA-2 SAM site",
+            groupName = "SA2"
+        },
+    },
+    {
+        aliases = {"rapier_optical", "rpo"},
+        group = {
+            disposition = { h= 3, w= 3},
+            units = {{"rapier_fsa_optical_tracker_unit", cell = 8}, {"rapier_fsa_launcher", cell = 1}, {"rapier_fsa_launcher", cell = 3}},
+            description = "Rapier SAM site",
+            groupName = "Rapier"
+        },
+    }, 
+    {
+        aliases = {"rapier_radar", "rpr"},
+        group = {
+            disposition = { h= 4, w= 4},
+            units = {{"rapier_fsa_optical_tracker_unit", cell = 13}, {"rapier_fsa_launcher", cell = 1}, {"rapier_fsa_launcher", cell = 4}, {"rapier_fsa_blindfire_radar", cell = 16}},
+            description = "Rapier SAM site",
+            groupName = "Rapier"
+        },
+    }, 
+    {
+        aliases = {"sa3", "sa-3", "lb"},
+        group = {
+            disposition = { h= 9, w= 7},
+            units = {{"p-19 s-125 sr", cell = 1}, {"snr s-125 tr", cell = 48}, {"5p73 s-125 ln", cell = 27}, {"5p73 s-125 ln", cell = 38}, {"5p73 s-125 ln", cell = 63}},
             description = "SA-3 SAM site",
             groupName = "SA3"
         },
