@@ -23,7 +23,7 @@ dcsUnits = {}
 dcsUnits.Id = "DCSUNITS - "
 
 --- Version.
-dcsUnits.Version = "1.1.2"
+dcsUnits.Version = "2018.09.28.01"
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Do not change anything below unless you know what you are doing!
@@ -3635,6 +3635,723 @@ dcsUnits.DcsUnitsDatabase =
             ["displayName"] = "SAM SA-3 S-125 TR SNR",
         }, -- end of ["desc"]
     } -- end of snr s-125 tr
+	,["SNR_75V"] = 
+	{
+		["sensors"] = 
+		{
+			[1] = 
+			{
+				[1] = 
+				{
+					["detectionDistanceAir"] = 
+					{
+						["upperHemisphere"] = 
+						{
+							["tailOn"] = 60186.62890625,
+							["headOn"] = 60186.62890625,
+						}, -- end of ["upperHemisphere"]
+						["lowerHemisphere"] = 
+						{
+							["tailOn"] = 60186.62890625,
+							["headOn"] = 60186.62890625,
+						}, -- end of ["lowerHemisphere"]
+					}, -- end of ["detectionDistanceAir"]
+					["type"] = 1,
+					["typeName"] = "snr s-125 tr",
+				}, -- end of [1]
+			}, -- end of [1]
+		}, -- end of ["sensors"]
+		["desc"] = 
+		{
+			["massEmpty"] = 5000,
+			["riverCrossing"] = false,
+			["maxSlopeAngle"] = 0,
+			["Kmax"] = 0.050000000745058,
+			["RCS"] = 5,
+			["box"] = 
+			{
+				["min"] = 
+				{
+					["y"] = 0.042742252349854,
+					["x"] = -3.4693048000336,
+					["z"] = -3.4693048000336,
+				}, -- end of ["min"]
+				["max"] = 
+				{
+					["y"] = 6.981351852417,
+					["x"] = 3.4693048000336,
+					["z"] = 3.4693048000336,
+				}, -- end of ["max"]
+			}, -- end of ["box"]
+			["speedMax"] = 0,
+			["life"] = 1,
+			["attributes"] = 
+			{
+				["SAM TR"] = true,
+				["Vehicles"] = true,
+				["MR SAM"] = true,
+				["NonArmoredUnits"] = true,
+				["SAM elements"] = true,
+				["Air Defence"] = true,
+				["Ground vehicles"] = true,
+				["RADAR_BAND1_FOR_ARM"] = true,
+				["NonAndLightArmoredUnits"] = true,
+				["SAM related"] = true,
+				["RADAR_BAND2_FOR_ARM"] = true,
+				["All"] = true,
+				["Ground Units"] = true,
+				["</WSTYPE>"] = true,
+			}, -- end of ["attributes"]
+			["category"] = 2,
+			["speedMaxOffRoad"] = 0,
+			["_origin"] = "TechWeaponPack",
+			["typeName"] = "SNR_75V",
+			["displayName"] = "SAM SA-2 TR SNR-75 Fan Song",
+		}, -- end of ["desc"]
+	} -- end of SNR_75V
+	,["S_75M_Volhov"] = 
+	{
+		["weapons"] = 
+		{
+			[1] = 
+			{
+				["count"] = 1,
+				["desc"] = 
+				{
+					["box"] = 
+					{
+						["min"] = 
+						{
+							["y"] = -0.84564626216888,
+							["x"] = -5.8387970924377,
+							["z"] = -0.84564626216888,
+						}, -- end of ["min"]
+						["max"] = 
+						{
+							["y"] = 0.84564626216888,
+							["x"] = 4.7303376197815,
+							["z"] = 0.84564626216888,
+						}, -- end of ["max"]
+					}, -- end of ["box"]
+					["rangeMaxAltMin"] = 40000,
+					["fuseDist"] = 20,
+					["category"] = 1,
+					["guidance"] = 4,
+					["Nmax"] = 17,
+					["rangeMin"] = 7000,
+					["altMax"] = 25000,
+					["RCS"] = 0.39669999480247,
+					["displayName"] = "SA2V755",
+					["altMin"] = 100,
+					["life"] = 2,
+					["missileCategory"] = 2,
+					["warhead"] = 
+					{
+						["explosiveMass"] = 196,
+						["type"] = 1,
+						["caliber"] = 500,
+						["mass"] = 196,
+					}, -- end of ["warhead"]
+					["rangeMaxAltMax"] = 30000,
+					["typeName"] = "SA2V755",
+					["_origin"] = "",
+				}, -- end of ["desc"]
+			}, -- end of [1]
+		}, -- end of ["weapons"]
+		["desc"] = 
+		{
+			["massEmpty"] = 5000,
+			["riverCrossing"] = false,
+			["maxSlopeAngle"] = 0,
+			["Kmax"] = 0.050000000745058,
+			["RCS"] = 5,
+			["box"] = 
+			{
+				["min"] = 
+				{
+					["y"] = -0.159339427948,
+					["x"] = -4.1898202896118,
+					["z"] = -1.4948447942734,
+				}, -- end of ["min"]
+				["max"] = 
+				{
+					["y"] = 2.4417996406555,
+					["x"] = 4.1898202896118,
+					["z"] = 1.4948447942734,
+				}, -- end of ["max"]
+			}, -- end of ["box"]
+			["speedMax"] = 0,
+			["life"] = 1,
+			["attributes"] = 
+			{
+				["LR SAM"] = true,
+				["Vehicles"] = true,
+				["SAM elements"] = true,
+				["NonArmoredUnits"] = true,
+				["Air Defence"] = true,
+				["Ground vehicles"] = true,
+				["Armed Air Defence"] = true,
+				["AA_missile"] = true,
+				["SAM related"] = true,
+				["NonAndLightArmoredUnits"] = true,
+				["All"] = true,
+				["Ground Units"] = true,
+				["SAM LL"] = true,
+			}, -- end of ["attributes"]
+			["category"] = 2,
+			["speedMaxOffRoad"] = 0,
+			["_origin"] = "TechWeaponPack",
+			["typeName"] = "S_75M_Volhov",
+			["displayName"] = "SAM SA-2 LN SM-90",
+		}, -- end of ["desc"]
+	} -- end of S_75M_Volhov
+	,["rapier_fsa_blindfire_radar"] = 
+	{
+		["sensors"] = 
+		{
+			[1] = 
+			{
+				[1] = 
+				{
+					["detectionDistanceAir"] = 
+					{
+						["upperHemisphere"] = 
+						{
+							["tailOn"] = 16718.5078125,
+							["headOn"] = 16718.5078125,
+						}, -- end of ["upperHemisphere"]
+						["lowerHemisphere"] = 
+						{
+							["tailOn"] = 16718.5078125,
+							["headOn"] = 16718.5078125,
+						}, -- end of ["lowerHemisphere"]
+					}, -- end of ["detectionDistanceAir"]
+					["type"] = 1,
+					["typeName"] = "Tor 9A331",
+				}, -- end of [1]
+			}, -- end of [1]
+		}, -- end of ["sensors"]
+		["desc"] = 
+		{
+			["massEmpty"] = 5000,
+			["riverCrossing"] = false,
+			["maxSlopeAngle"] = 0,
+			["Kmax"] = 0.050000000745058,
+			["RCS"] = 5,
+			["box"] = 
+			{
+				["min"] = 
+				{
+					["y"] = -0.06157448887825,
+					["x"] = -1.4341485500336,
+					["z"] = -1.1278841495514,
+				}, -- end of ["min"]
+				["max"] = 
+				{
+					["y"] = 2.834972858429,
+					["x"] = 2.4003527164459,
+					["z"] = 1.1278842687607,
+				}, -- end of ["max"]
+			}, -- end of ["box"]
+			["speedMax"] = 0,
+			["life"] = 2,
+			["attributes"] = 
+			{
+				["SAM TR"] = true,
+				["Vehicles"] = true,
+				["SAM elements"] = true,
+				["NonArmoredUnits"] = true,
+				["Air Defence"] = true,
+				["Ground vehicles"] = true,
+				["RADAR_BAND1_FOR_ARM"] = true,
+				["NonAndLightArmoredUnits"] = true,
+				["SAM related"] = true,
+				["RADAR_BAND2_FOR_ARM"] = true,
+				["All"] = true,
+				["Ground Units"] = true,
+				["SR SAM"] = true,
+			}, -- end of ["attributes"]
+			["category"] = 2,
+			["speedMaxOffRoad"] = 0,
+			["_origin"] = "TechWeaponPack",
+			["typeName"] = "rapier_fsa_blindfire_radar",
+			["displayName"] = "Rapier FSA Blindfire Tracker",
+		}, -- end of ["desc"]
+	} -- end of rapier_fsa_blindfire_radar
+	,["rapier_fsa_launcher"] = 
+	{
+		["weapons"] = 
+		{
+			[1] = 
+			{
+				["count"] = 4,
+				["desc"] = 
+				{
+					["box"] = 
+					{
+						["min"] = 
+						{
+							["y"] = -0.13611836731434,
+							["x"] = -0.84999942779541,
+							["z"] = -0.1361181885004,
+						}, -- end of ["min"]
+						["max"] = 
+						{
+							["y"] = 0.13611803948879,
+							["x"] = 1.4030002355576,
+							["z"] = 0.13611821830273,
+						}, -- end of ["max"]
+					}, -- end of ["box"]
+					["rangeMaxAltMin"] = 6800,
+					["fuseDist"] = 0,
+					["category"] = 1,
+					["guidance"] = 8,
+					["Nmax"] = 14,
+					["rangeMin"] = 400,
+					["altMax"] = 3000,
+					["RCS"] = 0.079999998211861,
+					["displayName"] = "RAPIER",
+					["altMin"] = 50,
+					["life"] = 2,
+					["missileCategory"] = 2,
+					["warhead"] = 
+					{
+						["explosiveMass"] = 1.3999999761581,
+						["type"] = 1,
+						["caliber"] = 113,
+						["mass"] = 5,
+					}, -- end of ["warhead"]
+					["rangeMaxAltMax"] = 6800,
+					["typeName"] = "RAPIER",
+					["_origin"] = "",
+				}, -- end of ["desc"]
+			}, -- end of [1]
+		}, -- end of ["weapons"]
+		["sensors"] = 
+		{
+			[1] = 
+			{
+				[1] = 
+				{
+					["detectionDistanceAir"] = 
+					{
+						["upperHemisphere"] = 
+						{
+							["tailOn"] = 23405.912109375,
+							["headOn"] = 23405.912109375,
+						}, -- end of ["upperHemisphere"]
+						["lowerHemisphere"] = 
+						{
+							["tailOn"] = 23405.912109375,
+							["headOn"] = 23405.912109375,
+						}, -- end of ["lowerHemisphere"]
+					}, -- end of ["detectionDistanceAir"]
+					["type"] = 1,
+					["typeName"] = "Roland Radar",
+				}, -- end of [1]
+			}, -- end of [1]
+		}, -- end of ["sensors"]
+		["desc"] = 
+		{
+			["massEmpty"] = 5000,
+			["riverCrossing"] = false,
+			["maxSlopeAngle"] = 0,
+			["Kmax"] = 0.050000000745058,
+			["RCS"] = 5,
+			["box"] = 
+			{
+				["min"] = 
+				{
+					["y"] = -0.064320459961891,
+					["x"] = -1.2882169485092,
+					["z"] = -1.3424152135849,
+				}, -- end of ["min"]
+				["max"] = 
+				{
+					["y"] = 2.1704893112183,
+					["x"] = 2.4133129119873,
+					["z"] = 1.3424153327942,
+				}, -- end of ["max"]
+			}, -- end of ["box"]
+			["speedMax"] = 0,
+			["life"] = 2,
+			["attributes"] = 
+			{
+				["SAM TR"] = true,
+				["Vehicles"] = true,
+				["SAM elements"] = true,
+				["SAM SR"] = true,
+				["Ground vehicles"] = true,
+				["RADAR_BAND1_FOR_ARM"] = true,
+				["AA_missile"] = true,
+				["RADAR_BAND2_FOR_ARM"] = true,
+				["NonArmoredUnits"] = true,
+				["Air Defence"] = true,
+				["SR SAM"] = true,
+				["SAM LL"] = true,
+				["Armed Air Defence"] = true,
+				["SAM related"] = true,
+				["All"] = true,
+				["Ground Units"] = true,
+				["NonAndLightArmoredUnits"] = true,
+			}, -- end of ["attributes"]
+			["category"] = 2,
+			["speedMaxOffRoad"] = 0,
+			["_origin"] = "TechWeaponPack",
+			["typeName"] = "rapier_fsa_launcher",
+			["displayName"] = "Rapier FSA Launcher",
+		}, -- end of ["desc"]
+	} -- end of rapier_fsa_launcher
+	,["rapier_fsa_optical_tracker_unit"] = 
+	{
+		["sensors"] = 
+		{
+			[0] = 
+			{
+				[1] = 
+				{
+					["type"] = 0,
+					["typeName"] = "generic SAM search visir",
+					["opticType"] = 0,
+				}, -- end of [1]
+				[2] = 
+				{
+					["type"] = 0,
+					["typeName"] = "generic SAM IR search visir",
+					["opticType"] = 2,
+				}, -- end of [2]
+			}, -- end of [0]
+		}, -- end of ["sensors"]
+		["desc"] = 
+		{
+			["massEmpty"] = 5000,
+			["riverCrossing"] = false,
+			["maxSlopeAngle"] = 0,
+			["Kmax"] = 0.050000000745058,
+			["RCS"] = 5,
+			["box"] = 
+			{
+				["min"] = 
+				{
+					["y"] = -0.0093219615519047,
+					["x"] = -0.71828979253769,
+					["z"] = -0.94367444515228,
+				}, -- end of ["min"]
+				["max"] = 
+				{
+					["y"] = 1.6035619974136,
+					["x"] = 0.98661839962006,
+					["z"] = 0.94367450475693,
+				}, -- end of ["max"]
+			}, -- end of ["box"]
+			["speedMax"] = 0,
+			["life"] = 2,
+			["attributes"] = 
+			{
+				["SAM TR"] = true,
+				["Vehicles"] = true,
+				["SAM elements"] = true,
+				["NonArmoredUnits"] = true,
+				["Air Defence"] = true,
+				["Ground vehicles"] = true,
+				["SR SAM"] = true,
+				["NonAndLightArmoredUnits"] = true,
+				["All"] = true,
+				["Ground Units"] = true,
+				["SAM related"] = true,
+			}, -- end of ["attributes"]
+			["category"] = 2,
+			["speedMaxOffRoad"] = 0,
+			["_origin"] = "TechWeaponPack",
+			["typeName"] = "rapier_fsa_optical_tracker_unit",
+			["displayName"] = "Rapier FSA Optical Tracker",
+		}, -- end of ["desc"]
+	} -- end of rapier_fsa_optical_tracker_unit
+	,["SS Missile hy_launcher"] = 
+	{
+		["weapons"] = 
+		{
+			[1] = 
+			{
+				["count"] = 1,
+				["desc"] = 
+				{
+					["box"] = 
+					{
+						["min"] = 
+						{
+							["y"] = -0.86724120378494,
+							["x"] = -3.8283560276031,
+							["z"] = -1.1988116502762,
+						}, -- end of ["min"]
+						["max"] = 
+						{
+							["y"] = 0.8064940571785,
+							["x"] = 3.6800005435944,
+							["z"] = 1.1988116502762,
+						}, -- end of ["max"]
+					}, -- end of ["box"]
+					["rangeMaxAltMin"] = 40000,
+					["fuseDist"] = 0,
+					["category"] = 1,
+					["guidance"] = 1,
+					["Nmax"] = 12,
+					["rangeMin"] = 3000,
+					["altMax"] = 12000,
+					["RCS"] = 0.39669999480247,
+					["displayName"] = "HY_2",
+					["altMin"] = -1,
+					["life"] = 2,
+					["missileCategory"] = 5,
+					["warhead"] = 
+					{
+						["explosiveMass"] = 196,
+						["type"] = 1,
+						["caliber"] = 470,
+						["mass"] = 196,
+					}, -- end of ["warhead"]
+					["rangeMaxAltMax"] = 40000,
+					["typeName"] = "HY_2",
+					["_origin"] = "",
+				}, -- end of ["desc"]
+			}, -- end of [1]
+		}, -- end of ["weapons"]
+		["sensors"] = 
+		{
+			[1] = 
+			{
+				[1] = 
+				{
+					["detectionDistanceAir"] = 
+					{
+						["upperHemisphere"] = 
+						{
+							["tailOn"] = 12037.326171875,
+							["headOn"] = 19012.287109375,
+						}, -- end of ["upperHemisphere"]
+						["lowerHemisphere"] = 
+						{
+							["tailOn"] = 12037.326171875,
+							["headOn"] = 19012.287109375,
+						}, -- end of ["lowerHemisphere"]
+					}, -- end of ["detectionDistanceAir"]
+					["type"] = 1,
+					["typeName"] = "molniya search radar",
+					["detectionDistanceRBM"] = 284.29998779297,
+				}, -- end of [1]
+			}, -- end of [1]
+		}, -- end of ["sensors"]
+		["desc"] = 
+		{
+			["massEmpty"] = 5000,
+			["riverCrossing"] = false,
+			["maxSlopeAngle"] = 0,
+			["Kmax"] = 0.050000000745058,
+			["RCS"] = 5,
+			["box"] = 
+			{
+				["min"] = 
+				{
+					["y"] = -0.025083288550377,
+					["x"] = -4.1893291473389,
+					["z"] = -2.8703889846802,
+				}, -- end of ["min"]
+				["max"] = 
+				{
+					["y"] = 3.8452813625336,
+					["x"] = 5.3264803886414,
+					["z"] = 2.8703892230988,
+				}, -- end of ["max"]
+			}, -- end of ["box"]
+			["speedMax"] = 0,
+			["life"] = 1,
+			["attributes"] = 
+			{
+				["SS_missile"] = true,
+				["DetectionByAWACS"] = true,
+			}, -- end of ["attributes"]
+			["category"] = 2,
+			["speedMaxOffRoad"] = 0,
+			["_origin"] = "TechWeaponPack",
+			["typeName"] = "hy_launcher",
+			["displayName"] = "SS-N-2 Silkworm",
+		}, -- end of ["desc"]
+	} -- end of SS Missile hy_launcher
+	,["Truck Land_Rover_109_S3"] = 
+	{
+		["desc"] = 
+		{
+			["massEmpty"] = 1500,
+			["riverCrossing"] = false,
+			["maxSlopeAngle"] = 0.46999999880791,
+			["Kmax"] = 0.050000000745058,
+			["RCS"] = 5,
+			["box"] = 
+			{
+				["min"] = 
+				{
+					["y"] = -0.041022188961506,
+					["x"] = -2.6554338932037,
+					["z"] = -1.0484528541565,
+				}, -- end of ["min"]
+				["max"] = 
+				{
+					["y"] = 2.0193212032318,
+					["x"] = 1.9941304922104,
+					["z"] = 1.0484528541565,
+				}, -- end of ["max"]
+			}, -- end of ["box"]
+			["speedMax"] = 34.700000762939,
+			["life"] = 2,
+			["attributes"] = 
+			{
+				["Ground Units Non Airdefence"] = true,
+				["Vehicles"] = true,
+				["NonArmoredUnits"] = true,
+				["Trucks"] = true,
+				["Ground vehicles"] = true,
+				["NonAndLightArmoredUnits"] = true,
+				["All"] = true,
+				["Ground Units"] = true,
+				["Unarmed vehicles"] = true,
+			}, -- end of ["attributes"]
+			["category"] = 2,
+			["speedMaxOffRoad"] = 34.700000762939,
+			["_origin"] = "TechWeaponPack",
+			["typeName"] = "Land_Rover_109_S3",
+			["displayName"] = "Land Rover 109 S3",
+		}, -- end of ["desc"]
+	} -- end of Truck Land_Rover_109_S3
+	,["Truck Land_Rover_101_FC"] = 
+	{
+		["desc"] = 
+		{
+			["massEmpty"] = 1500,
+			["riverCrossing"] = false,
+			["maxSlopeAngle"] = 0.46999999880791,
+			["Kmax"] = 0.050000000745058,
+			["RCS"] = 5,
+			["box"] = 
+			{
+				["min"] = 
+				{
+					["y"] = -0.053687579929829,
+					["x"] = -2.3147339820862,
+					["z"] = -1.2697758674622,
+				}, -- end of ["min"]
+				["max"] = 
+				{
+					["y"] = 2.3226103782654,
+					["x"] = 2.3147339820862,
+					["z"] = 1.2697759866714,
+				}, -- end of ["max"]
+			}, -- end of ["box"]
+			["speedMax"] = 34.700000762939,
+			["life"] = 2,
+			["attributes"] = 
+			{
+				["Ground Units Non Airdefence"] = true,
+				["Vehicles"] = true,
+				["NonArmoredUnits"] = true,
+				["Trucks"] = true,
+				["Ground vehicles"] = true,
+				["NonAndLightArmoredUnits"] = true,
+				["All"] = true,
+				["Ground Units"] = true,
+				["Unarmed vehicles"] = true,
+			}, -- end of ["attributes"]
+			["category"] = 2,
+			["speedMaxOffRoad"] = 34.700000762939,
+			["_origin"] = "TechWeaponPack",
+			["typeName"] = "Land_Rover_101_FC",
+			["displayName"] = "Land Rover 101 FC",
+		}, -- end of ["desc"]
+	} -- end of Truck Land_Rover_101_FC
+	,["SS Missile TomahawkLauncher"] = 
+	{
+		["weapons"] = 
+		{
+			[1] = 
+			{
+				["count"] = 12,
+				["desc"] = 
+				{
+					["box"] = 
+					{
+						["min"] = 
+						{
+							["y"] = -0.42347154021263,
+							["x"] = -3.547247171402,
+							["z"] = -1.3377370834351,
+						}, -- end of ["min"]
+						["max"] = 
+						{
+							["y"] = 0.51750361919403,
+							["x"] = 2.8631827831268,
+							["z"] = 1.3377370834351,
+						}, -- end of ["max"]
+					}, -- end of ["box"]
+					["rangeMaxAltMin"] = 460000,
+					["fuseDist"] = 0,
+					["category"] = 1,
+					["guidance"] = 1,
+					["Nmax"] = 17,
+					["rangeMin"] = 3000,
+					["altMax"] = 12000,
+					["RCS"] = 0.39669999480247,
+					["displayName"] = "BGM-109B",
+					["altMin"] = -1,
+					["life"] = 2,
+					["missileCategory"] = 5,
+					["warhead"] = 
+					{
+						["explosiveMass"] = 181.60000610352,
+						["type"] = 1,
+						["caliber"] = 520,
+						["mass"] = 181.60000610352,
+					}, -- end of ["warhead"]
+					["rangeMaxAltMax"] = 460000,
+					["typeName"] = "BGM-109B",
+					["_origin"] = "",
+				}, -- end of ["desc"]
+			}, -- end of [1]
+		}, -- end of ["weapons"]
+		["desc"] = 
+		{
+			["massEmpty"] = 25191,
+			["riverCrossing"] = false,
+			["maxSlopeAngle"] = 0.27000001072884,
+			["Kmax"] = 0.050000000745058,
+			["RCS"] = 5,
+			["box"] = 
+			{
+				["min"] = 
+				{
+					["y"] = -0.024093169718981,
+					["x"] = -3.4885001182556,
+					["z"] = -1.3715417385101,
+				}, -- end of ["min"]
+				["max"] = 
+				{
+					["y"] = 3.0690410137177,
+					["x"] = 3.4885001182556,
+					["z"] = 1.3715417385101,
+				}, -- end of ["max"]
+			}, -- end of ["box"]
+			["speedMax"] = 17.777799606323,
+			["life"] = 2,
+			["attributes"] = 
+			{
+				["Datalink"] = true,
+				["MissilesSS"] = true,
+			}, -- end of ["attributes"]
+			["category"] = 2,
+			["speedMaxOffRoad"] = 17.777799606323,
+			["_origin"] = "TechWeaponPack",
+			["typeName"] = "TomahawkLauncher",
+			["displayName"] = "Tomahawk Launcher",
+		}, -- end of ["desc"]
+	} -- end of SS Missile TomahawkLauncher
     ,["Soldier stinger"] = 
     {
         ["weapons"] = 
