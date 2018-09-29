@@ -590,7 +590,7 @@ veafUnits.GroupsDatabase = {
         aliases = {"sa2", "sa-2", "fs"},
         group = {
             disposition = { h= 6, w= 8},
-            units = {{"SNR_75V", cell = 20}, {"p-19 s-125 sr", cell = 48}, {"S_75M_Volhov", cell = 3}, {"S_75M_Volhov", cell = 5}, {"S_75M_Volhov", cell = 17}, {"S_75M_Volhov", cell = 35}, {"S_75M_Volhov", cell = 37}},
+            units = {{"SNR_75V", cell = 20}, {"p-19 s-125 sr", cell = 48}, {"S_75M_Volhov", cell = 2}, {"S_75M_Volhov", cell = 6}, {"S_75M_Volhov", cell = 17}, {"S_75M_Volhov", cell = 24}, {"S_75M_Volhov", cell = 34}, {"S_75M_Volhov", cell = 38}},
             description = "SA-2 SAM site",
             groupName = "SA2"
         },
@@ -598,8 +598,8 @@ veafUnits.GroupsDatabase = {
     {
         aliases = {"rapier_optical", "rpo"},
         group = {
-            disposition = { h= 3, w= 3},
-            units = {{"rapier_fsa_optical_tracker_unit", cell = 8}, {"rapier_fsa_launcher", cell = 1}, {"rapier_fsa_launcher", cell = 3}},
+            disposition = { h= 3, w= 5},
+            units = {{"rapier_fsa_optical_tracker_unit", cell = 13}, {"rapier_fsa_launcher", cell = 1}, {"rapier_fsa_launcher", cell = 5}},
             description = "Rapier SAM site",
             groupName = "Rapier"
         },
@@ -607,8 +607,8 @@ veafUnits.GroupsDatabase = {
     {
         aliases = {"rapier_radar", "rpr"},
         group = {
-            disposition = { h= 4, w= 4},
-            units = {{"rapier_fsa_optical_tracker_unit", cell = 13}, {"rapier_fsa_launcher", cell = 1}, {"rapier_fsa_launcher", cell = 4}, {"rapier_fsa_blindfire_radar", cell = 16}},
+            disposition = { h= 5, w= 5},
+            units = {{"rapier_fsa_optical_tracker_unit", cell = 13}, {"rapier_fsa_launcher", cell = 1}, {"rapier_fsa_launcher", cell = 5}, {"rapier_fsa_blindfire_radar", cell = 23}},
             description = "Rapier SAM site",
             groupName = "Rapier"
         },
@@ -616,8 +616,8 @@ veafUnits.GroupsDatabase = {
     {
         aliases = {"sa3", "sa-3", "lb"},
         group = {
-            disposition = { h= 9, w= 7},
-            units = {{"p-19 s-125 sr", cell = 1}, {"snr s-125 tr", cell = 48}, {"5p73 s-125 ln", cell = 27}, {"5p73 s-125 ln", cell = 38}, {"5p73 s-125 ln", cell = 63}},
+            disposition = { h= 7, w= 9},
+            units = {{"p-19 s-125 sr", cell = 1}, {"snr s-125 tr", cell = 33}, {"5p73 s-125 ln", cell = 18}, {"5p73 s-125 ln", cell = 30}, {"5p73 s-125 ln", cell = 61}},
             description = "SA-3 SAM site",
             groupName = "SA3"
         },
