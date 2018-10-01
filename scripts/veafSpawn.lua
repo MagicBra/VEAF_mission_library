@@ -65,7 +65,7 @@ veafSpawn = {}
 veafSpawn.Id = "SPAWN - "
 
 --- Version.
-veafSpawn.Version = "1.1.3"
+veafSpawn.Version = "1.1.4"
 
 --- Key phrase to look for in the mark text which triggers the weather report.
 veafSpawn.Keyphrase = "veaf spawn "
@@ -267,22 +267,10 @@ function veafSpawn.markTextAnalysis(text)
         if switch.cargo and key:lower() == "name" then
             -- Set cargo type.
             veafSpawn.logDebug(string.format("Keyword type = %s", val))
-            if val:lower() == "ammo" then
-                switch.cargoType = "ammo_cargo"
-            elseif val:lower() == "barrels" then
-                switch.cargoType = "barrels_cargo"
-            elseif val:lower() == "container" then
-                switch.cargoType = "container_cargo"
-            elseif val:lower() == "fbar" then
-                switch.cargoType = "f_bar_cargo"
-            elseif val:lower() == "fueltank" then
-                switch.cargoType = "fueltank_cargo"
-            elseif val:lower() == "m117" then
-                switch.cargoType = "m117_cargo"
-            elseif val:lower() == "oiltank" then
-                switch.cargoType = "oiltank_cargo"
-            elseif val:lower() == "uh1h" then
-                switch.cargoType = "uh1h_cargo"            
+            if not(val == "iso_container" or val == "iso_container_small") then 
+                switch.cargoType = val .. "_cargo"
+            else
+                switch.cargoType = val .. "_cargo"
             end
         end
 
@@ -469,8 +457,6 @@ function veafSpawn.spawnCargo(spawnSpot, cargoType, cargoSmoke)
     veafSpawn.logDebug(string.format("spawnCargo: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
 
     local units = {}
-    veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
-    local unitName = "VEAF Spawned Cargo #" .. veafSpawn.spawnedUnitsCounter
 
     local spawnPosition = veaf.findPointInZone(spawnSpot, 50, false)
 
@@ -484,58 +470,52 @@ function veafSpawn.spawnCargo(spawnSpot, cargoType, cargoSmoke)
     veafSpawn.logDebug(string.format("spawnCargo: spawnPosition  x=%.1f y=%.1f", spawnPosition.x, spawnPosition.y))
   
     -- compute cargo weight
-    local cargoWeight = 0
-    if cargoType == 'ammo_cargo' then
-        cargoWeight = math.random(2205, 3000)
-    elseif cargoType == 'barrels_cargo' then
-        cargoWeight = math.random(300, 1058)
-    elseif cargoType == 'container_cargo' then
-        cargoWeight = math.random(300, 3000)
-    elseif cargoType == 'f_bar_cargo' then
-        cargoWeight = 0
-    elseif cargoType == 'fueltank_cargo' then
-        cargoWeight = math.random(1764, 3000)
-    elseif cargoType == 'm117_cargo' then
-        cargoWeight = 0
-    elseif cargoType == 'oiltank_cargo' then
-        cargoWeight = math.random(1543, 3000)
-    elseif cargoType == 'uh1h_cargo' then
-        cargoWeight = math.random(220, 3000)
-    end
-    
-    -- create the cargo
-    local cargoTable = {
-		type = cargoType,
-		country = 'USA',
-		category = 'Cargos',
-		name = unitName,
-		x = spawnPosition.x,
-		y = spawnPosition.y,
-        canCargo = true,
-        mass = cargoWeight
-	}
-	
-	mist.dynAddStatic(cargoTable)
-    
-    -- smoke the cargo if needed
-    if cargoSmoke then 
-        local smokePosition={x=spawnPosition.x + mist.random(10,20), y=0, z=spawnPosition.y + mist.random(10,20)}
-        local height = veaf.getLandHeight(smokePosition)
-        smokePosition.y = height
-        veafSpawn.logDebug(string.format("spawnCargo: smokePosition  x=%.1f y=%.1f z=%.1f", smokePosition.x, smokePosition.y, smokePosition.z))
-        veafSpawn.spawnSmoke(smokePosition, trigger.smokeColor.Green)
-        for i = 1, 10 do
-            veafSpawn.logDebug("Signal flare 1 at " .. timer.getTime() + i*7)
-            mist.scheduleFunction(veafSpawn.spawnSignalFlare, {smokePosition,trigger.flareColor.Red, mist.random(359)}, timer.getTime() + i*3)
+    local cargoWeight = 250
+    local unit = veafUnits.findDcsUnit(cargoType)
+    if unit then
+        cargoWeight = unit.defaultMass
+        if cargoWeight then
+            cargoWeight = math.random(cargoWeight - cargoWeight / 2, cargoWeight + cargoWeight / 2)
+
+            veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
+            local unitName = unit.desc.displayName .. " #" .. veafSpawn.spawnedUnitsCounter
+
+            -- create the cargo
+            local cargoTable = {
+                type = cargoType,
+                country = 'USA',
+                category = 'Cargos',
+                name = unitName,
+                x = spawnPosition.x,
+                y = spawnPosition.y,
+                canCargo = true,
+                mass = cargoWeight
+            }
+            
+            mist.dynAddStatic(cargoTable)
+            
+            -- smoke the cargo if needed
+            if cargoSmoke then 
+                local smokePosition={x=spawnPosition.x + mist.random(10,20), y=0, z=spawnPosition.y + mist.random(10,20)}
+                local height = veaf.getLandHeight(smokePosition)
+                smokePosition.y = height
+                veafSpawn.logDebug(string.format("spawnCargo: smokePosition  x=%.1f y=%.1f z=%.1f", smokePosition.x, smokePosition.y, smokePosition.z))
+                veafSpawn.spawnSmoke(smokePosition, trigger.smokeColor.Green)
+                for i = 1, 10 do
+                    veafSpawn.logDebug("Signal flare 1 at " .. timer.getTime() + i*7)
+                    mist.scheduleFunction(veafSpawn.spawnSignalFlare, {smokePosition,trigger.flareColor.Red, mist.random(359)}, timer.getTime() + i*3)
+                end
+            end
+
+            -- message the unit spawning
+            local message = "Cargo " .. unitName .. " weighting " .. cargoWeight .. " kg has been spawned"
+            if cargoSmoke then 
+                message = message .. ". It's marked with green smoke and red flares"
+            end
+            trigger.action.outText(message, 5)
         end
     end
-
-    -- message the unit spawning
-    local message = "A cargo of type " .. cargoType .. " weighting " .. cargoWeight .. " kg has been spawned"
-    if cargoSmoke then 
-        message = message .. ". It's marked with green smoke and red flares"
-    end
-    trigger.action.outText(message, 5)
+    
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -587,7 +567,7 @@ function veafSpawn.help()
         'veaf spawn group, name [group name]" spawns a specific group ; name must be a group name from the VEAF Groups Database\n' ..
         '   "spacing <spacing>" specifies the (randomly modified) units spacing in unit size multiples\n' ..
         '"veaf spawn cargo" creates a cargo mission\n' ..
-        '   "name [cargo type]" spawns a specific cargo ; name can be any of [ammo, barrels, container, fbar, fueltank, m117, oiltank, uh1h]\n' ..
+        '   "name [cargo type]" spawns a specific cargo ; name can be any of [ammo, barrels, container, fueltank, f_bar, iso_container, iso_container_small, m117, oiltank, pipes_big, pipes_small, tetrapod, trunks_long, trunks_small, uh1h]\n' ..
         '   "smoke adds a smoke marker\n' ..
         '"veaf spawn smoke" spawns a smoke on the ground\n' ..
         '   "color [red|green|blue|white|orange]" specifies the smoke color\n' ..
