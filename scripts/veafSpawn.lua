@@ -172,7 +172,7 @@ function veafSpawn.markTextAnalysis(text)
     switch.cargoSmoke = false
 
     -- cargo type
-    switch.cargoType = "uh1h_cargo"
+    switch.cargoType = "ammo_cargo"
 
     -- flare agl altitude (meters)
     switch.alt = veafSpawn.IlluminationFlareAglAltitude
