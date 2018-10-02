@@ -175,8 +175,8 @@ function veafCasMission.markTextAnalysis(text)
     -- armor force ; ranges from 1 to 5, 5 being the strongest and most modern.
     switch.armor = 1
 
-    -- spacing ; ranges from 1 to 5, 3 being the default and 5 being the widest spacing.
-    switch.spacing = 3
+    -- spacing ; ranges from 1 to 5, 1 being the default and 5 being the widest spacing.
+    switch.spacing = 1
 
     -- disperse on attack ; self explanatory, if keyword is present the option will be set to true
     switch.disperseOnAttack = false
@@ -276,7 +276,7 @@ function veafCasMission.generateAirDefenseGroup(groupId, defense)
         samType = 'Strela-1 9P31'
     end
     veafCasMission.logDebug("samType = " .. samType)
-    table.insert(group.units, { samType, ["cell"] = 5 })
+    table.insert(group.units, { samType, ["cell"] = 5, random })
 
     -- generate a secondary air defense platoon
     for _ = 2, groupCount do
@@ -294,7 +294,7 @@ function veafCasMission.generateAirDefenseGroup(groupId, defense)
             samType = 'Ural-375 ZU-23'
         end
         veafCasMission.logDebug("secondary samType = " .. samType)
-        table.insert(group.units, { samType })
+        table.insert(group.units, { samType, random })
     end
 
     return group
@@ -334,16 +334,16 @@ function veafCasMission.generateTransportCompany(groupId, defense)
         elseif transportRand == 8 then
             transportType = 'ZIL-131 KUNG'
         end
-        table.insert(group.units, { transportType})
+        table.insert(group.units, { transportType, random})
     end
 
     -- add an air defense vehicle
     if defense > 2 then
         -- defense = 3-5 : add a Shilka
-        table.insert(group.units, { "ZSU-23-4 Shilka", cell = 3 })
+        table.insert(group.units, { "ZSU-23-4 Shilka", cell = 3, random })
     elseif defense > 0 then
         -- defense = 1 : add a ZU23 on a truck
-        table.insert(group.units, { "Ural-375 ZU-23", cell = 3 })
+        table.insert(group.units, { "Ural-375 ZU-23", cell = 3, random })
     end
 
     return group
@@ -405,16 +405,16 @@ function veafCasMission.generateArmorPlatoon(groupId, defense, armor)
                 armorType = 'T-90'
             end
         end
-        table.insert(group.units, { armorType })
+        table.insert(group.units, { armorType, random })
     end
 
    -- add an air defense vehicle
     if defense > 3 then 
         -- defense = 4-5 : add a Tunguska
-        table.insert(group.units, { "2S6 Tunguska", cell = 5 })
+        table.insert(group.units, { "2S6 Tunguska", cell = 5, random })
     elseif defense > 0 then
         -- defense = 1-3 : add a Shilka
-        table.insert(group.units, { "ZSU-23-4 Shilka", cell = 5 })
+        table.insert(group.units, { "ZSU-23-4 Shilka", cell = 5, random })
     end
 
     return group
@@ -447,22 +447,22 @@ function veafCasMission.generateInfantryGroup(groupId, defense, armor)
 
     -- add a transport vehicle or an APC/IFV
     if armor > 3 then
-        table.insert(group.units, { "BMP-1", cell=11 })
+        table.insert(group.units, { "BMP-1", cell=11, random })
     elseif armor > 0 then
-        table.insert(group.units, { "BTR-80", cell=11 })
+        table.insert(group.units, { "BTR-80", cell=11, random })
     else
-        table.insert(group.units, { "GAZ-3308", cell=11 })
+        table.insert(group.units, { "GAZ-3308", cell=11, random })
     end
 
     -- add manpads if needed
     if defense > 3 then
         -- for defense = 4-5, spawn a modern Igla-S team
-        table.insert(group.units, { "SA-18 Igla-S comm" })
-        table.insert(group.units, { "SA-18 Igla-S manpad" })
+        table.insert(group.units, { "SA-18 Igla-S comm", random })
+        table.insert(group.units, { "SA-18 Igla-S manpad", random })
     elseif defense > 0 then
         -- for defense = 1-3, spawn an older Igla team
-        table.insert(group.units, { "SA-18 Igla comm" })
-        table.insert(group.units, { "SA-18 Igla manpad" })
+        table.insert(group.units, { "SA-18 Igla comm", random })
+        table.insert(group.units, { "SA-18 Igla manpad", random })
     else
         -- for defense = 0, don't spawn any manpad
     end
@@ -480,7 +480,7 @@ function veafCasMission.generateCasMission(spawnSpot, size, defense, armor, spac
     local country = "RUSSIA"
     local units = {}
     local groupId = 1234
-    local zoneRadius = (size+spacing-2)*500
+    local zoneRadius = (size+spacing)*350
     veafCasMission.logDebug("zoneRadius = " .. zoneRadius)
     
 
@@ -502,7 +502,8 @@ function veafCasMission.generateCasMission(spawnSpot, size, defense, armor, spac
             groupPosition = { x = groupPosition.x, z = groupPosition.y }
             
             -- place its units
-            local group, cells = veafUnits.placeGroup(group, veaf.placePointOnLand(groupPosition), spacing)
+            local hdg = math.random(359)
+            local group, cells = veafUnits.placeGroup(group, veaf.placePointOnLand(groupPosition), spacing+3, hdg)
             veafUnits.debugGroup(group, cells)
             
             -- add the units to the global units list
@@ -529,7 +530,8 @@ function veafCasMission.generateCasMission(spawnSpot, size, defense, armor, spac
                 local group = veafUnits.processGroup(group)
                 
                 -- place its units
-                local group, cells = veafUnits.placeGroup(group, veaf.placePointOnLand(groupPosition), spacing)
+                local hdg = math.random(359)
+                local group, cells = veafUnits.placeGroup(group, veaf.placePointOnLand(groupPosition), spacing+3, hdg)
                 veafUnits.debugGroup(group, cells)
                 
                 -- add the units to the global units list
@@ -560,7 +562,8 @@ function veafCasMission.generateCasMission(spawnSpot, size, defense, armor, spac
                 local group = veafUnits.processGroup(group)
                 
                 -- place its units
-                local group, cells = veafUnits.placeGroup(group, veaf.placePointOnLand(groupPosition), spacing)
+                local hdg = math.random(359)
+                local group, cells = veafUnits.placeGroup(group, veaf.placePointOnLand(groupPosition), spacing+3, hdg)
                 veafUnits.debugGroup(group, cells)
                 
                 -- add the units to the global units list
@@ -587,7 +590,8 @@ function veafCasMission.generateCasMission(spawnSpot, size, defense, armor, spac
             local group = veafUnits.processGroup(group)
             
             -- place its units
-            local group, cells = veafUnits.placeGroup(group, veaf.placePointOnLand(groupPosition), spacing)
+            local hdg = math.random(359)
+            local group, cells = veafUnits.placeGroup(group, veaf.placePointOnLand(groupPosition), spacing+3, hdg)
             veafUnits.debugGroup(group, cells)
             
             -- add the units to the global units list

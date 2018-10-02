@@ -297,7 +297,7 @@ end
 
 --- Spawn a specific group at a specific spot
 function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing)
-    veafSpawn.logDebug(string.format("spawnGroup(name = %s, country=%s, speed=%d, alt=%d, hdg= %d, spacing=%d)",name, country, speed, alt, hdg, spacing))
+    veafSpawn.logDebug(string.format("spawnGroup(name = %s, country=%s, speed=%d, alt=%d, hdg=%d, spacing=%d)",name, country, speed, alt, hdg, spacing))
     veafSpawn.logDebug("spawnGroup: spawnSpot " .. veaf.vecToString(spawnSpot))
     
     veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
@@ -313,7 +313,7 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
     local units = {}
 
     -- place group units on the map
-    local group, cells = veafUnits.placeGroup(dbGroup, spawnSpot, spacing)
+    local group, cells = veafUnits.placeGroup(dbGroup, spawnSpot, spacing, hdg)
     veafUnits.debugGroup(group, cells)
     
     local groupName = group.groupName .. " #" .. veafSpawn.spawnedUnitsCounter
@@ -323,28 +323,28 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
         local unitType = unit.typeName
         local unitName = groupName .. " / " .. unit.displayName .. " #" .. i
         
-        local spawnPosition = unit.spawnPoint
+        local spawnPoint = unit.spawnPoint
         if alt > 0 then
-            spawnPosition.y = alt
+            spawnPoint.y = alt
         end
         
         -- check if position is correct for the unit type
-        if not veafUnits.checkPositionForUnit(spawnPosition, unit) then
+        if not veafUnits.checkPositionForUnit(spawnPoint, unit) then
             veafSpawn.logInfo("cannot find a suitable position for spawning unit ".. unitType)
             trigger.action.outText("cannot find a suitable position for spawning unit "..unitType, 5)
         else 
             local toInsert = {
-                    ["x"] = spawnPosition.x,
-                    ["y"] = spawnPosition.z,
-                    ["alt"] = spawnPosition.y,
+                    ["x"] = spawnPoint.x,
+                    ["y"] = spawnPoint.z,
+                    ["alt"] = spawnPoint.y,
                     ["type"] = unitType,
                     ["name"] = unitName,
                     ["speed"] = speed/1.94384,  -- speed in m/s
                     ["skill"] = "Random",
-                    ["heading"] = spawnPosition.hdg
+                    ["heading"] = spawnPoint.hdg
             }
-
-            veafSpawn.logDebug(string.format("toInsert x=%.1f y=%.1f, alt=%.1f, type=%s, name=%s, speed=%d, heading=%d, skill=%s, country=%s", toInsert.x, toInsert.y, toInsert.alt, toInsert.type, toInsert.name, toInsert.speed, toInsert.heading, toInsert.skill, country ))
+            
+            veafSpawn.logDebug(string.format("toInsert x=%.1f y=%.1f, alt=%.1f, type=%s, name=%s, speed=%d, heading=%d, skill=%s, country=%s", toInsert.x, toInsert.y, toInsert.alt, toInsert.type, toInsert.name, toInsert.speed, mist.utils.toDegree(toInsert.heading), toInsert.skill, country ))
             table.insert(units, toInsert)
         end
     end

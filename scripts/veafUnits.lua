@@ -124,7 +124,7 @@ function veafUnits.debugGroup(group, cells)
                     end
                     center = " " .. unitName .. " "
 
-                    bottomleft = string.format("               %03d    ", unit.hdg)
+                    bottomleft = string.format("               %03d    ", mist.utils.toDegree(unit.spawnPoint.hdg))
 
                     unitCounter = unitCounter + 1
                 end
@@ -227,6 +227,7 @@ function veafUnits.processGroup(group)
         local number = nil
         local size = nil
         local hdg = nil
+        local random = false
         local u = group.units[i]
         if type(u) == "string" then 
             -- information was skipped using simplified syntax
@@ -241,6 +242,9 @@ function veafUnits.processGroup(group)
                 size = {}
                 size.width = u.size
                 size.height = u.size
+            end
+            if u.random then
+                random = true
             end
         end
         if not(number) then 
@@ -264,6 +268,7 @@ function veafUnits.processGroup(group)
             else 
                 unit.cell = cell
                 unit.hdg = hdg
+                unit.random = random
                 unit.size = size
                 result.units[unitNumber] = unit
                 unitNumber = unitNumber + 1
@@ -539,19 +544,25 @@ function veafUnits.placeGroup(group, spawnPoint, spacing, hdg)
         local unit = cell.unit
         if unit then
             unit.spawnPoint = {}
-            unit.spawnPoint.z = cell.center.x + math.random(-(spacing * unit.width)/2, (spacing * unit.width)/2)
-            unit.spawnPoint.x = cell.center.y + math.random(-(spacing * unit.length)/2, (spacing * unit.length)/2)
+            unit.spawnPoint.z = cell.center.x
+            if unit.random and spacing > 0 then
+                unit.spawnPoint.z = unit.spawnPoint.z + math.random(-((spacing-1) * unit.width)/2, ((spacing-1) * unit.width)/2)
+            end
+            unit.spawnPoint.x = cell.center.y
+            if unit.random and spacing > 0 then
+                unit.spawnPoint.x = unit.spawnPoint.x + math.random(-((spacing-1) * unit.length)/2, ((spacing-1) * unit.length)/2)
+            end
             unit.spawnPoint.y = spawnPoint.y
             
             -- take into account group rotation, if needed
             if hdg > 0 then
                 local angle = mist.utils.toRadian(hdg)
-                local x = unit.spawnPoint.z
-                local y = unit.spawnPoint.x
+                local x = unit.spawnPoint.z - spawnPoint.z
+                local y = unit.spawnPoint.x - spawnPoint.x
                 local x_rotated = x * math.cos(angle) + y * math.sin(angle)
                 local y_rotated = -x * math.sin(angle) + y * math.cos(angle)
-                unit.spawnPoint.z = x_rotated
-                unit.spawnPoint.x = y_rotated
+                unit.spawnPoint.z = x_rotated + spawnPoint.z
+                unit.spawnPoint.x = y_rotated + spawnPoint.x
             end
 
             -- unit heading
@@ -560,7 +571,7 @@ function veafUnits.placeGroup(group, spawnPoint, spacing, hdg)
                 if unitHeading > 360 then
                     unitHeading = unitHeading - 360
                 end
-                unit.spawnPoint.hdg = unitHeading
+                unit.spawnPoint.hdg = mist.utils.toRadian(unitHeading)
             else
                 unit.spawnPoint.hdg = 0 -- due north
             end
@@ -621,13 +632,15 @@ veafUnits.UnitsDatabase = {
 --          hdg     = heading of the unit (direction it will face) considering the group itself is facing north (actual group orientation can be anything else, and actual unit orientation will be computed accordingly)
 --  description = human-friendly name for the group
 --  groupName   = name used when spawning this group (will be flavored with a numerical suffix)
+--
+-- empty cells measure 10m x 10m
 
 veafUnits.GroupsDatabase = {
         {
         aliases = {"sa2", "sa-2", "fs"},
         group = {
             disposition = { h= 6, w= 8},
-            units = {{"SNR_75V", cell = 20}, {"p-19 s-125 sr", cell = 48}, {"S_75M_Volhov", cell = 2, hdg = 335}, {"S_75M_Volhov", cell = 6, hdg = 25}, {"S_75M_Volhov", cell = 17, hdg = 270}, {"S_75M_Volhov", cell = 24, hdg = 90}, {"S_75M_Volhov", cell = 34, hdg = 205}, {"S_75M_Volhov", cell = 38, hdg = 155}},
+            units = {{"SNR_75V", cell = 20}, {"p-19 s-125 sr", cell = 48}, {"S_75M_Volhov", cell = 2, hdg = 315}, {"S_75M_Volhov", cell = 6, hdg = 45}, {"S_75M_Volhov", cell = 17, hdg = 270}, {"S_75M_Volhov", cell = 24, hdg = 90}, {"S_75M_Volhov", cell = 34, hdg = 225}, {"S_75M_Volhov", cell = 38, hdg = 135}},
             description = "SA-2 SAM site",
             groupName = "SA2"
         },
@@ -690,7 +703,7 @@ veafUnits.GroupsDatabase = {
         aliases = {"infantry section", "infsec"},
         group = {
             disposition = { h= 10, w= 4},
-            units = {{"IFV BTR-80", cell=38},{"IFV BTR-80", cell=39},{"INF Soldier AK", number = {min=12, max=30}}, {"SA-18 Igla manpad", number = {min=0, max=2}}},
+            units = {{"IFV BTR-80", cell=38, random},{"IFV BTR-80", cell=39, random},{"INF Soldier AK", number = {min=12, max=30}, random}, {"SA-18 Igla manpad", number = {min=0, max=2}, random}},
             description = "Mechanized infantry section with APCs",
             groupName = "Mechanized infantry section"
         },
@@ -735,7 +748,7 @@ veafUnits.GroupsDatabase = {
         aliases = {"Test"},
         group = {
             disposition = { h = 3, w = 3},
-            units = {{"S_75M_Volhov", cell=2, size={height=50, width=50}, hdg=0},{"S_75M_Volhov", cell=4, size=50, hdg=315},{"S_75M_Volhov", cell=6, size=50, hdg=135},{"S_75M_Volhov", cell=8, size=50, hdg=180}},
+            units = {{"S_75M_Volhov", cell=2, size={height=15, width=15}, hdg=0},{"S_75M_Volhov", cell=4, size=15, hdg=270},{"S_75M_Volhov", cell=6, size=15, hdg=90},{"S_75M_Volhov", cell=8, size=15, hdg=180}},
             description = "Test group",
             groupName = "Test",
         },

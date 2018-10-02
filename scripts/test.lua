@@ -8,6 +8,10 @@ function mist.utils.toRadian(angle)
     return angle*math.pi/180
 end
 
+	function mist.utils.toDegree(angle)
+		return angle*180/math.pi
+	end
+
 veaf = {}
 math.randomseed(os.time())
 
@@ -98,7 +102,7 @@ local speed = 10
 local heading = 90
 local spacing = 0
 
-local group = veafUnits.findGroup("test")
+local group = veafUnits.findGroup("sa2")
 --local group = veafCasMission.generateInfantryGroup(1, spawnPosition, 4, 1, "Random")
 local group, cells = veafUnits.placeGroup(group, spawnPosition, spacing, heading)
 veafUnits.debugGroup(group, cells)
