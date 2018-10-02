@@ -341,7 +341,7 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
                     ["name"] = unitName,
                     ["speed"] = speed/1.94384,  -- speed in m/s
                     ["skill"] = "Random",
-                    ["heading"] = 0
+                    ["heading"] = spawnPosition.hdg
             }
 
             veafSpawn.logDebug(string.format("toInsert x=%.1f y=%.1f, alt=%.1f, type=%s, name=%s, speed=%d, heading=%d, skill=%s, country=%s", toInsert.x, toInsert.y, toInsert.alt, toInsert.type, toInsert.name, toInsert.speed, toInsert.heading, toInsert.skill, country ))

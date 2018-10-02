@@ -387,8 +387,11 @@ function veafUnits.checkPositionForUnit(spawnPosition, unit)
 end
 
 --- Adds a placement point to every unit of the group, centering the whole group around the spawnPoint, and adding an optional spacing
-function veafUnits.placeGroup(group, spawnPoint, spacing)
-    
+function veafUnits.placeGroup(group, spawnPoint, spacing, hdg)
+    if not(hdg) then
+        hdg = 0 -- default north
+    end
+
     if not(group.disposition) then 
         -- default disposition is a square
         local l = math.ceil(math.sqrt(#group.units))
@@ -528,6 +531,28 @@ function veafUnits.placeGroup(group, spawnPoint, spacing)
             unit.spawnPoint.z = cell.center.x + math.random(-(spacing * unit.width)/2, (spacing * unit.width)/2)
             unit.spawnPoint.x = cell.center.y + math.random(-(spacing * unit.length)/2, (spacing * unit.length)/2)
             unit.spawnPoint.y = spawnPoint.y
+            
+            -- take into account group rotation, if needed
+            if hdg > 0 then
+                local angle = mist.utils.toRadian(hdg)
+                local x = unit.spawnPoint.z
+                local y = unit.spawnPoint.x
+                local x_rotated = x * math.cos(angle) + y * math.sin(angle)
+                local y_rotated = -x * math.sin(angle) + y * math.cos(angle)
+                unit.spawnPoint.z = x_rotated
+                unit.spawnPoint.x = y_rotated
+            end
+
+            -- unit heading
+            if unit.hdg then
+                local unitHeading = unit.hdg + hdg -- don't forget to add group heading
+                if unitHeading > 360 then
+                    unitHeading = unitHeading - 360
+                end
+                unit.spawnPoint.hdg = unitHeading
+            else
+                unit.spawnPoint.hdg = 0 -- due north
+            end
         end
     end 
     
@@ -582,6 +607,7 @@ veafUnits.UnitsDatabase = {
 --          alias   = alias of the unit in the VEAF units database, or actual DCS type name in the DCS units database
 --          cell    = preferred layout cell ; the unit will be spawned in this cell, in the layout defined in the *layout* field
 --                    (see pictures unitSpawnGridExplanation-02 and unitSpawnGridExplanation-03)
+--          hdg     = heading of the unit (direction it will face) considering the group itself is facing north (actual group orientation can be anything else, and actual unit orientation will be computed accordingly)
 --  description = human-friendly name for the group
 --  groupName   = name used when spawning this group (will be flavored with a numerical suffix)
 
@@ -590,7 +616,7 @@ veafUnits.GroupsDatabase = {
         aliases = {"sa2", "sa-2", "fs"},
         group = {
             disposition = { h= 6, w= 8},
-            units = {{"SNR_75V", cell = 20}, {"p-19 s-125 sr", cell = 48}, {"S_75M_Volhov", cell = 2}, {"S_75M_Volhov", cell = 6}, {"S_75M_Volhov", cell = 17}, {"S_75M_Volhov", cell = 24}, {"S_75M_Volhov", cell = 34}, {"S_75M_Volhov", cell = 38}},
+            units = {{"SNR_75V", cell = 20}, {"p-19 s-125 sr", cell = 48}, {"S_75M_Volhov", cell = 2, hdg = 335}, {"S_75M_Volhov", cell = 6, hdg = 25}, {"S_75M_Volhov", cell = 17, hdg = 270}, {"S_75M_Volhov", cell = 24, hdg = 90}, {"S_75M_Volhov", cell = 34, hdg = 205}, {"S_75M_Volhov", cell = 38, hdg = 155}},
             description = "SA-2 SAM site",
             groupName = "SA2"
         },
