@@ -103,6 +103,7 @@ function veafUnits.debugGroup(group, cells)
             local top = "        "
             local right = "        "
             local bottom = "        "
+            local bottomleft = "                      "
             local center = "                "
             
             if cell then 
@@ -122,6 +123,9 @@ function veafUnits.debugGroup(group, cells)
                         unitName = unitName .. " "
                     end
                     center = " " .. unitName .. " "
+
+                    bottomleft = string.format("               %03d    ", unit.hdg)
+
                     unitCounter = unitCounter + 1
                 end
 
@@ -133,7 +137,7 @@ function veafUnits.debugGroup(group, cells)
             
             line1 = line1 .. "  " .. top .. "                      " .. "|"
             line2 = line2 .. "" .. left .. center .. right.. "|"
-            line3 = line3 .. "                      "  .. bottom.. "  |"
+            line3 = line3 .. bottomleft  .. bottom.. "  |"
             line4 = line4 .. "--------------------------------|"
 
         end
@@ -204,16 +208,6 @@ function veafUnits.findDcsUnit(unitType)
     return unit
 end
 
---{
---    aliases = {"infantry section", "infsec"},
---    group = {
---        disposition = { h= 5, w= 4},
---        units = {{"IFV BTR-80", cell=18},{"IFV BTR-80", cell=19},{"INF Soldier AK", number = {min=8, max=16}}, {"SA-18 Igla manpad", number = {min=0, max=2}}}
---        description = "Mechanized infantry section with APCs",
---        groupName = "Mechanized infantry section"
---    }
---},
-
 --- process a group definition and return a usable group table
 function veafUnits.processGroup(group)
     local result = {}
@@ -230,7 +224,9 @@ function veafUnits.processGroup(group)
     for i = 1, #group.units do
         local unitType
         local cell = nil
-        local number = 1
+        local number = nil
+        local size = nil
+        local hdg = nil
         local u = group.units[i]
         if type(u) == "string" then 
             -- information was skipped using simplified syntax
@@ -239,6 +235,13 @@ function veafUnits.processGroup(group)
             unitType = u[1]
             cell = u.cell
             number = u.number
+            size = u.size
+            hdg = u.hdg
+            if type(size) == "number" then 
+                size = {}
+                size.width = u.size
+                size.height = u.size
+            end
         end
         if not(number) then 
           number = 1
@@ -251,12 +254,17 @@ function veafUnits.processGroup(group)
             if not(max) then max = 1 end
             number = math.random(min, max)
         end
+        if not(hdg) then 
+            hdg = 0 -- north is the default heading
+          end
         for numUnit = 1, number do
             local unit = veafUnits.findUnit(unitType)
             if not(unit) then 
                 veafUnits.logInfo("cannot find unit [" .. unitType .. "] listed in group [" .. group.groupName .. "]")
             else 
                 unit.cell = cell
+                unit.hdg = hdg
+                unit.size = size
                 result.units[unitNumber] = unit
                 unitNumber = unitNumber + 1
             end
@@ -477,7 +485,10 @@ function veafUnits.placeGroup(group, spawnPoint, spacing, hdg)
                         cell.height = unit.length + (spacing * unit.length)
                     end
                 end
-
+                if unit.size then
+                    cell.width = unit.size.width + (spacing * unit.size.width)
+                    cell.height = unit.size.height + (spacing * unit.size.height)
+                end
                 if cell.width > colWidth then
                     colWidth = cell.width
                 end
@@ -718,6 +729,15 @@ veafUnits.GroupsDatabase = {
             units = {{"Tarawa", cell=2}, {"Perry", cell=4}, {"Perry", cell=6}, {"TICONDEROG", cell=8}},
             description = "Tarawa battle group",
             groupName = "Tarawa",
+        },
+    },  
+    {
+        aliases = {"Test"},
+        group = {
+            disposition = { h = 3, w = 3},
+            units = {{"S_75M_Volhov", cell=2, size={height=50, width=50}, hdg=0},{"S_75M_Volhov", cell=4, size=50, hdg=315},{"S_75M_Volhov", cell=6, size=50, hdg=135},{"S_75M_Volhov", cell=8, size=50, hdg=180}},
+            description = "Test group",
+            groupName = "Test",
         },
     }  
 }
