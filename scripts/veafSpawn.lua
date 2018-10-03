@@ -15,6 +15,7 @@
 -- * This script requires DCS 2.5.1 or higher and MIST 4.3.74 or higher.
 -- * It also requires the base veaf.lua script library (version 1.0 or higher)
 -- * It also requires the veafMarkers.lua script library (version 1.0 or higher)
+-- * It also requires the dcsUnits.lua script library (version 1.0 or higher)
 -- * It also requires the veafUnits.lua script library (version 1.0 or higher)
 --
 -- Load the script:
@@ -134,7 +135,7 @@ function veafSpawn.onEventMarkChange(eventPos, event)
         end
 
         -- Delete old mark.
-        veafSpawn.logDebug(string.format("Removing mark # %d.", event.idx))
+        veafSpawn.logTrace(string.format("Removing mark # %d.", event.idx))
         trigger.action.removeMark(event.idx)
     end
 end

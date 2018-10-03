@@ -143,7 +143,7 @@ function veafMove.onEventMarkChange(eventPos, event)
             veafMove.markid = veafMove.markid + 1
 
             -- Delete old mark.
-            veafMove.logDebug(string.format("Removing mark # %d.", event.idx))
+            veafMove.logTrace(string.format("Removing mark # %d.", event.idx))
             trigger.action.removeMark(event.idx)
 
         end

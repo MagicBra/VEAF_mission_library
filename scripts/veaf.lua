@@ -160,11 +160,14 @@ function veaf.breakString(str, sep)
 end
 
 --- Get the average center of a group position (average point of all units position)
-function veaf.getAveragePosition(groupName)
-	local count
+function veaf.getAveragePosition(group)
+    if type(group) == "string" then 
+        group = Group.getByName(group)
+    end
+
+    local count
 
 	local totalPosition = {x = 0,y = 0,z = 0}
-	local group = Group.getByName(groupName)
 	if group then
 		local units = Group.getUnits(group)
 		for count = 1,#units do

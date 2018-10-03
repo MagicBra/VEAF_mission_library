@@ -15,6 +15,8 @@
 -- * It also requires the base veaf.lua script library (version 1.0 or higher)
 -- * It also requires the veafMarkers.lua script library (version 1.0 or higher)
 -- * It also requires the veafSpawn.lua script library (version 1.0 or higher)
+-- * It also requires the dcsUnits.lua script library (version 1.0 or higher)
+-- * It also requires the veafUnits.lua script library (version 1.0 or higher)
 --
 -- Load the script:
 -- ----------------
@@ -72,7 +74,7 @@ veafCasMission.Id = "CAS MISSION - "
 --- Version.
 veafCasMission.Version = "1.1.2"
 
---- Key phrase to look for in the mark text which triggers the weather report.
+--- Key phrase to look for in the mark text which triggers the command.
 veafCasMission.Keyphrase = "veaf cas "
 
 --- Number of seconds between each check of the CAS group watchdog function
@@ -150,7 +152,7 @@ function veafCasMission.onEventMarkChange(eventPos, event)
         end
 
         -- Delete old mark.
-        veafCasMission.logDebug(string.format("Removing mark # %d.", event.idx))
+        veafCasMission.logTrace(string.format("Removing mark # %d.", event.idx))
         trigger.action.removeMark(event.idx)
     end
 end
@@ -853,7 +855,7 @@ function veafCasMission.buildHumanGroups()
     for name, unit in pairs(mist.DBs.humansByName) do
         -- not already in groups list ?
         if veafCasMission.humanGroups[unit.groupName] == nil then
-            veafCasMission.logInfo(string.format("human player found name=%s, unit=%s", name, unit.groupName))
+            veafCasMission.logTrace(string.format("human player found name=%s, unit=%s", name, unit.groupName))
             veafCasMission.humanGroups[unit.groupId] = unit.groupName
         end
     end
