@@ -42,7 +42,7 @@ It has a layout template, used to make the group units spawn at the correct plac
         aliases = {"Tarawa"},
         group = {
             disposition = { h = 3, w = 3},
-            units = {{"tarawa", 2}, {"PERRY", 7}, {"PERRY", 9}},
+            units = { {"tarawa", 2}, {"PERRY", 7}, {"PERRY", 9} },
             description = "Tarawa battle group",
             groupName = "Tarawa",
         }
@@ -56,7 +56,7 @@ It has a layout template, used to make the group units spawn at the correct plac
         aliases = {"infantry section", "infsec"},
         group = {
             disposition = { h= 10, w= 4},
-            units = {{"IFV BTR-80", cell=38},{"IFV BTR-80", cell=39},{"INF Soldier AK", number = {min=12, max=30}}, {"SA-18 Igla manpad", number = {min=0, max=2}}},
+            units = { {"IFV BTR-80", cell=38},{"IFV BTR-80", cell=39},{"INF Soldier AK", number = {min=12, max=30}}, {"SA-18 Igla manpad", number = {min=0, max=2} } },
             description = "Mechanized infantry section with APCs",
             groupName = "Mechanized infantry section"
         }
@@ -70,7 +70,7 @@ It has a layout template, used to make the group units spawn at the correct plac
         aliases = {"sa2", "sa-2", "fs"},
         group = {
             disposition = { h= 6, w= 8},
-            units = {{"SNR_75V", cell = 20}, {"p-19 s-125 sr", cell = 48}, {"S_75M_Volhov", cell = 2, hdg = 315}, {"S_75M_Volhov", cell = 6, hdg = 45}, {"S_75M_Volhov", cell = 17, hdg = 270}, {"S_75M_Volhov", cell = 24, hdg = 90}, {"S_75M_Volhov", cell = 34, hdg = 225}, {"S_75M_Volhov", cell = 38, hdg = 135}},
+            units = { {"SNR_75V", cell = 20}, {"p-19 s-125 sr", cell = 48}, {"S_75M_Volhov", cell = 2, hdg = 315}, {"S_75M_Volhov", cell = 6, hdg = 45}, {"S_75M_Volhov", cell = 17, hdg = 270}, {"S_75M_Volhov", cell = 24, hdg = 90}, {"S_75M_Volhov", cell = 34, hdg = 225}, {"S_75M_Volhov", cell = 38, hdg = 135} },
             description = "SA-2 SAM site",
             groupName = "SA2"
         }
