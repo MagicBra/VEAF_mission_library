@@ -371,9 +371,9 @@ end
 --- checks if position is correct for the unit type
 function veafUnits.checkPositionForUnit(spawnPosition, unit)
     veafUnits.logTrace("checkPositionForUnit()")
-    veafUnits.logTrace(string.format("checkPositionForUnit: spawnPosition  x=%.1f y=%.1f, z=%.1f", spawnPosition.x, spawnPosition.y, spawnPosition.z))
+    veafUnits.logTrace(string.format("checkPositionForUnit: spawnPosition=", veaf.vecToString(spawnPosition)))
     local vec2 = { x = spawnPosition.x, y = spawnPosition.z }
-    veafUnits.logTrace(string.format("checkPositionForUnit: vec2  x=%.1f y=%.1f", vec2.x, vec2.y))
+    veafUnits.logTrace(string.format("checkPositionForUnit: vec2=", veaf.vecToString(vec2)))
     local landType = land.getSurfaceType(vec2)
     if landType == land.SurfaceType.WATER then
         veafUnits.logTrace("landType = WATER")
@@ -758,7 +758,18 @@ veafUnits.GroupsDatabase = {
             description = "Test group",
             groupName = "Test",
         },
-    }  
+    },
+    {
+        aliases = {"US infgroup"},
+        group = {
+            disposition = { h = 5, w = 5},
+            units = {{"IFV Hummer", number = {min=1, max=2}, random},{"INF Soldier M249", number = {min=1, max=2}, random},{"INF Soldier M4 GRG", number = {min=2, max=4}, random},{"INF Soldier M4", number = {min=6, max=15}, random}},
+            description = "US infantry group",
+            groupName = "US infantry group",
+        },
+    },
+
+
 }
 
 veafUnits.logInfo(string.format("Loading version %s", veafUnits.Version))

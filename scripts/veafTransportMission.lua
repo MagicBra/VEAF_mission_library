@@ -47,10 +47,12 @@ veafTransportMission = {}
 veafTransportMission.Id = "TRANSPORT MISSION - "
 
 --- Version.
-veafTransportMission.Version = "0.0.1"
+veafTransportMission.Version = "0.0.2"
 
 --- Key phrase to look for in the mark text which triggers the command.
 veafTransportMission.Keyphrase = "veaf transport "
+
+veafTransportMission.CargoTypes = {"ammo_cargo", "barrels_cargo", "container_cargo", "fueltank_cargo" }
 
 --- Number of seconds between each check of the friendly group watchdog function
 veafTransportMission.SecondsBetweenWatchdogChecks = 15
@@ -119,7 +121,7 @@ function veafTransportMission.onEventMarkChange(eventPos, event)
             -- Check options commands
             if options.transportmission then
                 -- create the mission
-                veafTransportMission.generateTransportMission(eventPos, options.size, options.defense, options.blocade, event.groupID)
+                veafTransportMission.generateTransportMission(eventPos, options.size, options.defense, options.blocade, event.initiator)
             end
         else
             -- None of the keywords matched.
@@ -203,51 +205,154 @@ end
 -- CAS target group generation and management
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+function veafTransportMission.generateFriendlyGroup(groupPosition, activateAdf)
+    local groupName = veafSpawn.spawnGroup(groupPosition, "US infgroup", "USA", 0, 0, 0, 10)
+    if activateAdf then
+        local groupPosition = veaf.getAveragePosition(groupName)
+        local mission = { 
+            id = 'Mission', 
+            params = { 
+                ["communication"] = true,
+                ["start_time"] = 0,
+                route = { 
+                    points = { 
+                        -- first point
+                        [1] = { 
+                            ["type"] = "Turning Point",
+                            ["action"] = "Turning Point",
+                            ["x"] = groupPosition.x,
+                            ["y"] = groupPosition.z,
+                            ["alt"] = groupPosition.y,-- in meters
+                            ["alt_type"] = "BARO", 
+                            ["speed"] = 0,  -- speed in m/s
+                            ["speed_locked"] = boolean, 
+                            ["task"] = 
+                            {
+                                ["id"] = "ComboTask",
+                                ["params"] = 
+                                {
+                                    ["tasks"] = 
+                                    {
+                                        [1] = 
+                                        {
+                                            ["enabled"] = true,
+                                            ["auto"] = true,
+                                            ["id"] = "WrappedAction",
+                                            ["number"] = 1,
+                                            ["params"] = 
+                                            {
+                                                ["action"] = 
+                                                {
+                                                    ["id"] = "EPLRS",
+                                                    ["params"] = 
+                                                    {
+                                                        ["value"] = true,
+                                                        ["groupId"] = 1,
+                                                    }, -- end of ["params"]
+                                                }, -- end of ["action"]
+                                            }, -- end of ["params"]
+                                        }, -- end of [1]
+                                        [2] = 
+                                        {
+                                            ["enabled"] = true,
+                                            ["auto"] = false,
+                                            ["id"] = "WrappedAction",
+                                            ["number"] = 2,
+                                            ["params"] = 
+                                            {
+                                                ["action"] = 
+                                                {
+                                                    ["id"] = "SetFrequency",
+                                                    ["params"] = 
+                                                    {
+                                                        ["power"] = 35,
+                                                        ["modulation"] = 0,
+                                                        ["frequency"] = 530000,
+                                                    }, -- end of ["params"]
+                                                }, -- end of ["action"]
+                                            }, -- end of ["params"]
+                                        }, -- end of [2]
+                                        [3] = 
+                                        {
+                                            ["enabled"] = true,
+                                            ["auto"] = false,
+                                            ["id"] = "WrappedAction",
+                                            ["number"] = 3,
+                                            ["params"] = 
+                                            {
+                                                ["action"] = 
+                                                {
+                                                    ["id"] = "TransmitMessage",
+                                                    ["params"] = 
+                                                    {
+                                                        ["loop"] = true,
+                                                        ["subtitle"] = "DictKey_subtitle_91",
+                                                        ["duration"] = 5,
+                                                        ["file"] = "ResKey_advancedFile_92",
+                                                    }, -- end of ["params"]
+                                                }, -- end of ["action"]
+                                            }, -- end of ["params"]
+                                        }, -- end of [3]
+                                    }, -- end of ["tasks"]                                
+                                }, -- end of ["params"]
+                            }, -- end of ["task"]
+                        }, -- enf of [1]
+                    }, 
+                } 
+            } 
+        }
+    
+        -- replace whole mission
+        local unitGroup = Group.getByName(groupName)
+        unitGroup:getController():setTask(mission)
+    end
+    
+end
+
 --- Generates a transport mission
-function veafTransportMission.generateTransportMission(targetSpot, size, defense, blocade, groupID)
+function veafTransportMission.generateTransportMission(targetSpot, size, defense, blocade, initiatorUnit)
+    local unitName = ""
+    if initiatorUnit then
+        unitName = initiatorUnit:getName()
+    end
+    veafTransportMission.logDebug(string.format("generateTransportMission(size = %s, defense=%s, blocade=%d, initiatorUnit=%s)",size, defense, blocade, unitName))
+    veafTransportMission.logDebug("generateTransportMission: targetSpot " .. veaf.vecToString(targetSpot))
+
     if veafTransportMission.friendlyGroupAliveCheckTaskID ~= 'none' then
         trigger.action.outText("A transport mission already exists !", 5)
         return
     end
 
     local friendlyUnits = {}
-    local groupId = 1354
 
     -- generate a friendly group around the target target spot
     local groupPosition = veaf.findPointInZone(targetSpot, 100, false)
     if groupPosition ~= nil then
-        groupPosition = { x = groupPosition.x, z = groupPosition.y }
-        local group = veafTransportMission.generateFriendlyGroup(groupId, defense)
-        
-        -- process the group 
-        local group = veafUnits.processGroup(group)
-        
-        -- place its units
-        local group, cells = veafUnits.placeGroup(group, veaf.placePointOnLand(groupPosition), 5)
-        veafUnits.debugGroup(group, cells)
-        
-        -- add the units to the global units list
-        for _,u in pairs(group.units) do
-            table.insert(friendlyUnits, u)
-        end
+        veafTransportMission.logTrace("groupPosition=" .. veaf.vecToString(groupPosition))
+        groupPosition = { x = groupPosition.x, z = groupPosition.y, y = 0 }
+        veafTransportMission.logTrace("groupPosition=" .. veaf.vecToString(groupPosition))
+        veafTransportMission.generateFriendlyGroup(groupPosition, true)
     else
         veafTransportMission.logInfo("cannot find a suitable position for group "..groupId)
     end
-    groupId = groupId + 1
 
     -- generate cargo to be picked up near the player helo
-    local playerGroup = Group.getByID(groupId) -- not sure it'll work TODO check
-    local groupPosition = veaf.getAveragePosition(playerGroup)
-    local spawnSpot = veaf.findPointInZone(groupPosition, 100, false)
+    local playerPosition = veaf.placePointOnLand(initiatorUnit:getPosition().p)
+    veafTransportMission.logTrace("playerPosition=" .. veaf.vecToString(playerPosition))
     for i = 1, size do
-        spawnSpot.z = spawnSpot.z + i * 10
+        local spawnSpot = { x = playerPosition.x + 50, z = playerPosition.z + i * 10, y = playerPosition.y }
+        veafTransportMission.logTrace("spawnSpot=" .. veaf.vecToString(spawnSpot))
+        local cargoType = veafTransportMission.CargoTypes[math.random(#veafTransportMission.CargoTypes)]
         veafSpawn.spawnCargo(spawnSpot, cargoType, false)
     end
 
     -- generate enemy air defense on the way
+    if defense > 0 then
+    end
 
     -- generate enemy blocade forces
-
+    if blocade > 0 then
+    end
 
     -- build menu for each player
     for groupId, group in pairs(veafTransportMission.humanGroups) do
@@ -280,6 +385,17 @@ function veafTransportMission.friendlyGroupWatchdog()
     end
 end
 
+function veafTransportMission.reportTargetInformation()
+    -- TODO
+end
+
+function veafTransportMission.smokeTarget()
+    -- TODO
+end
+
+function veafTransportMission.flareTarget()
+    -- TODO
+end
 
 --- Called from the "Skip delivery" radio menu : remove the current transport mission
 function veafTransportMission.skip()
@@ -356,7 +472,7 @@ function veafTransportMission.help()
         'You can add options (comma separated) :\n' ..
         '   "defense [0-5]" to specify air defense cover on the way (1 = light, 5 = heavy)\n' ..
         '   "size [1-5]" to change the number of cargo items to be transported (1 per participating helo, usually)\n' ..
-        '   "sblocade [0-5]" to specify enemy blocade around the drop zone (1 = light, 5 = heavy)\n' ..
+        '   "sblocade [0-5]" to specify enemy blocade around the drop zone (1 = light, 5 = heavy)'
 
     trigger.action.outText(text, 30)
 end

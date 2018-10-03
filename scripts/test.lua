@@ -99,10 +99,10 @@ end
 
 local spawnPosition = {x=0, y=0, z=0}
 local speed = 10
-local heading = 90
+local heading = 0
 local spacing = 0
 
-local group = veafUnits.findGroup("sa2")
+local group = veafUnits.findGroup("US infgroup")
 --local group = veafCasMission.generateInfantryGroup(1, spawnPosition, 4, 1, "Random")
 local group, cells = veafUnits.placeGroup(group, spawnPosition, spacing, heading)
 veafUnits.debugGroup(group, cells)

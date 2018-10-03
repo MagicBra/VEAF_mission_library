@@ -365,6 +365,8 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
 
     -- message the group spawning
     trigger.action.outText("A " .. group.description .. "("..country..") has been spawned", 5)
+
+    return groupName
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -421,7 +423,7 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg)
                 ["name"] = unitName,
                 ["speed"] = speed/1.94384,  -- speed in m/s
                 ["skill"] = "Random",
-                ["heading"] = heading
+                ["heading"] = mist.utils.toRadian(hdg)
         }
 
         veafSpawn.logTrace(string.format("toInsert x=%.1f y=%.1f, alt=%.1f, type=%s, name=%s, speed=%d, skill=%s, country=%s", toInsert.x, toInsert.y, toInsert.alt, toInsert.type, toInsert.name, toInsert.speed, toInsert.skill, country ))
