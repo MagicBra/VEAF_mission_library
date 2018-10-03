@@ -266,7 +266,7 @@ function veafSpawn.markTextAnalysis(text)
 
         if switch.cargo and key:lower() == "name" then
             -- Set cargo type.
-            veafSpawn.logDebug(string.format("Keyword type = %s", val))
+            veafSpawn.logDebug(string.format("Keyword name = %s", val))
             if not(val == "iso_container" or val == "iso_container_small") then 
                 switch.cargoType = val .. "_cargo"
             else
@@ -508,7 +508,7 @@ function veafSpawn.spawnCargo(spawnSpot, cargoType, cargoSmoke)
             end
 
             -- message the unit spawning
-            local message = "Cargo " .. unitName .. " weighting " .. cargoWeight .. " kg has been spawned"
+            local message = "Cargo " .. unitName .. " weighting " .. cargoWeight .. " lbs has been spawned"
             if cargoSmoke then 
                 message = message .. ". It's marked with green smoke and red flares"
             end
@@ -564,9 +564,17 @@ function veafSpawn.help()
         'You can add options (comma separated) :\n' ..
         '"veaf spawn unit" spawns a target vehicle/ship\n' ..
         '   "name [unit name]" spawns a specific unit ; name can be any DCS type\n' ..
+        '   "country [country name]" spawns a unit of a specific country ; name can be any DCS country\n' ..
+        '   "speed [speed]" spawns the unit already moving\n' ..
+        '   "alt [altitude]" spawns the unit at the specified altitude\n' ..
+        '   "hdg [heading]" spawns the unit facing a heading\n' ..
         'veaf spawn group, name [group name]" spawns a specific group ; name must be a group name from the VEAF Groups Database\n' ..
         '   "spacing <spacing>" specifies the (randomly modified) units spacing in unit size multiples\n' ..
-        '"veaf spawn cargo" creates a cargo mission\n' ..
+        '   "country [country name]" spawns a group of a specific country ; name can be any DCS country\n' ..
+        '   "speed [speed]" spawns the group already moving\n' ..
+        '   "alt [altitude]" spawns the group at the specified altitude\n' ..
+        '   "hdg [heading]" spawns the group facing a heading\n' ..
+        '"veaf spawn cargo" creates a cargo ready to be picked up\n' ..
         '   "name [cargo type]" spawns a specific cargo ; name can be any of [ammo, barrels, container, fueltank, f_bar, iso_container, iso_container_small, m117, oiltank, pipes_big, pipes_small, tetrapod, trunks_long, trunks_small, uh1h]\n' ..
         '   "smoke adds a smoke marker\n' ..
         '"veaf spawn smoke" spawns a smoke on the ground\n' ..

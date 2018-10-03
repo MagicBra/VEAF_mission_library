@@ -607,6 +607,10 @@ veafUnits.UnitsDatabase = {
         unitType = "Tor 9A331",
     },
     {
+        aliases = {"sa18", "sa-18", "manpad"},
+        unitType = "SA-18 Igla-S manpad",
+    },
+    {
         aliases = {"shilka"},
         unitType = "ZSU-23-4 Shilka",
     },
@@ -623,15 +627,17 @@ veafUnits.UnitsDatabase = {
 --- Syntax :
 ------------
 -- 
---  aliases     = list of aliases which can be used to designate this group, case insensitive
---  layout      = height and width (in cells) of the group layout template (see picture unitSpawnGridExplanation-01)
---  units       = list of all the units composing the group. Each unit in the list is composed of :
---          alias   = alias of the unit in the VEAF units database, or actual DCS type name in the DCS units database
---          cell    = preferred layout cell ; the unit will be spawned in this cell, in the layout defined in the *layout* field
---                    (see pictures unitSpawnGridExplanation-02 and unitSpawnGridExplanation-03)
---          hdg     = heading of the unit (direction it will face) considering the group itself is facing north (actual group orientation can be anything else, and actual unit orientation will be computed accordingly)
---  description = human-friendly name for the group
---  groupName   = name used when spawning this group (will be flavored with a numerical suffix)
+-- aliases : list of aliases which can be used to designate this group, case insensitive
+-- disposition : height and width (in cells) of the group layout template (see explanation of group layouts below)
+-- units : list of all the units composing the group. Each unit in the list is composed of :
+--      alias : alias of the unit in the VEAF units database, or actual DCS type name in the DCS units database
+--      cell : preferred layout cell ; the unit will be spawned in this cell, in the layout defined in the *layout* field. (see explanation of group layouts below) ; when nothing else is  specified, a number after the unit alias is considered to be the *cell* parameter
+--      size : fixes the cell size (in meters), instead of relying on the contained unit size (modified with the *spacing* parameter) ; can be either a table with width and height, or a number for square cells
+--      number : either a number, which will be the quantity of this unit type spawned ; or a table, with *min* and *max* values that will be used to spawn a random quantity of this unit typ
+--      hdg : the unit heading will mean that, if the group is spawned facing north, this unit will be facing this heading (in degrees). If not set, units will face the group heading
+--      random : if set, the unit will be placed randomly in the cell, leaving a one unit size margin around.
+-- description = human-friendly name for the group
+-- groupName   = name used when spawning this group (will be flavored with a numerical suffix)
 --
 -- empty cells measure 10m x 10m
 
@@ -659,8 +665,8 @@ veafUnits.GroupsDatabase = {
         group = {
             disposition = { h= 5, w= 5},
             units = {{"rapier_fsa_optical_tracker_unit", cell = 13}, {"rapier_fsa_launcher", cell = 1}, {"rapier_fsa_launcher", cell = 5}, {"rapier_fsa_blindfire_radar", cell = 23}},
-            description = "Rapier SAM site",
-            groupName = "Rapier"
+            description = "Rapier SAM site with radar",
+            groupName = "Rapier-radar"
         },
     }, 
     {
