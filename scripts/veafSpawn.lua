@@ -124,6 +124,8 @@ function veafSpawn.onEventMarkChange(eventPos, event)
                 veafSpawn.spawnGroup(eventPos, options.name, options.country, options.speed, options.altitude, options.heading, options.spacing)
             elseif options.cargo then
                 veafSpawn.spawnCargo(eventPos, options.cargoType, options.cargoSmoke)
+            elseif options.bomb then
+                veafSpawn.spawnBomb(eventPos, options.bombPower)
             elseif options.smoke then
                 veafSpawn.spawnSmoke(eventPos, options.smokeColor)
             elseif options.flare then
@@ -154,6 +156,7 @@ function veafSpawn.markTextAnalysis(text)
     switch.cargo = false
     switch.smoke = false
     switch.flare = false
+    switch.bomb = false
 
     -- spawned group/unit name
     switch.name = ""
@@ -166,6 +169,9 @@ function veafSpawn.markTextAnalysis(text)
     switch.altitude = 0
     switch.heading = 0
     
+    -- bomb power
+    switch.bombPower = 100
+
     -- smoke color
     switch.smokeColor = trigger.smokeColor.Red
 
@@ -189,6 +195,8 @@ function veafSpawn.markTextAnalysis(text)
         switch.flare = true
     elseif text:lower():find(veafSpawn.Keyphrase .. "cargo") then
         switch.cargo = true
+    elseif text:lower():find(veafSpawn.Keyphrase .. "bomb") then
+        switch.bomb = true
     else
         return nil
     end
@@ -240,6 +248,13 @@ function veafSpawn.markTextAnalysis(text)
             -- Set country
             veafSpawn.logDebug(string.format("Keyword country = %s", val))
             switch.country = val:upper()
+        end
+        
+        if key:lower() == "power" then
+            -- Set bomb power.
+            veafSpawn.logDebug(string.format("Keyword power = %d", val))
+            local nVal = tonumber(val)
+            switch.bombPower = nVal
         end
         
         if switch.smoke and key:lower() == "color" then
@@ -297,9 +312,9 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Spawn a specific group at a specific spot
-function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing)
-    veafSpawn.logDebug(string.format("spawnGroup(name = %s, country=%s, speed=%d, alt=%d, hdg=%d, spacing=%d)",name, country, speed, alt, hdg, spacing))
-    veafSpawn.logDebug("spawnGroup: spawnSpot " .. veaf.vecToString(spawnSpot))
+function veafSpawn._doSpawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing, groupName, silent)
+    veafSpawn.logDebug(string.format("doSpawnGroup(name = %s, country=%s, speed=%d, alt=%d, hdg=%d, spacing=%d, groupName=%s)",name, country, speed, alt, hdg, spacing, groupName))
+    veafSpawn.logDebug("doSpawnGroup: spawnSpot " .. veaf.vecToString(spawnSpot))
     
     veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
 
@@ -307,7 +322,9 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
     local dbGroup = veafUnits.findGroup(name)
     if not(dbGroup) then
         veafSpawn.logInfo("cannot find group "..name)
-        trigger.action.outText("cannot find group "..name, 5)
+        if not(silent) then
+            trigger.action.outText("cannot find group "..name, 5) 
+        end
         return    
     end
 
@@ -317,7 +334,9 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
     local group, cells = veafUnits.placeGroup(dbGroup, spawnSpot, spacing, hdg)
     veafUnits.debugGroup(group, cells)
     
-    local groupName = group.groupName .. " #" .. veafSpawn.spawnedUnitsCounter
+    if not(groupName) then 
+        groupName = group.groupName .. " #" .. veafSpawn.spawnedUnitsCounter
+    end
 
     for i=1, #group.units do
         local unit = group.units[i]
@@ -332,7 +351,9 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
         -- check if position is correct for the unit type
         if not veafUnits.checkPositionForUnit(spawnPoint, unit) then
             veafSpawn.logInfo("cannot find a suitable position for spawning unit ".. unitType)
-            trigger.action.outText("cannot find a suitable position for spawning unit "..unitType, 5)
+            if not(silent) then
+                trigger.action.outText("cannot find a suitable position for spawning unit "..unitType, 5)
+            end
         else 
             local toInsert = {
                     ["x"] = spawnPoint.x,
@@ -363,10 +384,20 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
         veaf.moveGroupAt(groupName, hdg, speed)
     end
 
-    -- message the group spawning
-    trigger.action.outText("A " .. group.description .. "("..country..") has been spawned", 5)
+    if not(silent) then
+        -- message the group spawning
+        trigger.action.outText("A " .. group.description .. "("..country..") has been spawned", 5)
+    end
 
     return groupName
+end
+
+--- Spawn a specific group at a specific spot
+function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing)
+    veafSpawn.logDebug(string.format("spawnGroup(name = %s, country=%s, speed=%d, alt=%d, hdg=%d, spacing=%d)",name, country, speed, alt, hdg, spacing))
+    veafSpawn.logDebug("spawnGroup: spawnSpot " .. veaf.vecToString(spawnSpot))
+    
+    veafSpawn._doSpawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing, nil, false)
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -525,6 +556,13 @@ end
 -- Smoke and Flare commands
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+--- trigger an explosion at the marker area
+function veafSpawn.spawnBomb(spawnSpot, power)
+    veafSpawn.logDebug("spawnBomb(power=" .. power ..")")
+    veafSpawn.logDebug(string.format("spawnBomb: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
+    trigger.action.explosion(spawnSpot, power);
+end
+
 --- add a smoke marker over the marker area
 function veafSpawn.spawnSmoke(spawnSpot, color)
     veafSpawn.logDebug("spawnSmoke(color = " .. color ..")")
@@ -580,6 +618,8 @@ function veafSpawn.help()
         '"veaf spawn cargo" creates a cargo ready to be picked up\n' ..
         '   "name [cargo type]" spawns a specific cargo ; name can be any of [ammo, barrels, container, fueltank, f_bar, iso_container, iso_container_small, m117, oiltank, pipes_big, pipes_small, tetrapod, trunks_long, trunks_small, uh1h]\n' ..
         '   "smoke adds a smoke marker\n' ..
+        '"veaf spawn bomb" spawns a bomb on the ground\n' ..
+        '   "power [value]" specifies the bomb power (default is 100)\n' ..
         '"veaf spawn smoke" spawns a smoke on the ground\n' ..
         '   "color [red|green|blue|white|orange]" specifies the smoke color\n' ..
         '"veaf spawn flare" lights things up with a flare\n' ..

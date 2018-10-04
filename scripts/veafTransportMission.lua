@@ -54,6 +54,9 @@ veafTransportMission.Keyphrase = "veaf transport "
 
 veafTransportMission.CargoTypes = {"ammo_cargo", "barrels_cargo", "container_cargo", "fueltank_cargo" }
 
+--- Number of seconds between each check of the friendly group ADF loop function
+veafTransportMission.SecondsBetweenAdfLoops = 30
+
 --- Number of seconds between each check of the friendly group watchdog function
 veafTransportMission.SecondsBetweenWatchdogChecks = 15
 
@@ -64,22 +67,30 @@ veafTransportMission.SecondsBetweenSmokeRequests = 180
 veafTransportMission.SecondsBetweenFlareRequests = 120
 
 --- Name of the friendly group that waits for the cargo
-veafTransportMission.BlueGroupName = "Blue Cargo Group"
+veafTransportMission.BlueGroupName = "Cargo - Allied Group"
 
 --- Name of the enemy group that defends the way to the friendlies
-veafTransportMission.RedDefenseGroupName = "Red Defense Cargo Group"
+veafTransportMission.RedDefenseGroupName = "Cargo - Enemy Air Defense Group"
 
 --- Name of the enemy group that blocades the friendlies
-veafTransportMission.RedBlocadeGroupName = "Red Blocade Cargo Group"
+veafTransportMission.RedBlocadeGroupName = "Cargo - Enemy Blocade Group"
 
 veafTransportMission.RadioMenuName = "TRANSPORT MISSION (" .. veafTransportMission.Version .. ")"
 
+veafTransportMission.adfRadioSound = "l10n/DEFAULT/beacon.ogg"
+
+veafTransportMission.adfFrequency = 550 * 000 -- in hz
+
+veafTransportMission.adfPower = 35 -- in Watt
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Do not change anything below unless you know what you are doing!
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- Friendly group watchdog function id
 veafTransportMission.friendlyGroupAliveCheckTaskID = 'none'
+
+-- Friendly group ADF transmission loop function id
+veafTransportMission.friendlyGroupAdfLoopTaskID = 'none'
 
 --- Radio menus paths
 veafTransportMission.targetMarkersPath = nil
@@ -205,108 +216,22 @@ end
 -- CAS target group generation and management
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-function veafTransportMission.generateFriendlyGroup(groupPosition, activateAdf)
-    local groupName = veafSpawn.spawnGroup(groupPosition, "US infgroup", "USA", 0, 0, 0, 10)
-    if activateAdf then
-        local groupPosition = veaf.getAveragePosition(groupName)
-        local mission = { 
-            id = 'Mission', 
-            params = { 
-                ["communication"] = true,
-                ["start_time"] = 0,
-                route = { 
-                    points = { 
-                        -- first point
-                        [1] = { 
-                            ["type"] = "Turning Point",
-                            ["action"] = "Turning Point",
-                            ["x"] = groupPosition.x,
-                            ["y"] = groupPosition.z,
-                            ["alt"] = groupPosition.y,-- in meters
-                            ["alt_type"] = "BARO", 
-                            ["speed"] = 0,  -- speed in m/s
-                            ["speed_locked"] = boolean, 
-                            ["task"] = 
-                            {
-                                ["id"] = "ComboTask",
-                                ["params"] = 
-                                {
-                                    ["tasks"] = 
-                                    {
-                                        [1] = 
-                                        {
-                                            ["enabled"] = true,
-                                            ["auto"] = true,
-                                            ["id"] = "WrappedAction",
-                                            ["number"] = 1,
-                                            ["params"] = 
-                                            {
-                                                ["action"] = 
-                                                {
-                                                    ["id"] = "EPLRS",
-                                                    ["params"] = 
-                                                    {
-                                                        ["value"] = true,
-                                                        ["groupId"] = 1,
-                                                    }, -- end of ["params"]
-                                                }, -- end of ["action"]
-                                            }, -- end of ["params"]
-                                        }, -- end of [1]
-                                        [2] = 
-                                        {
-                                            ["enabled"] = true,
-                                            ["auto"] = false,
-                                            ["id"] = "WrappedAction",
-                                            ["number"] = 2,
-                                            ["params"] = 
-                                            {
-                                                ["action"] = 
-                                                {
-                                                    ["id"] = "SetFrequency",
-                                                    ["params"] = 
-                                                    {
-                                                        ["power"] = 35,
-                                                        ["modulation"] = 0,
-                                                        ["frequency"] = 530000,
-                                                    }, -- end of ["params"]
-                                                }, -- end of ["action"]
-                                            }, -- end of ["params"]
-                                        }, -- end of [2]
-                                        [3] = 
-                                        {
-                                            ["enabled"] = true,
-                                            ["auto"] = false,
-                                            ["id"] = "WrappedAction",
-                                            ["number"] = 3,
-                                            ["params"] = 
-                                            {
-                                                ["action"] = 
-                                                {
-                                                    ["id"] = "TransmitMessage",
-                                                    ["params"] = 
-                                                    {
-                                                        ["loop"] = true,
-                                                        ["subtitle"] = "DictKey_subtitle_91",
-                                                        ["duration"] = 5,
-                                                        ["file"] = "ResKey_advancedFile_92",
-                                                    }, -- end of ["params"]
-                                                }, -- end of ["action"]
-                                            }, -- end of ["params"]
-                                        }, -- end of [3]
-                                    }, -- end of ["tasks"]                                
-                                }, -- end of ["params"]
-                            }, -- end of ["task"]
-                        }, -- enf of [1]
-                    }, 
-                } 
-            } 
-        }
-    
-        -- replace whole mission
-        local unitGroup = Group.getByName(groupName)
-        unitGroup:getController():setTask(mission)
+function veafTransportMission.doRadioTransmission(groupName)
+    local group = Group.getByName(group)
+    if group then
+        trigger.action.radioTransmission(veafTransportMission.adfRadioSound, group:getUnit(1):getPoint(), 0, false, veafTransportMission.adfFrequency, veafTransportMission.adfPower)
     end
     
+    timer.scheduleFunction(veafTransportMission.doRadioTransmission, { groupName}, timer.getTime() + veafTransportMission.SecondsBetweenAdfLoops)
+end
+
+function veafTransportMission.generateFriendlyGroup(groupPosition, activateAdf)
+    veafSpawn._doSpawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing, groupName, silent)
+    veafSpawn._doSpawnGroup(groupPosition, "US infgroup", "USA", 0, 0, 0, 10, veafTransportMission.BlueGroupName, true)
+    
+    if activateAdf then
+        veafTransportMission.doRadioTransmission(veafTransportMission.BlueGroupName)
+    end
 end
 
 --- Generates a transport mission
@@ -337,6 +262,7 @@ function veafTransportMission.generateTransportMission(targetSpot, size, defense
     end
 
     -- generate cargo to be picked up near the player helo
+    veafTransportMission.logDebug("Generating cargo")
     local playerPosition = veaf.placePointOnLand(initiatorUnit:getPosition().p)
     veafTransportMission.logTrace("playerPosition=" .. veaf.vecToString(playerPosition))
     for i = 1, size do
@@ -345,26 +271,31 @@ function veafTransportMission.generateTransportMission(targetSpot, size, defense
         local cargoType = veafTransportMission.CargoTypes[math.random(#veafTransportMission.CargoTypes)]
         veafSpawn.spawnCargo(spawnSpot, cargoType, false)
     end
+    veafTransportMission.logDebug("Done generating cargo")
 
     -- generate enemy air defense on the way
     if defense > 0 then
+        veafTransportMission.logDebug("Generating air defense")
+        veafTransportMission.logDebug("Done generating air defense")
     end
 
     -- generate enemy blocade forces
     if blocade > 0 then
+        veafTransportMission.logDebug("Generating blocade")
+        veafTransportMission.logDebug("Done generating blocade")
     end
 
     -- build menu for each player
     for groupId, group in pairs(veafTransportMission.humanGroups) do
         -- add radio menu for target information (by player group)
-        missionCommands.addCommandForGroup(groupId, 'Target information', veafTransportMission.rootPath, veafTransportMission.reportTargetInformation, groupId)
+        missionCommands.addCommandForGroup(groupId, 'Drop zone information', veafTransportMission.rootPath, veafTransportMission.reportTargetInformation, groupId)
     end
 
     -- add radio menus for commands
     missionCommands.addCommand('Skip current objective', veafTransportMission.rootPath, veafTransportMission.skip)
-    veafTransportMission.targetMarkersPath = missionCommands.addSubMenu("Target markers", veafTransportMission.rootPath)
-    missionCommands.addCommand('Request smoke on target area', veafTransportMission.targetMarkersPath, veafTransportMission.smokeTarget)
-    missionCommands.addCommand('Request illumination flare over target area', veafTransportMission.targetMarkersPath, veafTransportMission.flareTarget)
+    veafTransportMission.targetMarkersPath = missionCommands.addSubMenu("Drop zone markers", veafTransportMission.rootPath)
+    missionCommands.addCommand('Request smoke on drop zone', veafTransportMission.targetMarkersPath, veafTransportMission.smokeTarget)
+    missionCommands.addCommand('Request illumination flare over drop zone', veafTransportMission.targetMarkersPath, veafTransportMission.flareTarget)
 
     local message = "See F10 radio menu for details\n" -- TODO
     trigger.action.outText(message,5)
@@ -376,26 +307,95 @@ end
 --- Checks if the friendly group is still alive, and if not announces the failure of the transport mission
 function veafTransportMission.friendlyGroupWatchdog() 
     local nbVehicles, nbInfantry = veafUnits.countInfantryAndVehicles(veafTransportMission.BlueGroupName)
-    if nbVehicles > 0 then
+    if nbVehicles + nbInfantry > 0 then
         veafTransportMission.logTrace("Group is still alive with "..nbVehicles.." vehicles and "..nbInfantry.." soldiers")
-        veafTransportMission.groupAliveCheckTaskID = mist.scheduleFunction(veafTransportMission.friendlyGroupWatchdog,{},timer.getTime()+veafTransportMission.SecondsBetweenWatchdogChecks)
+        veafTransportMission.friendlyGroupAliveCheckTaskID = mist.scheduleFunction(veafTransportMission.friendlyGroupWatchdog,{},timer.getTime()+veafTransportMission.SecondsBetweenWatchdogChecks)
     else
         trigger.action.outText("Friendly group has been destroyed! The mission is a failure!", 5)
         veafTransportMission.cleanupAfterMission()
     end
 end
 
-function veafTransportMission.reportTargetInformation()
-    -- TODO
+function veafTransportMission.reportTargetInformation(groupId)
+    -- generate information dispatch
+    local nbVehicles, nbInfantry = veafUnits.countInfantryAndVehicles(veafTransportMission.BlueGroupName)
+
+    local message =      "DROP ZONE : ressuply a group of " .. nbVehicles .. " vehicles and " .. nbInfantry .. " soldiers.\n"
+    message = message .. "\n"
+
+    -- add coordinates and position from bullseye
+    local averageGroupPosition = veaf.getAveragePosition(veafTransportMission.BlueGroupName)
+    local lat, lon = coord.LOtoLL(averageGroupPosition)
+    local mgrsString = mist.tostringMGRS(coord.LLtoMGRS(lat, lon), 3)
+    local bullseye = mist.utils.makeVec3(mist.DBs.missionData.bullseye.blue, 0)
+    local vec = {x = averageGroupPosition.x - bullseye.x, y = averageGroupPosition.y - bullseye.y, z = averageGroupPosition.z - bullseye.z}
+    local dir = mist.utils.round(mist.utils.toDegree(mist.utils.getDir(vec, bullseye)), 0)
+    local dist = mist.utils.get2DDist(averageGroupPosition, bullseye)
+    local distMetric = mist.utils.round(dist/1000, 0)
+    local distImperial = mist.utils.round(mist.utils.metersToNM(dist), 0)
+    local fromBullseye = string.format('%03d', dir) .. ' for ' .. distMetric .. 'km /' .. distImperial .. 'nm'
+
+    message = message .. "LAT LON (decimal): " .. mist.tostringLL(lat, lon, 2) .. ".\n"
+    message = message .. "LAT LON (DMS)    : " .. mist.tostringLL(lat, lon, 0, true) .. ".\n"
+    message = message .. "MGRS/UTM         : " .. mgrsString .. ".\n"
+    message = message .. "FROM BULLSEYE    : " .. fromBullseye .. ".\n"
+    message = message .. "\n"
+
+    -- get altitude, qfe and wind information
+    local altitude = veaf.getLandHeight(averageGroupPosition)
+    --local qfeHp = mist.utils.getQFE(averageGroupPosition, false)
+    --local qfeinHg = mist.utils.getQFE(averageGroupPosition, true)
+    local windDirection, windStrength = veaf.getWind(veaf.placePointOnLand(averageGroupPosition))
+
+    message = message .. 'DROP ZONE ALT       : ' .. altitude .. " meters.\n"
+    --message = message .. 'TARGET QFW       : ' .. qfeHp .. " hPa / " .. qfeinHg .. " inHg.\n"
+    local windText =     'no wind.\n'
+    if windStrength > 0 then
+        windText = string.format(
+                         'from %s at %s m/s.\n', windDirection, windStrength)
+    end
+    message = message .. 'WIND OVER DROP ZONE : ' .. windText
+
+    -- send message only for the group
+    trigger.action.outTextForGroup(groupId, message, 30)
 end
 
+--- add a smoke marker over the drop zone
 function veafTransportMission.smokeTarget()
-    -- TODO
+    veafTransportMission.logDebug("smokeTarget()")
+    veafSpawn.spawnSmoke(veaf.getAveragePosition(vveafTransportMission.BlueGroupName), trigger.smokeColor.Green)
+	trigger.action.outText('Copy smoke requested, GREEN smoke marks the drop zone!',5)
+    missionCommands.removeItem({veaf.RadioMenuName, veafTransportMission.RadioMenuName, 'Drop zone markers', 'Request smoke on drop zone'})
+    missionCommands.addCommand('Drop zone is marked with GREEN smoke', veafTransportMission.targetMarkersPath, veaf.emptyFunction)
+    veafTransportMission.smokeResetTaskID = mist.scheduleFunction(veafTransportMission.smokeReset,{},timer.getTime()+veafTransportMission.SecondsBetweenSmokeRequests)
 end
 
-function veafTransportMission.flareTarget()
-    -- TODO
+--- Reset the smoke request radio menu
+function veafTransportMission.smokeReset()
+    veafTransportMission.logDebug("smokeReset()")
+    missionCommands.removeItem({veaf.RadioMenuName, veafTransportMission.RadioMenuName, 'Drop zone markers', 'Drop zone is marked with GREEN smoke'})
+    missionCommands.addCommand('Request smoke on drop zone', veafTransportMission.targetMarkersPath, veafTransportMission.smokeCasTargetGroup)
+    trigger.action.outText('Smoke marker over drop zone available',5)
 end
+
+--- add an illumination flare over the target area
+function veafTransportMission.flareTarget()
+    veafTransportMission.logDebug("flareTarget()")
+    veafSpawn.spawnIlluminationFlare(veaf.getAveragePosition(vveafTransportMission.BlueGroupName))
+	trigger.action.outText('Copy illumination flare requested, illumination flare over target area!',5)
+	missionCommands.removeItem({veaf.RadioMenuName, veafTransportMission.RadioMenuName, 'Drop zone markers', 'Request illumination flare over drop zone'})
+	missionCommands.addCommand('Drop zone is lit with illumination flare', veafTransportMission.targetMarkersPath, veaf.emptyFunction)
+    veafTransportMission.flareResetTaskID = mist.scheduleFunction(veafTransportMission.flareReset,{},timer.getTime()+veafTransportMission.SecondsBetweenFlareRequests)
+end
+
+--- Reset the flare request radio menu
+function veafTransportMission.flareReset()
+    veafTransportMission.logDebug("flareReset()")
+    missionCommands.removeItem({veaf.RadioMenuName, veafTransportMission.RadioMenuName, 'Drop zone markers', 'Drop zone is lit with illumination flare'})
+    missionCommands.addCommand('Request illumination flare over drop zone', veafTransportMission.targetMarkersPath, veafTransportMission.flareCasTargetGroup)
+    trigger.action.outText('Illumination flare over drop zone available',5)
+end
+
 
 --- Called from the "Skip delivery" radio menu : remove the current transport mission
 function veafTransportMission.skip()
@@ -405,7 +405,7 @@ end
 
 --- Cleanup after either mission is ended or aborted
 function veafTransportMission.cleanupAfterMission()
-    veafTransportMission.logTrace("cleanupAfterMission START")
+    veafTransportMission.logTrace("cleanupAfterMission()")
 
     -- destroy groups
     veafTransportMission.logTrace("destroy friendly group")
@@ -413,6 +413,7 @@ function veafTransportMission.cleanupAfterMission()
     if group and group:isExist() == true then
         group:destroy()
     end
+    
     veafTransportMission.logTrace("destroy enemy defense group")
     group = Group.getByName(veafTransportMission.RedDefenseGroupName)
     if group and group:isExist() == true then
@@ -435,12 +436,12 @@ function veafTransportMission.cleanupAfterMission()
     -- build menu for each player
     for name, player in pairs(mist.DBs.humansByName) do
         -- update the radio menu
-        missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafTransportMission.RadioMenuName, 'Target information'})
+        missionCommands.removeItemForGroup(player.groupId, {veaf.RadioMenuName, veafTransportMission.RadioMenuName, 'Drop zone information'})
     end
 
     missionCommands.removeItem({veaf.RadioMenuName, veafTransportMission.RadioMenuName, 'Skip current objective'})
     missionCommands.removeItem({veaf.RadioMenuName, veafTransportMission.RadioMenuName, 'Get current objective situation'})
-    missionCommands.removeItem({veaf.RadioMenuName, veafTransportMission.RadioMenuName, 'Target markers'})
+    missionCommands.removeItem({veaf.RadioMenuName, veafTransportMission.RadioMenuName, 'Drop zone markers'})
 
     veafTransportMission.logTrace("cleanupAfterMission DONE")
 

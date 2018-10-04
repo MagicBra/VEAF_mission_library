@@ -715,26 +715,17 @@ end
 --- add a smoke marker over the target area
 function veafCasMission.smokeCasTargetGroup()
     veafCasMission.logTrace("veafCasMission.smokeCasTargetGroup START")
-    veafCasMission.logTrace("veafSpawn.spawnSmoke")
     veafSpawn.spawnSmoke(veaf.getAveragePosition(veafCasMission.RedCasGroupName), trigger.smokeColor.Red)
 	trigger.action.outText('Copy smoke requested, RED smoke on the deck!',5)
-    veafCasMission.logTrace("missionCommands.removeItem")
-
-    veafCasMission.logTrace("missionCommands.addCommand")
     missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Request smoke on target area'})
     missionCommands.addCommand('Target is marked with red smoke', veafCasMission.targetMarkersPath, veaf.emptyFunction)
-
-    veafCasMission.logTrace("mist.scheduleFunction")
     veafCasMission.smokeResetTaskID = mist.scheduleFunction(veafCasMission.smokeReset,{},timer.getTime()+veafCasMission.SecondsBetweenSmokeRequests)
-    veafCasMission.logTrace("veafCasMission.smokeCasTargetGroup END")
 end
 
 --- Reset the smoke request radio menu
 function veafCasMission.smokeReset()
-
     missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Target is marked with red smoke'})
     missionCommands.addCommand('Request smoke on target area', veafCasMission.targetMarkersPath, veafCasMission.smokeCasTargetGroup)
-
     trigger.action.outText('Smoke marker available',5)
 end
 
@@ -749,10 +740,8 @@ end
 
 --- Reset the flare request radio menu
 function veafCasMission.flareReset()
-
     missionCommands.removeItem({veaf.RadioMenuName, veafCasMission.RadioMenuName, 'Target markers', 'Target area is marked with illumination flare'})
     missionCommands.addCommand('Request illumination flare over target area', veafCasMission.targetMarkersPath, veafCasMission.flareCasTargetGroup)
-
     trigger.action.outText('Target illumination available',5)
 end
 
