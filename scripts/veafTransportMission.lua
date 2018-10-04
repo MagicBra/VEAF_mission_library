@@ -55,7 +55,7 @@ veafTransportMission.Keyphrase = "veaf transport "
 veafTransportMission.CargoTypes = {"ammo_cargo", "barrels_cargo", "container_cargo", "fueltank_cargo" }
 
 --- Number of seconds between each check of the friendly group ADF loop function
-veafTransportMission.SecondsBetweenAdfLoops = 30
+veafTransportMission.SecondsBetweenAdfLoops = 60
 
 --- Number of seconds between each check of the friendly group watchdog function
 veafTransportMission.SecondsBetweenWatchdogChecks = 15
@@ -225,13 +225,10 @@ function veafTransportMission.doRadioTransmission(groupName)
     timer.scheduleFunction(veafTransportMission.doRadioTransmission, { groupName}, timer.getTime() + veafTransportMission.SecondsBetweenAdfLoops)
 end
 
-function veafTransportMission.generateFriendlyGroup(groupPosition, activateAdf)
+function veafTransportMission.generateFriendlyGroup(groupPosition)
     veafSpawn._doSpawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing, groupName, silent)
     veafSpawn._doSpawnGroup(groupPosition, "US infgroup", "USA", 0, 0, 0, 10, veafTransportMission.BlueGroupName, true)
-    
-    if activateAdf then
-        veafTransportMission.doRadioTransmission(veafTransportMission.BlueGroupName)
-    end
+    veafTransportMission.doRadioTransmission(veafTransportMission.BlueGroupName)
 end
 
 --- Generates a transport mission
@@ -255,10 +252,12 @@ function veafTransportMission.generateTransportMission(targetSpot, size, defense
     if groupPosition ~= nil then
         veafTransportMission.logTrace("groupPosition=" .. veaf.vecToString(groupPosition))
         groupPosition = { x = groupPosition.x, z = groupPosition.y, y = 0 }
-        veafTransportMission.logTrace("groupPosition=" .. veaf.vecToString(groupPosition))
-        veafTransportMission.generateFriendlyGroup(groupPosition, true)
+        groupPosition = veaf.placePointOnLand(groupPosition)
+        veafTransportMission.logTrace("groupPosition on land=" .. veaf.vecToString(groupPosition))
+        veafTransportMission.generateFriendlyGroup(groupPosition)
     else
         veafTransportMission.logInfo("cannot find a suitable position for group "..groupId)
+        return
     end
 
     -- generate cargo to be picked up near the player helo
@@ -276,6 +275,17 @@ function veafTransportMission.generateTransportMission(targetSpot, size, defense
     -- generate enemy air defense on the way
     if defense > 0 then
         veafTransportMission.logDebug("Generating air defense")
+
+        -- compute player route to friendly group
+        -- TODO
+        -- local startPoint = playerPosition
+        -- local endPoint = groupPosition
+        -- local vec = {x = endPoint.x - startPoint.x, y = endPoint.y - startPoint.y, z = endPoint.z - startPoint.z}
+        -- local hdgToDropZoneInRadians = mist.utils.getDir(vec)
+        -- local dist = mist.utils.get2DDist(startPoint, endPoint)
+    
+        -- place groups in a circle 
+
         veafTransportMission.logDebug("Done generating air defense")
     end
 
@@ -322,6 +332,7 @@ function veafTransportMission.reportTargetInformation(groupId)
 
     local message =      "DROP ZONE : ressuply a group of " .. nbVehicles .. " vehicles and " .. nbInfantry .. " soldiers.\n"
     message = message .. "\n"
+    message = message .. "NAVIGATION: They will transmit on 550 kHz every " .. veafTransportMission.SecondsBetweenAdfLoops .. " seconds.\n"
 
     -- add coordinates and position from bullseye
     local averageGroupPosition = veaf.getAveragePosition(veafTransportMission.BlueGroupName)
@@ -413,7 +424,7 @@ function veafTransportMission.cleanupAfterMission()
     if group and group:isExist() == true then
         group:destroy()
     end
-    
+
     veafTransportMission.logTrace("destroy enemy defense group")
     group = Group.getByName(veafTransportMission.RedDefenseGroupName)
     if group and group:isExist() == true then
