@@ -174,7 +174,7 @@ function veafUnits.countInfantryAndVehicles(groupname)
         for _, u in pairs(group:getUnits()) do
             local typeName = u:getTypeName()
             if typeName then 
-                local unit = veafUnits.findUnit(typeName)
+                local unit = veafUnits.findUnit(typeName, true)
                 if unit then 
                     if unit.vehicle then
                         nbVehicles = nbVehicles + 1
@@ -312,8 +312,8 @@ function veafUnits.findGroup(groupAlias)
 end
 
 --- searches the database for a unit having this alias (case insensitive)
-function veafUnits.findUnit(unitAlias)
-    veafUnits.logTrace("veafUnits.findUnit(unitAlias=" .. unitAlias .. ")")
+function veafUnits.findUnit(unitAlias, nolog)
+    if not(nolog) then veafUnits.logTrace("veafUnits.findUnit(unitAlias=" .. unitAlias .. ")") end
     
     -- find the desired unit in the units database
     local unit = nil
