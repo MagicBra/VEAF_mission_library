@@ -15,6 +15,7 @@
 -- * It also requires the base veaf.lua script library (version 1.0 or higher)
 -- * It also requires the veafMarkers.lua script library (version 1.0 or higher)
 -- * It also requires the veafSpawn.lua script library (version 1.0 or higher)
+-- * It also requires the veafNamedPoints.lua script library (version 1.0 or higher)
 --
 -- Basic Usage:
 -- ------------
@@ -27,6 +28,7 @@
 -- Options:
 -- --------
 -- Type "veaf transport mission" to create a default transport mission
+--      add ", from [named point]" to specify starting position from the named points database (veafNamedPoints.lua) ; default is KASPI
 --      add ", defense [1-5]" to specify air defense cover on the way (1 = light, 5 = heavy)
 --      add ", size [1-5]" to change the number of cargo items to be transported (1 per participating helo, usually)
 --      add ", blocade [1-5]" to specify enemy blocade around the drop zone (1 = light, 5 = heavy)
@@ -77,11 +79,13 @@ veafTransportMission.RedBlocadeGroupName = "Cargo - Enemy Blocade Group"
 
 veafTransportMission.RadioMenuName = "TRANSPORT MISSION (" .. veafTransportMission.Version .. ")"
 
-veafTransportMission.adfRadioSound = "l10n/DEFAULT/beacon.ogg"
+veafTransportMission.AdfRadioSound = "l10n/DEFAULT/beacon.ogg"
 
-veafTransportMission.adfFrequency = 550000000 -- in hz
+veafTransportMission.AdfFrequency = 550000 -- in hz
 
-veafTransportMission.adfPower = 1000 -- in Watt
+veafTransportMission.AdfPower = 1000 -- in Watt
+
+veafTransportMission.DefaultStartPosition = "KASPI"
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Do not change anything below unless you know what you are doing!
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -132,7 +136,7 @@ function veafTransportMission.onEventMarkChange(eventPos, event)
             -- Check options commands
             if options.transportmission then
                 -- create the mission
-                veafTransportMission.generateTransportMission(eventPos, options.size, options.defense, options.blocade, event.initiator)
+                veafTransportMission.generateTransportMission(eventPos, options.size, options.defense, options.blocade, options.from)
             end
         else
             -- None of the keywords matched.
@@ -164,6 +168,9 @@ function veafTransportMission.markTextAnalysis(text)
 
     -- blocade [1-5] : enemy blocade around the drop zone (1 = light, 5 = heavy)
     switch.blocade = 0
+
+    -- start position, named point
+    switch.from = veafTransportMission.DefaultStartPosition
 
     -- Check for correct keywords.
     if text:lower():find(veafTransportMission.Keyphrase .. "mission") then
@@ -207,6 +214,12 @@ function veafTransportMission.markTextAnalysis(text)
                 switch.blocade = nVal
             end
         end
+
+        if switch.transportmission and key:lower() == "from" then
+            -- Set armor.
+            veafTransportMission.logDebug(string.format("Keyword from = %s", val))
+            switch.from = val
+        end
     end
 
     return switch
@@ -223,7 +236,7 @@ function veafTransportMission.doRadioTransmission(groupName)
         veafTransportMission.logTrace("Group is transmitting")
         local averageGroupPosition = veaf.getAveragePosition(groupName)
         veafTransportMission.logTrace("averageGroupPosition=" .. veaf.vecToString(averageGroupPosition))
-        trigger.action.radioTransmission(veafTransportMission.adfRadioSound, averageGroupPosition, 1, false, veafTransportMission.adfFrequency, veafTransportMission.adfPower)
+        trigger.action.radioTransmission(veafTransportMission.AdfRadioSound, averageGroupPosition, 0, false, veafTransportMission.AdfFrequency, veafTransportMission.AdfPower)
     end
     
     veafTransportMission.friendlyGroupAdfLoopTaskID = mist.scheduleFunction(veafTransportMission.doRadioTransmission, { groupName }, timer.getTime() + veafTransportMission.SecondsBetweenAdfLoops)
@@ -235,12 +248,8 @@ function veafTransportMission.generateFriendlyGroup(groupPosition)
 end
 
 --- Generates a transport mission
-function veafTransportMission.generateTransportMission(targetSpot, size, defense, blocade, initiatorUnit)
-    local unitName = ""
-    if initiatorUnit then
-        unitName = initiatorUnit:getName()
-    end
-    veafTransportMission.logDebug(string.format("generateTransportMission(size = %s, defense=%s, blocade=%d, initiatorUnit=%s)",size, defense, blocade, unitName))
+function veafTransportMission.generateTransportMission(targetSpot, size, defense, blocade, from)
+    veafTransportMission.logDebug(string.format("generateTransportMission(size = %s, defense=%s, blocade=%d, from=%s)",size, defense, blocade, from))
     veafTransportMission.logDebug("generateTransportMission: targetSpot " .. veaf.vecToString(targetSpot))
 
     if veafTransportMission.friendlyGroupAliveCheckTaskID ~= 'none' then
@@ -248,6 +257,12 @@ function veafTransportMission.generateTransportMission(targetSpot, size, defense
         return
     end
 
+    local startPoint = veafNamedPoints.getPoint(from)
+    if not(startPoint) then
+        trigger.action.outText("A point named "..from.." cannot be found !", 5)
+        return
+    end
+    
     local friendlyUnits = {}
 
     -- generate a friendly group around the target target spot
@@ -265,10 +280,10 @@ function veafTransportMission.generateTransportMission(targetSpot, size, defense
 
     -- generate cargo to be picked up near the player helo
     veafTransportMission.logDebug("Generating cargo")
-    local playerPosition = veaf.placePointOnLand(initiatorUnit:getPosition().p)
-    veafTransportMission.logTrace("playerPosition=" .. veaf.vecToString(playerPosition))
+    local startPosition = veaf.placePointOnLand(startPoint)
+    veafTransportMission.logTrace("startPosition=" .. veaf.vecToString(startPosition))
     for i = 1, size do
-        local spawnSpot = { x = playerPosition.x + 50, z = playerPosition.z + i * 10, y = playerPosition.y }
+        local spawnSpot = { x = startPosition.x + 50, z = startPosition.z + i * 10, y = startPosition.y }
         veafTransportMission.logTrace("spawnSpot=" .. veaf.vecToString(spawnSpot))
         local cargoType = veafTransportMission.CargoTypes[math.random(#veafTransportMission.CargoTypes)]
         veafSpawn.spawnCargo(spawnSpot, cargoType, false)
@@ -280,13 +295,11 @@ function veafTransportMission.generateTransportMission(targetSpot, size, defense
         veafTransportMission.logDebug("Generating air defense")
 
         -- compute player route to friendly group
-        -- local startPoint = playerPosition
-        -- local endPoint = groupPosition
-        -- local vec = {x = endPoint.x - startPoint.x, y = endPoint.y - startPoint.y, z = endPoint.z - startPoint.z}
-        -- local hdgToDropZoneInRadians = mist.utils.getDir(vec)
-        -- local dist = mist.utils.get2DDist(startPoint, endPoint)
-        
-    
+        --local endPosition = groupPosition
+        --local vec = {x = endPoint.x - startPoint.x, y = endPoint.y - startPoint.y, z = endPoint.z - startPoint.z}
+        --local hdgToDropZoneInRadians = mist.utils.getDir(vec)
+        --local dist = mist.utils.get2DDist(startPoint, endPoint)
+            
         -- place groups in a circle 
 
         veafTransportMission.logDebug("Done generating air defense")
