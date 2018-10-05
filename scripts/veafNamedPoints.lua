@@ -42,7 +42,7 @@ veafNamedPoints.Version = "0.0.1"
 --- Key phrase to look for in the mark text which triggers the command.
 veafNamedPoints.Keyphrase = "veaf name "
 
-veafNamedPoints.Points = {{name="KASPI",point={x=-290955,y=0,z=847525}}, {name="TBILISSI",point={x=-315414,y=480,z=897262}}}
+veafNamedPoints.Points = {{name="KASPI",point={x=-290955,y=0,z=847525}}, {name="TBILISI",point={x=-315414,y=480,z=897262}}}
 
 veafNamedPoints.RadioMenuName = "NAMED POINTS (" .. veafNamedPoints.Version .. ")"
 

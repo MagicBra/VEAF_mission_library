@@ -49,7 +49,7 @@ veafTransportMission = {}
 veafTransportMission.Id = "TRANSPORT MISSION - "
 
 --- Version.
-veafTransportMission.Version = "0.0.3"
+veafTransportMission.Version = "0.0.4"
 
 --- Key phrase to look for in the mark text which triggers the command.
 veafTransportMission.Keyphrase = "veaf transport "
@@ -86,6 +86,8 @@ veafTransportMission.AdfFrequency = 550000 -- in hz
 veafTransportMission.AdfPower = 1000 -- in Watt
 
 veafTransportMission.DefaultStartPosition = "KASPI"
+
+veafTransportMission.LeftOrRightMaxOffset = 1500
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Do not change anything below unless you know what you are doing!
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -295,12 +297,55 @@ function veafTransportMission.generateTransportMission(targetSpot, size, defense
         veafTransportMission.logDebug("Generating air defense")
 
         -- compute player route to friendly group
-        --local endPosition = groupPosition
-        --local vec = {x = endPoint.x - startPoint.x, y = endPoint.y - startPoint.y, z = endPoint.z - startPoint.z}
-        --local hdgToDropZoneInRadians = mist.utils.getDir(vec)
-        --local dist = mist.utils.get2DDist(startPoint, endPoint)
-            
-        -- place groups in a circle 
+        local A = startPoint
+        veafTransportMission.logTrace("A="..veaf.vecToString(A))
+        local B = groupPosition
+        veafTransportMission.logTrace("B="..veaf.vecToString(B))
+        local vecAB = {x = B.x +- A.x, y = B.y - A.y, z = B.z - A.z}
+        veafTransportMission.logTrace("vecAB="..veaf.vecToString(vecAB))
+        local alpha = math.atan2(vecAB.x, vecAB.z) -- atan2(y, x) 
+        veafTransportMission.logTrace("alpha="..alpha)
+        local lenAB = mist.vec.mag(vecAB)
+        veafTransportMission.logTrace("lenAB="..lenAB)
+
+        -- local lenAC = 10000
+        -- veafTransportMission.logTrace("lenAC="..lenAC)
+        -- local lenCD = 10000
+        -- veafTransportMission.logTrace("lenCD="..lenCD)
+        -- local r = math.sqrt(lenAC * lenAC + lenCD * lenCD)
+        -- veafTransportMission.logTrace("r="..r)
+        -- local beta = math.atan(lenCD / lenAC)
+        -- veafTransportMission.logTrace("beta="..beta)
+        -- local tho = alpha + beta
+        -- veafTransportMission.logTrace("tho="..tho)
+        -- local spawnPoint = { z = r * math.cos(tho) + A.z, y = 0, x = r * math.sin(tho) + A.x}
+        -- veafTransportMission.logTrace("spawnPoint="..veaf.vecToString(spawnPoint))
+        -- local spawnPointOnLand = veaf.placePointOnLand(spawnPoint)
+        -- veafTransportMission.logTrace("spawnPointOnLand="..veaf.vecToString(spawnPointOnLand))
+
+         -- place groups on the way
+         local startingDistance = lenAB / 2 -- enemy presence start at approx half way
+         local nbGroups = defense * math.random(5)
+         local distanceStep = ((lenAB / 2) - (lenAB / 6)) / nbGroups -- end enemy presence at approx 5/6 of the way
+         for groupNum = 1, nbGroups do
+             local lenAC = startingDistance + groupNum * distanceStep + math.random(distanceStep/5, 4*distanceStep/5)
+             veafTransportMission.logTrace("lenAC="..lenAC)
+             local lenCD = math.random(veafTransportMission.LeftOrRightMaxOffset * 2) - veafTransportMission.LeftOrRightMaxOffset -- (+ or - offset)
+             veafTransportMission.logTrace("lenCD="..lenCD)
+             local r = math.sqrt(lenAC * lenAC + lenCD * lenCD)
+             veafTransportMission.logTrace("r="..r)
+             local beta = math.atan(lenCD / lenAC)
+             local beta = math.atan(lenCD / lenAC)
+             local tho = alpha + beta
+             veafTransportMission.logTrace("tho="..tho)
+             local spawnPoint = { z = r * math.cos(tho) + A.z, y = 0, x = r * math.sin(tho) + A.x}
+             veafTransportMission.logTrace("spawnPoint="..veaf.vecToString(spawnPoint))
+             local spawnPointOnLand = veaf.placePointOnLand(spawnPoint)
+             veafTransportMission.logTrace("spawnPointOnLand="..veaf.vecToString(spawnPointOnLand))
+
+             -- spawn an infantry section
+             veafSpawn._doSpawnGroup(spawnPointOnLand, "infsec", "RUSSIA", 0, 0, math.random(359), math.random(3,6), veafTransportMission.RedDefenseGroupName .. " #"  ..groupNum, true)
+         end
 
         veafTransportMission.logDebug("Done generating air defense")
     end
@@ -442,9 +487,16 @@ function veafTransportMission.cleanupAfterMission()
     end
 
     veafTransportMission.logTrace("destroy enemy defense group")
-    group = Group.getByName(veafTransportMission.RedDefenseGroupName)
-    if group and group:isExist() == true then
-        group:destroy()
+    local groupNum = 1
+    local doIt = true
+    while doIt do
+        group = Group.getByName(veafTransportMission.RedDefenseGroupName.." #"..groupNum)
+        if group and group:isExist() == true then
+            group:destroy()
+            groupNum = groupNum + 1
+        else
+            doIt = false
+        end
     end
 
     veafTransportMission.logTrace("destroy enemy blocade group")
