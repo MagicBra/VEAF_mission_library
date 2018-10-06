@@ -38,70 +38,88 @@ dofile("veafSpawn.lua")
 
 veafCasMission = {}
 
---- Generates an infantry group along with its manpad units and tranport vehicles
-function veafCasMission.generateInfantryGroup(groupId, spawnSpot, defense, armor, skill)
-    local group = {}
-    group.units = {}
-    group.disposition = { h = 4, w = 3}
-    group.description = "Random Infantry Group #" .. groupId
-    
-    -- generate an infantry group
-    local groupCount = math.random(3, 7)
-    local dispersion = (groupCount+1) * 5 + 25
-    for i = 1, groupCount do
-        group.units[i] = veafUnits.findUnit("INF Soldier AK")
-    end
-
-    -- add a transport vehicle
-    if armor > 0 then
-        group.units[groupCount+1] =  veafUnits.findUnit("IFV BTR-80")
-    else
-        group.units[groupCount+1] =  veafUnits.findUnit("Truck GAZ-3308")
-    end
-    group.units[groupCount+1].cell = 11
-
-    -- add manpads if needed
-    if defense > 3 then
-        -- for defense = 4-5, spawn a full Igla-S team
-        group.units[groupCount+2] =  veafUnits.findUnit("SA-18 Igla-S comm")
-        group.units[groupCount+3] =  veafUnits.findUnit("SA-18 Igla-S manpad")
-    elseif defense > 0 then
-        -- for defense = 1-3, spawn a single Igla soldier
-        group.units[groupCount+2] =  veafUnits.findUnit("SA-18 Igla manpad")
-    else
-        -- for defense = 0, don't spawn any manpad
-    end
-
-    return group
-end
-
---- Generates an infantry group along with its manpad units and tranport vehicles
-function veafCasMission.generateInfantryGroup2(groupId, spawnSpot, defense, armor, skill)
-    local group = {}
-    group.units = {}
-    group.disposition = { h = 5, w = 5}
-    group.description = "Random Infantry Group #" .. groupId
-    
-    -- generate an infantry group
-    local groupCount = math.random(15, 22)
-    local dispersion = (groupCount+1) * 5 + 25
-    for i = 1, groupCount do
-        group.units[i] = veafUnits.findUnit("INF Soldier AK")
-    end
-
-    return group
-end
-
-
 function veafUnits.checkPositionForUnit(spawnPosition, unit)
     return true
 end
+
+
+
+
 
 local spawnPosition = {x=0, y=0, z=0}
 local speed = 10
 local heading = 0
 local spacing = 0
 
+--- Generates an enemy defense group on the way to the drop zone
+--- defenseLevel = 1 : 3-7 soldiers, GAZ-3308 transport
+--- defenseLevel = 2 : 3-7 soldiers, BTR-80 APC
+--- defenseLevel = 3 : 3-7 soldiers, BMP-1 IFV, Igla manpad
+--- defenseLevel = 4 : 3-7 soldiers, BMP-1 IFV, Igla-S manpad, ZU-23 on a truck
+--- defenseLevel = 5 : 3-7 soldiers, BMP-1 IFV, Igla-S manpad, ZSU-23-4 Shilka
+function generateEnemyDefenseGroup(groupPosition, groupName, defenseLevel)
+    local groupDefinition = {
+            disposition = { h = 6, w = 6},
+            units = {},
+            description = groupName,
+            groupName = groupName,
+        }
+
+    -- generate an infantry group
+    local groupCount = math.random(3, 7)
+    for _ = 1, groupCount do
+        local rand = math.random(3)
+        local unitType = nil
+        if rand == 1 then
+            unitType = 'Soldier RPG'
+        elseif rand == 2 then
+            unitType = 'Soldier AK'
+        else
+            unitType = 'Infantry AK'
+        end
+        table.insert(groupDefinition.units, { unitType })
+    end
+
+    -- add a transport vehicle or an APC/IFV
+    if defenseLevel > 2 then
+        table.insert(groupDefinition.units, { "BMP-1", cell=11, random })
+    elseif defenseLevel > 1 then
+        table.insert(groupDefinition.units, { "BTR-80", cell=11, random })
+    else
+        table.insert(groupDefinition.units, { "GAZ-3308", cell=11, random })
+    end
+
+    -- add manpads if needed
+    if defenseLevel > 3 then
+        -- for defenseLevel = 4-5, spawn a modern Igla-S team
+        table.insert(groupDefinition.units, { "SA-18 Igla-S comm", random })
+        table.insert(groupDefinition.units, { "SA-18 Igla-S manpad", random })
+    elseif defenseLevel > 2 then
+        -- for defenseLevel = 3, spawn an older Igla team
+        table.insert(groupDefinition.units, { "SA-18 Igla comm", random })
+        table.insert(groupDefinition.units, { "SA-18 Igla manpad", random })
+    else
+        -- for defenseLevel = 0, don't spawn any manpad
+    end
+
+    -- add an air defenseLevel vehicle
+    if defenseLevel > 4 then
+        -- defenseLevel = 3-5 : add a Shilka
+        table.insert(groupDefinition.units, { "ZSU-23-4 Shilka", cell = 3, random })
+    elseif defenseLevel > 3 then
+        -- defenseLevel = 1 : add a ZU23 on a truck
+        table.insert(groupDefinition.units, { "Ural-375 ZU-23", cell = 3, random })
+    end
+
+    groupDefinition = veafUnits.processGroup(groupDefinition)
+    local group, cells = veafUnits.placeGroup(groupDefinition, {x = 0, y = 0, z = 0}, 5, 0)
+    veafUnits.debugGroup(group, cells)
+
+end
+
+
+generateEnemyDefenseGroup(groupPosition, "toto", 2)
+doSpawnGroup(groupPosition, "US infgroup", "USA", 0, 0, 0, 10, "group name", true)
 local group = veafUnits.findGroup("US infgroup")
 --local group = veafCasMission.generateInfantryGroup(1, spawnPosition, 4, 1, "Random")
 local group, cells = veafUnits.placeGroup(group, spawnPosition, spacing, heading)

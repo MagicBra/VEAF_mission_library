@@ -37,7 +37,7 @@ veafNamedPoints = {}
 veafNamedPoints.Id = "NAMED POINTS - "
 
 --- Version.
-veafNamedPoints.Version = "0.0.1"
+veafNamedPoints.Version = "1.0.0"
 
 --- Key phrase to look for in the mark text which triggers the command.
 veafNamedPoints.Keyphrase = "veaf name "
@@ -167,19 +167,19 @@ function veafNamedPoints.addPoint(name, point)
     veafNamedPoints.logTrace(string.format("addPoint(name = %s)",name))
     veafNamedPoints.logTrace("point=" .. veaf.vecToString(point))
 
-    veafNamedPoints.namedPoints[name] = point
+    veafNamedPoints.namedPoints[name:upper()] = point
 end
 
 function veafNamedPoints.delPoint(name)
     veafNamedPoints.logTrace(string.format("delPoint(name = %s)",name))
 
-    table.remove(veafNamedPoints.namedPoints, name)
+    table.remove(veafNamedPoints.namedPoints, name:upper())
 end
 
 function veafNamedPoints.getPoint(name)
     veafNamedPoints.logTrace(string.format("getPoint(name = %s)",name))
 
-    return veafNamedPoints.namedPoints[name]
+    return veafNamedPoints.namedPoints[name:upper()]
 end
 
 function veafNamedPoints.buildPointsDatabase()

@@ -312,26 +312,30 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Spawn a specific group at a specific spot
-function veafSpawn._doSpawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing, groupName, silent)
-    veafSpawn.logDebug(string.format("doSpawnGroup(name = %s, country=%s, speed=%d, alt=%d, hdg=%d, spacing=%d, groupName=%s)",name, country, speed, alt, hdg, spacing, groupName))
-    veafSpawn.logDebug("doSpawnGroup: spawnSpot " .. veaf.vecToString(spawnSpot))
+function veafSpawn.doSpawnGroup(spawnSpot, groupDefinition, country, speed, alt, hdg, spacing, groupName, silent)
+    veafSpawn.logDebug(string.format("doSpawnGroup(country=%s, speed=%d, alt=%d, hdg=%d, spacing=%d, groupName=%s)", country, speed, alt, hdg, spacing, groupName))
+    veafSpawn.logDebug("spawnSpot=" .. veaf.vecToString(spawnSpot))
     
     veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
 
-    -- find the desired group in the groups database
-    local dbGroup = veafUnits.findGroup(name)
-    if not(dbGroup) then
-        veafSpawn.logInfo("cannot find group "..name)
-        if not(silent) then
-            trigger.action.outText("cannot find group "..name, 5) 
+    if type(groupDefinition) == "string" then
+        -- find the desired group in the groups database
+        groupDefinition = veafUnits.findGroup(groupDefinition)
+        if not(groupDefinition) then
+            veafSpawn.logInfo("cannot find group "..name)
+            if not(silent) then
+                trigger.action.outText("cannot find group "..name, 5) 
+            end
+            return    
         end
-        return    
     end
+
+    veafSpawn.logDebug("doSpawnGroup: groupDefinition.description=" .. groupDefinition.description)
 
     local units = {}
 
     -- place group units on the map
-    local group, cells = veafUnits.placeGroup(dbGroup, spawnSpot, spacing, hdg)
+    local group, cells = veafUnits.placeGroup(groupDefinition, spawnSpot, spacing, hdg)
     veafUnits.debugGroup(group, cells)
     
     if not(groupName) then 
@@ -397,7 +401,7 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
     veafSpawn.logDebug(string.format("spawnGroup(name = %s, country=%s, speed=%d, alt=%d, hdg=%d, spacing=%d)",name, country, speed, alt, hdg, spacing))
     veafSpawn.logDebug("spawnGroup: spawnSpot " .. veaf.vecToString(spawnSpot))
     
-    veafSpawn._doSpawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing, nil, false)
+    veafSpawn.doSpawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing, nil, false)
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------

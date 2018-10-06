@@ -49,7 +49,7 @@ veafTransportMission = {}
 veafTransportMission.Id = "TRANSPORT MISSION - "
 
 --- Version.
-veafTransportMission.Version = "0.0.4"
+veafTransportMission.Version = "0.0.5"
 
 --- Key phrase to look for in the mark text which triggers the command.
 veafTransportMission.Keyphrase = "veaf transport "
@@ -85,9 +85,19 @@ veafTransportMission.AdfFrequency = 550000 -- in hz
 
 veafTransportMission.AdfPower = 1000 -- in Watt
 
+veafTransportMission.DoRadioTransmission = false -- set to true when radio transmissions will work
+
+--- if not specified, mission will start at this named point
 veafTransportMission.DefaultStartPosition = "KASPI"
 
+-- an enemy group every xxx meters of the way (randomized)
+veafTransportMission.EnemyDefenseDistanceStep = 3000 
+
+-- enemies group are offset to xxx meters max (left or right, randomized)
 veafTransportMission.LeftOrRightMaxOffset = 1500
+
+-- enemies group are offset to xxx meters min (left or right, randomized)
+veafTransportMission.LeftOrRightMinOffset = 250
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Do not change anything below unless you know what you are doing!
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -245,8 +255,76 @@ function veafTransportMission.doRadioTransmission(groupName)
 end
 
 function veafTransportMission.generateFriendlyGroup(groupPosition)
-    veafSpawn._doSpawnGroup(groupPosition, "US infgroup", "USA", 0, 0, 0, 10, veafTransportMission.BlueGroupName, true)
-    veafTransportMission.doRadioTransmission(veafTransportMission.BlueGroupName)
+    veafSpawn.doSpawnGroup(groupPosition, "US infgroup", "USA", 0, 0, 0, 10, veafTransportMission.BlueGroupName, true)
+
+    if veafTransportMission.DoRadioTransmission then
+        veafTransportMission.doRadioTransmission(veafTransportMission.BlueGroupName)
+    end
+end
+
+--- Generates an enemy defense group on the way to the drop zone
+--- defenseLevel = 1 : 3-7 soldiers, GAZ-3308 transport
+--- defenseLevel = 2 : 3-7 soldiers, BTR-80 APC
+--- defenseLevel = 3 : 3-7 soldiers, BMP-1 IFV, Igla manpad
+--- defenseLevel = 4 : 3-7 soldiers, BMP-1 IFV, Igla-S manpad, ZU-23 on a truck
+--- defenseLevel = 5 : 3-7 soldiers, BMP-1 IFV, Igla-S manpad, ZSU-23-4 Shilka
+function veafTransportMission.generateEnemyDefenseGroup(groupPosition, groupName, defenseLevel)
+    local groupDefinition = {
+            disposition = { h = 6, w = 6},
+            units = {},
+            description = groupName,
+            groupName = groupName,
+        }
+
+    -- generate an infantry group
+    local groupCount = math.random(3, 7)
+    for _ = 1, groupCount do
+        local rand = math.random(3)
+        local unitType = nil
+        if rand == 1 then
+            unitType = 'Soldier RPG'
+        elseif rand == 2 then
+            unitType = 'Soldier AK'
+        else
+            unitType = 'Infantry AK'
+        end
+        table.insert(groupDefinition.units, { unitType })
+    end
+
+    -- add a transport vehicle or an APC/IFV
+    if defenseLevel > 2 then
+        table.insert(groupDefinition.units, { "BMP-1", cell=11, random })
+    elseif defenseLevel > 1 then
+        table.insert(groupDefinition.units, { "BTR-80", cell=11, random })
+    else
+        table.insert(groupDefinition.units, { "GAZ-3308", cell=11, random })
+    end
+
+    -- add manpads if needed
+    if defenseLevel > 3 then
+        -- for defenseLevel = 4-5, spawn a modern Igla-S team
+        table.insert(groupDefinition.units, { "SA-18 Igla-S comm", random })
+        table.insert(groupDefinition.units, { "SA-18 Igla-S manpad", random })
+    elseif defenseLevel > 2 then
+        -- for defenseLevel = 3, spawn an older Igla team
+        table.insert(groupDefinition.units, { "SA-18 Igla comm", random })
+        table.insert(groupDefinition.units, { "SA-18 Igla manpad", random })
+    else
+        -- for defenseLevel = 0, don't spawn any manpad
+    end
+
+    -- add an air defenseLevel vehicle
+    if defenseLevel > 4 then
+        -- defenseLevel = 3-5 : add a Shilka
+        table.insert(groupDefinition.units, { "ZSU-23-4 Shilka", cell = 3, random })
+    elseif defenseLevel > 3 then
+        -- defenseLevel = 1 : add a ZU23 on a truck
+        table.insert(groupDefinition.units, { "Ural-375 ZU-23", cell = 3, random })
+    end
+
+    groupDefinition = veafUnits.processGroup(groupDefinition)
+    veafSpawn.doSpawnGroup(groupPosition, groupDefinition, "RUSSIA", 0, 0, math.random(359), math.random(3,6), groupName, true)
+
 end
 
 --- Generates a transport mission
@@ -308,29 +386,18 @@ function veafTransportMission.generateTransportMission(targetSpot, size, defense
         local lenAB = mist.vec.mag(vecAB)
         veafTransportMission.logTrace("lenAB="..lenAB)
 
-        -- local lenAC = 10000
-        -- veafTransportMission.logTrace("lenAC="..lenAC)
-        -- local lenCD = 10000
-        -- veafTransportMission.logTrace("lenCD="..lenCD)
-        -- local r = math.sqrt(lenAC * lenAC + lenCD * lenCD)
-        -- veafTransportMission.logTrace("r="..r)
-        -- local beta = math.atan(lenCD / lenAC)
-        -- veafTransportMission.logTrace("beta="..beta)
-        -- local tho = alpha + beta
-        -- veafTransportMission.logTrace("tho="..tho)
-        -- local spawnPoint = { z = r * math.cos(tho) + A.z, y = 0, x = r * math.sin(tho) + A.x}
-        -- veafTransportMission.logTrace("spawnPoint="..veaf.vecToString(spawnPoint))
-        -- local spawnPointOnLand = veaf.placePointOnLand(spawnPoint)
-        -- veafTransportMission.logTrace("spawnPointOnLand="..veaf.vecToString(spawnPointOnLand))
-
          -- place groups on the way
          local startingDistance = lenAB / 2 -- enemy presence start at approx half way
-         local nbGroups = defense * math.random(5)
-         local distanceStep = ((lenAB / 2) - (lenAB / 6)) / nbGroups -- end enemy presence at approx 5/6 of the way
-         for groupNum = 1, nbGroups do
-             local lenAC = startingDistance + groupNum * distanceStep + math.random(distanceStep/5, 4*distanceStep/5)
+         local defendedDistance = (lenAB * 7/10) - (lenAB * 1/3) -- place enemies between 1/3 and 7/10 of the distance
+         local distanceStep = veafTransportMission.EnemyDefenseDistanceStep
+         local nbSteps = math.floor(defendedDistance / distanceStep) 
+         for stepNum = 1, nbSteps do
+             local lenAC = startingDistance + stepNum * distanceStep + math.random(distanceStep/5, 4*distanceStep/5)
              veafTransportMission.logTrace("lenAC="..lenAC)
-             local lenCD = math.random(veafTransportMission.LeftOrRightMaxOffset * 2) - veafTransportMission.LeftOrRightMaxOffset -- (+ or - offset)
+             local lenCD = math.random(veafTransportMission.LeftOrRightMinOffset, veafTransportMission.LeftOrRightMaxOffset)
+             if math.random(100) < 51 then 
+                lenCD = -lenCD 
+            end
              veafTransportMission.logTrace("lenCD="..lenCD)
              local r = math.sqrt(lenAC * lenAC + lenCD * lenCD)
              veafTransportMission.logTrace("r="..r)
@@ -343,8 +410,9 @@ function veafTransportMission.generateTransportMission(targetSpot, size, defense
              local spawnPointOnLand = veaf.placePointOnLand(spawnPoint)
              veafTransportMission.logTrace("spawnPointOnLand="..veaf.vecToString(spawnPointOnLand))
 
-             -- spawn an infantry section
-             veafSpawn._doSpawnGroup(spawnPointOnLand, "infsec", "RUSSIA", 0, 0, math.random(359), math.random(3,6), veafTransportMission.RedDefenseGroupName .. " #"  ..groupNum, true)
+             -- spawn an enemy defense group
+             local groupName = veafTransportMission.RedDefenseGroupName .. " #"  .. stepNum
+             veafTransportMission.generateEnemyDefenseGroup(spawnPointOnLand, groupName, defense)
          end
 
         veafTransportMission.logDebug("Done generating air defense")
@@ -558,6 +626,11 @@ function veafTransportMission.help()
         'This will create a default friendly group awaiting cargo that you need to transport\n' ..
         'You can add options (comma separated) :\n' ..
         '   "defense [0-5]" to specify air defense cover on the way (1 = light, 5 = heavy)\n' ..
+        '        defense = 1 : 3-7 soldiers, GAZ-3308 transport\n' ..
+        '        defense = 2 : 3-7 soldiers, BTR-80 APC\n' ..
+        '        defense = 3 : 3-7 soldiers, BMP-1 IFV, Igla manpad\n' ..
+        '        defense = 4 : 3-7 soldiers, BMP-1 IFV, Igla-S manpad, ZU-23 on a truck\n' ..
+        '        defense = 5 : 3-7 soldiers, BMP-1 IFV, Igla-S manpad, ZSU-23-4 Shilka\n' ..
         '   "size [1-5]" to change the number of cargo items to be transported (1 per participating helo, usually)\n' ..
         '   "sblocade [0-5]" to specify enemy blocade around the drop zone (1 = light, 5 = heavy)'
 
