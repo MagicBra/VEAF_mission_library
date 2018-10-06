@@ -22,8 +22,7 @@
             "command": "./build_fr.cmd",
             "options": {
                 "cwd": "${workspaceRoot}\\..\\VEAF-Open-Training-Mission"
-            },
-            "problemMatcher": []
+            }
         }
     ]
 }

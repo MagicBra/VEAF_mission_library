@@ -66,7 +66,7 @@ veafSpawn = {}
 veafSpawn.Id = "SPAWN - "
 
 --- Version.
-veafSpawn.Version = "1.1.4"
+veafSpawn.Version = "1.1.5"
 
 --- Key phrase to look for in the mark text which triggers the weather report.
 veafSpawn.Keyphrase = "veaf spawn "
@@ -125,7 +125,7 @@ function veafSpawn.onEventMarkChange(eventPos, event)
             elseif options.cargo then
                 veafSpawn.spawnCargo(eventPos, options.cargoType, options.cargoSmoke)
             elseif options.bomb then
-                veafSpawn.spawnBomb(eventPos, options.bombPower)
+                veafSpawn.spawnBomb(eventPos, options.bombPower, options.unlock)
             elseif options.smoke then
                 veafSpawn.spawnSmoke(eventPos, options.smokeColor)
             elseif options.flare then
@@ -183,6 +183,8 @@ function veafSpawn.markTextAnalysis(text)
 
     -- flare agl altitude (meters)
     switch.alt = veafSpawn.IlluminationFlareAglAltitude
+
+    switch.unlock = nil
 
     -- Check for correct keywords.
     if text:lower():find(veafSpawn.Keyphrase .. "unit") then
@@ -250,6 +252,12 @@ function veafSpawn.markTextAnalysis(text)
             switch.country = val:upper()
         end
         
+        if key:lower() == "unlock" then
+            -- Unlock the bomb power
+            veafSpawn.logDebug(string.format("Keyword unlock", val))
+            switch.unlock = val:upper()
+        end
+
         if key:lower() == "power" then
             -- Set bomb power.
             veafSpawn.logDebug(string.format("Keyword power = %d", val))
@@ -494,6 +502,14 @@ function veafSpawn.spawnCargo(spawnSpot, cargoType, cargoSmoke)
     veafSpawn.logDebug("spawnCargo(cargoType = " .. cargoType ..")")
     veafSpawn.logDebug(string.format("spawnCargo: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
 
+    veafSpawn.doSpawnCargo(spawnSpot, cargoType, nil, cargoSmoke, false)
+end
+
+--- Spawn a specific cargo at a specific spot
+function veafSpawn.doSpawnCargo(spawnSpot, cargoType, unitName, cargoSmoke, silent)
+    veafSpawn.logDebug("spawnCargo(cargoType = " .. cargoType ..")")
+    veafSpawn.logDebug(string.format("spawnCargo: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
+
     local units = {}
 
     local spawnPosition = veaf.findPointInZone(spawnSpot, 50, false)
@@ -501,7 +517,7 @@ function veafSpawn.spawnCargo(spawnSpot, cargoType, cargoSmoke)
     -- check spawned position validity
     if spawnPosition == nil then
         veafSpawn.logInfo("cannot find a suitable position for spawning cargo "..cargoType)
-        trigger.action.outText("cannot find a suitable position for spawning cargo "..cargoType, 5)
+        if not(silent) then trigger.action.outText("cannot find a suitable position for spawning cargo "..cargoType, 5) end
         return
     end
 
@@ -515,8 +531,10 @@ function veafSpawn.spawnCargo(spawnSpot, cargoType, cargoSmoke)
         if cargoWeight then
             cargoWeight = math.random(cargoWeight - cargoWeight / 2, cargoWeight + cargoWeight / 2)
 
-            veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
-            local unitName = unit.desc.displayName .. " #" .. veafSpawn.spawnedUnitsCounter
+            if not(unitName) then
+                veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
+                unitName = unit.desc.displayName .. " #" .. veafSpawn.spawnedUnitsCounter
+            end
 
             -- create the cargo
             local cargoTable = {
@@ -550,20 +568,23 @@ function veafSpawn.spawnCargo(spawnSpot, cargoType, cargoSmoke)
             if cargoSmoke then 
                 message = message .. ". It's marked with green smoke and red flares"
             end
-            trigger.action.outText(message, 5)
+            if not(silent) then trigger.action.outText(message, 5) end
         end
     end
     
 end
-
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Smoke and Flare commands
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- trigger an explosion at the marker area
-function veafSpawn.spawnBomb(spawnSpot, power)
+function veafSpawn.spawnBomb(spawnSpot, power, unlock)
     veafSpawn.logDebug("spawnBomb(power=" .. power ..")")
     veafSpawn.logDebug(string.format("spawnBomb: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
+    if not(unlock) or unlock ~= "ivegotthepower" then
+        if power > 1000 then power = 1000 end
+    end
+
     trigger.action.explosion(spawnSpot, power);
 end
 
@@ -623,7 +644,7 @@ function veafSpawn.help()
         '   "name [cargo type]" spawns a specific cargo ; name can be any of [ammo, barrels, container, fueltank, f_bar, iso_container, iso_container_small, m117, oiltank, pipes_big, pipes_small, tetrapod, trunks_long, trunks_small, uh1h]\n' ..
         '   "smoke adds a smoke marker\n' ..
         '"veaf spawn bomb" spawns a bomb on the ground\n' ..
-        '   "power [value]" specifies the bomb power (default is 100)\n' ..
+        '   "power [value]" specifies the bomb power (default is 100, max is 1000)\n' ..
         '"veaf spawn smoke" spawns a smoke on the ground\n' ..
         '   "color [red|green|blue|white|orange]" specifies the smoke color\n' ..
         '"veaf spawn flare" lights things up with a flare\n' ..

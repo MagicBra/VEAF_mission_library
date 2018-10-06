@@ -35,10 +35,13 @@ veaf.Id = "VEAF - "
 --- Version.
 veaf.Version = "1.1.0"
 
+--- Development version ?
+veaf.Development = true
+
 --- Enable logDebug ==> give more output to DCS log file.
-veaf.Debug = true
+veaf.Debug = veaf.Development
 --- Enable logTrace ==> give even more output to DCS log file.
-veaf.Trace = true
+veaf.Trace = veaf.Development
 
 veaf.RadioMenuName = "VEAF"
 
@@ -420,6 +423,30 @@ function veaf.getAvgGroupPos(groupName) -- stolen from Mist and corrected
 	end
 
 	return mist.getAvgPos(units)
+end
+
+--- Computes the coordinates of a point offset from a route of a certain distance, at a certain distance from route start
+--- e.g. we go from [startingPoint] to [destinationPoint], and at [distanceFromStartingPoint] we look at [offset] meters (left if <0, right else)
+function veaf.computeCoordinatesOffsetFromRoute(startingPoint, destinationPoint, distanceFromStartingPoint, offset)
+    veaf.logTrace("startingPoint="..veaf.vecToString(startingPoint))
+    veaf.logTrace("destinationPoint="..veaf.vecToString(destinationPoint))
+    
+    local vecAB = {x = destinationPoint.x +- startingPoint.x, y = destinationPoint.y - startingPoint.y, z = destinationPoint.z - startingPoint.z}
+    veaf.logTrace("vecAB="..veaf.vecToString(vecAB))
+    local alpha = math.atan2(vecAB.x, vecAB.z) -- atan2(y, x) 
+    veaf.logTrace("alpha="..alpha)
+    local r = math.sqrt(distanceFromStartingPoint * distanceFromStartingPoint + offset * offset)
+    veaf.logTrace("r="..r)
+    local beta = math.atan(offset / distanceFromStartingPoint)
+    veaf.logTrace("beta="..beta)
+    local tho = alpha + beta
+    veaf.logTrace("tho="..tho)
+    local offsetPoint = { z = r * math.cos(tho) + startingPoint.z, y = 0, x = r * math.sin(tho) + startingPoint.x}
+    veaf.logTrace("offsetPoint="..veaf.vecToString(offsetPoint))
+    local offsetPointOnLand = veaf.placePointOnLand(offsetPoint)
+    veaf.logTrace("offsetPointOnLand="..veaf.vecToString(offsetPointOnLand))
+
+    return offsetPointOnLand, offsetPoint
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
