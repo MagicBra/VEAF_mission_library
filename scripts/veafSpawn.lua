@@ -66,7 +66,7 @@ veafSpawn = {}
 veafSpawn.Id = "SPAWN - "
 
 --- Version.
-veafSpawn.Version = "1.1.5"
+veafSpawn.Version = "1.1.7"
 
 --- Key phrase to look for in the mark text which triggers the weather report.
 veafSpawn.Keyphrase = "veaf spawn "
@@ -291,11 +291,7 @@ function veafSpawn.markTextAnalysis(text)
         if switch.cargo and key:lower() == "name" then
             -- Set cargo type.
             veafSpawn.logDebug(string.format("Keyword name = %s", val))
-            if not(val == "iso_container" or val == "iso_container_small") then 
-                switch.cargoType = val .. "_cargo"
-            else
-                switch.cargoType = val .. "_cargo"
-            end
+            switch.cargoType = val
         end
 
         if switch.cargo and key:lower() == "smoke" then
@@ -321,7 +317,7 @@ end
 
 --- Spawn a specific group at a specific spot
 function veafSpawn.doSpawnGroup(spawnSpot, groupDefinition, country, speed, alt, hdg, spacing, groupName, silent)
-    veafSpawn.logDebug(string.format("doSpawnGroup(country=%s, speed=%d, alt=%d, hdg=%d, spacing=%d, groupName=%s)", country, speed, alt, hdg, spacing, groupName))
+    veafSpawn.logDebug(string.format("doSpawnGroup(country=%s, speed=%d, alt=%d, hdg=%d, spacing=%d, groupName=%s)", country, speed, alt, hdg, spacing, groupName or ""))
     veafSpawn.logDebug("spawnSpot=" .. veaf.vecToString(spawnSpot))
     
     veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
@@ -526,10 +522,18 @@ function veafSpawn.doSpawnCargo(spawnSpot, cargoType, unitName, cargoSmoke, sile
     -- compute cargo weight
     local cargoWeight = 250
     local unit = veafUnits.findDcsUnit(cargoType)
+    if not unit then
+        cargoType = cargoType.. "_cargo"
+        unit = veafUnits.findDcsUnit(cargoType)
+    end
     if unit then
-        cargoWeight = unit.defaultMass
-        if cargoWeight then
+        if unit.desc.minMass and unit.desc.maxMass then
+            cargoWeight = math.random(unit.desc.minMass, unit.desc.maxMass)
+        elseif unit.defaultMass then
+            cargoWeight = unit.defaultMass
             cargoWeight = math.random(cargoWeight - cargoWeight / 2, cargoWeight + cargoWeight / 2)
+        end
+        if cargoWeight then
 
             if not(unitName) then
                 veafSpawn.spawnedUnitsCounter = veafSpawn.spawnedUnitsCounter + 1
@@ -564,7 +568,7 @@ function veafSpawn.doSpawnCargo(spawnSpot, cargoType, unitName, cargoSmoke, sile
             end
 
             -- message the unit spawning
-            local message = "Cargo " .. unitName .. " weighting " .. cargoWeight .. " lbs has been spawned"
+            local message = "Cargo " .. unitName .. " weighting " .. cargoWeight .. " kg has been spawned"
             if cargoSmoke then 
                 message = message .. ". It's marked with green smoke and red flares"
             end
@@ -621,6 +625,7 @@ function veafSpawn.buildRadioMenu()
     missionCommands.addCommand("HELP", veafSpawn.rootPath, veafSpawn.help)
     missionCommands.addCommand("HELP - all units", veafSpawn.rootPath, veafSpawn.helpAllUnits)
     missionCommands.addCommand("HELP - all groups", veafSpawn.rootPath, veafSpawn.helpAllGroups)
+    missionCommands.addCommand("HELP - all cargoes", veafSpawn.rootPath, veafSpawn.helpAllCargoes)
 end
 
 function veafSpawn.help()
@@ -677,6 +682,23 @@ function veafSpawn.helpAllUnits()
             if i < #u.aliases then text = text .. ", " end
         end
         text = text .. "\n"
+    end
+    trigger.action.outText(text, 30)
+end
+
+function veafSpawn.helpAllCargoes()
+    local text = 'List of all cargoes defined in dcsUnits :\n'
+            
+    for name, unit in pairs(dcsUnits.DcsUnitsDatabase) do
+        if unit and unit.desc and unit.desc.attributes and unit.desc.attributes.Cargos then
+            text = text .. " - " .. unit.desc.typeName .. " -> " .. unit.desc.displayName 
+            if unit.desc.minMass and unit.desc.maxMass then
+                text = text .. " (" .. unit.desc.minMass .. " - " .. unit.desc.maxMass .. " kg)"
+            elseif unit.defaultMass then
+                text = text .. " (" .. unit.defaultMass .. " kg)"
+            end
+            text = text .."\n"
+        end
     end
     trigger.action.outText(text, 30)
 end
