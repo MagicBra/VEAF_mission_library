@@ -405,7 +405,7 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
     veafSpawn.logDebug(string.format("spawnGroup(name = %s, country=%s, speed=%d, alt=%d, hdg=%d, spacing=%d)",name, country, speed, alt, hdg, spacing))
     veafSpawn.logDebug("spawnGroup: spawnSpot " .. veaf.vecToString(spawnSpot))
     
-    veafSpawn.doSpawnGroup(spawnSpot, nil, country, speed, alt, hdg, spacing, name, false)
+    veafSpawn.doSpawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing, nil, false)
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -585,7 +585,7 @@ end
 function veafSpawn.spawnBomb(spawnSpot, power, unlock)
     veafSpawn.logDebug("spawnBomb(power=" .. power ..")")
     veafSpawn.logDebug(string.format("spawnBomb: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
-    if not(unlock) or unlock ~= "ivegotthepower" then
+    if not(unlock) or unlock ~= "IVEGOTTHEPOWER" then
         if power > 1000 then power = 1000 end
     end
 
