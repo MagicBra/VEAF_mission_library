@@ -405,7 +405,7 @@ function veafSpawn.spawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing
     veafSpawn.logDebug(string.format("spawnGroup(name = %s, country=%s, speed=%d, alt=%d, hdg=%d, spacing=%d)",name, country, speed, alt, hdg, spacing))
     veafSpawn.logDebug("spawnGroup: spawnSpot " .. veaf.vecToString(spawnSpot))
     
-    veafSpawn.doSpawnGroup(spawnSpot, name, country, speed, alt, hdg, spacing, nil, false)
+    veafSpawn.doSpawnGroup(spawnSpot, nil, country, speed, alt, hdg, spacing, name, false)
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------

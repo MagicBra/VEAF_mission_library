@@ -33925,34 +33925,34 @@ end
 
 dcsUnits.logInfo(string.format("Loading version %s", dcsUnits.Version))
 
-dcsUnits.addCargoUnit( "jeep_cargo", "jeep_cargo", "jeep_cargo", "jeep_cargo",10,false, 100, 1200,  {"Cargos"}, 100, 4000 );
-dcsUnits.addCargoUnit( "bambi_bucket", "bambi_bucket", "bambi_bucket","bambi_bucket",5,false, 1000, 1500,  {"Cargos"}, 1000, 2000 );
-dcsUnits.addCargoUnit( "zu23_cargo", "zu23_cargo", "zu23_cargo","zu23_cargo",15,false, 100, 1500,  {"Cargos"}, 1000, 2000 ); --zu23_cargo
-dcsUnits.addCargoUnit( "blu82_cargo", "blu82_cargo", "blu82_cargo","blu82_cargo",10,true,100, 2400,{"Cargos"},800,5000); --blu82_cargo
-dcsUnits.addCargoUnit( "generator_cargo", "generator_cargo", "generator_cargo","generator_cargo",10,false, 100, 1500,  {"Cargos"}, 1000, 2000 ); --generator_cargo
-dcsUnits.addCargoUnit( "Tschechenigel_cargo", "Tschechenigel_cargo", "reiter_cargo","reiter_cargo",20,false, 100, 1000,  {"Cargos"}, 100, 10000 ); --reiter_cargo
-dcsUnits.addCargoUnit( "sandbag", "sandbag", "sandbag","sandbag", 100, 1000,  {"Cargos"},10,false, 100, 10000 ); --sandbag
-dcsUnits.addCargoUnit( "booth_container", "booth_container", "booth_container","booth_container",10,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--booth_container
-dcsUnits.addCargoUnit( "antenne", "antenne", "antenne","antenne",10,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--antenne
-dcsUnits.addCargoUnit( "mast", "mast", "mast","mast",10,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--mast
-dcsUnits.addCargoUnit( "uh1_weapons", "uh1_weapons", "uh1_weapons","uh1_weapons",10,false, 100, 1000,  {"Cargos"}, 100, 10000 );--uh1_weapons
-dcsUnits.addCargoUnit( "panzergranaten", "panzergranaten", "panzergranaten","panzergranaten",10,false, 100, 1500,  {"Cargos"}, 1000, 2000 );--panzergranaten
-dcsUnits.addCargoUnit( "pz2000_shell", "pz2000_shell", "pz2000_shell","pz2000_shell",10,false, 100, 1500,  {"Cargos"}, 1000, 2000 );--pz2000_shell
-dcsUnits.addCargoUnit( "sandbag_box", "sandbag_box", "sandbag_box","sandbag_box",10,false, 100, 1500,  {"Cargos"}, 1000, 2000 );--sandbag_box
-dcsUnits.addCargoUnit( "fir_tree", "fir_tree", "fir_tree","fir_tree",100, 1000,  {"Cargos"},10,false, 100, 10000 );--fir_tree
-dcsUnits.addCargoUnit( "hmvee_cargo", "hmvee_cargo", "hmvee_cargo","hmvee_cargo",10,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--hmvee_cargo
-dcsUnits.addCargoUnit( "eurotainer", "eurotainer", "eurotainer","eurotainer",10,false,100, 2400,{"Cargos"},800,5000);--eurotainer
-dcsUnits.addCargoUnit( "MK6", "MK6", "MK6","MK6",10,true,100, 2400,{"Cargos"},800,5000);--MK6
-dcsUnits.addCargoUnit( "concrete_pipe_duo", "concrete_pipe_duo", "concrete_pipe_duo","concrete_pipe_duo",10,false,100, 823,  {"Cargos"}, 823, 823 );--concrete_pipe_duo
-dcsUnits.addCargoUnit( "concrete_pipe", "concrete_pipe", "concrete_pipe","concrete_pipe",10,false,100, 823,  {"Cargos"}, 823, 823 );--concrete_pipe
-dcsUnits.addCargoUnit( "gaz66_cargo", "gaz66_cargo", "gaz66_cargo","gaz66_cargo",15,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--gaz66_cargo
-dcsUnits.addCargoUnit( "uaz_cargo", "uaz_cargo", "uaz_cargo","uaz_cargo",15,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--uaz_cargo
-dcsUnits.addCargoUnit( "stretcher_body", "stretcher_body", "stretcher_body","stretcher_body",5,false,100, 1000,  {"Cargos"}, 100, 10000 );--stretcher_body
-dcsUnits.addCargoUnit( "stretcher_empty", "stretcher_empty", "stretcher_empty","stretcher_empty",10,false,100, 1000,  {"Cargos"}, 100, 10000 );--stretcher_empty
-dcsUnits.addCargoUnit( "san_container", "san_container", "san_container","san_container",15,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--san_container
-dcsUnits.addCargoUnit( "biwak_cargo", "biwak_cargo", "biwak_cargo","biwak_cargo", 15,false,100, 3200,  {"Cargos"}, 2200, 10000 );--biwak_cargo
-dcsUnits.addCargoUnit( "wolf_cargo", "wolf_cargo", "wolf_cargo","wolf_cargo",15,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--wolf_cargo
-dcsUnits.addCargoUnit( "biwak_timber", "biwak_timber", "biwak_timber","biwak_timber",15,false, 100, 480,  {"Cargos"}, 100, 480);--biwak_timber
-dcsUnits.addCargoUnit( "biwak_metal", "biwak_metal", "biwak_metal","biwak_metal",15,false, 100, 480,  {"Cargos"}, 100, 480);--biwak_metal
+-- dcsUnits.addCargoUnit( "jeep_cargo", "jeep_cargo", "jeep_cargo", "jeep_cargo",10,false, 100, 1200,  {"Cargos"}, 100, 4000 );
+-- dcsUnits.addCargoUnit( "bambi_bucket", "bambi_bucket", "bambi_bucket","bambi_bucket",5,false, 1000, 1500,  {"Cargos"}, 1000, 2000 );
+-- dcsUnits.addCargoUnit( "zu23_cargo", "zu23_cargo", "zu23_cargo","zu23_cargo",15,false, 100, 1500,  {"Cargos"}, 1000, 2000 ); --zu23_cargo
+-- dcsUnits.addCargoUnit( "blu82_cargo", "blu82_cargo", "blu82_cargo","blu82_cargo",10,true,100, 2400,{"Cargos"},800,5000); --blu82_cargo
+-- dcsUnits.addCargoUnit( "generator_cargo", "generator_cargo", "generator_cargo","generator_cargo",10,false, 100, 1500,  {"Cargos"}, 1000, 2000 ); --generator_cargo
+-- dcsUnits.addCargoUnit( "Tschechenigel_cargo", "Tschechenigel_cargo", "reiter_cargo","reiter_cargo",20,false, 100, 1000,  {"Cargos"}, 100, 10000 ); --reiter_cargo
+-- dcsUnits.addCargoUnit( "sandbag", "sandbag", "sandbag","sandbag", 100, 1000,  {"Cargos"},10,false, 100, 10000 ); --sandbag
+-- dcsUnits.addCargoUnit( "booth_container", "booth_container", "booth_container","booth_container",10,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--booth_container
+-- dcsUnits.addCargoUnit( "antenne", "antenne", "antenne","antenne",10,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--antenne
+-- dcsUnits.addCargoUnit( "mast", "mast", "mast","mast",10,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--mast
+-- dcsUnits.addCargoUnit( "uh1_weapons", "uh1_weapons", "uh1_weapons","uh1_weapons",10,false, 100, 1000,  {"Cargos"}, 100, 10000 );--uh1_weapons
+-- dcsUnits.addCargoUnit( "panzergranaten", "panzergranaten", "panzergranaten","panzergranaten",10,false, 100, 1500,  {"Cargos"}, 1000, 2000 );--panzergranaten
+-- dcsUnits.addCargoUnit( "pz2000_shell", "pz2000_shell", "pz2000_shell","pz2000_shell",10,false, 100, 1500,  {"Cargos"}, 1000, 2000 );--pz2000_shell
+-- dcsUnits.addCargoUnit( "sandbag_box", "sandbag_box", "sandbag_box","sandbag_box",10,false, 100, 1500,  {"Cargos"}, 1000, 2000 );--sandbag_box
+-- dcsUnits.addCargoUnit( "fir_tree", "fir_tree", "fir_tree","fir_tree",100, 1000,  {"Cargos"},10,false, 100, 10000 );--fir_tree
+-- dcsUnits.addCargoUnit( "hmvee_cargo", "hmvee_cargo", "hmvee_cargo","hmvee_cargo",10,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--hmvee_cargo
+-- dcsUnits.addCargoUnit( "eurotainer", "eurotainer", "eurotainer","eurotainer",10,false,100, 2400,{"Cargos"},800,5000);--eurotainer
+-- dcsUnits.addCargoUnit( "MK6", "MK6", "MK6","MK6",10,true,100, 2400,{"Cargos"},800,5000);--MK6
+-- dcsUnits.addCargoUnit( "concrete_pipe_duo", "concrete_pipe_duo", "concrete_pipe_duo","concrete_pipe_duo",10,false,100, 823,  {"Cargos"}, 823, 823 );--concrete_pipe_duo
+-- dcsUnits.addCargoUnit( "concrete_pipe", "concrete_pipe", "concrete_pipe","concrete_pipe",10,false,100, 823,  {"Cargos"}, 823, 823 );--concrete_pipe
+-- dcsUnits.addCargoUnit( "gaz66_cargo", "gaz66_cargo", "gaz66_cargo","gaz66_cargo",15,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--gaz66_cargo
+-- dcsUnits.addCargoUnit( "uaz_cargo", "uaz_cargo", "uaz_cargo","uaz_cargo",15,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--uaz_cargo
+-- dcsUnits.addCargoUnit( "stretcher_body", "stretcher_body", "stretcher_body","stretcher_body",5,false,100, 1000,  {"Cargos"}, 100, 10000 );--stretcher_body
+-- dcsUnits.addCargoUnit( "stretcher_empty", "stretcher_empty", "stretcher_empty","stretcher_empty",10,false,100, 1000,  {"Cargos"}, 100, 10000 );--stretcher_empty
+-- dcsUnits.addCargoUnit( "san_container", "san_container", "san_container","san_container",15,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--san_container
+-- dcsUnits.addCargoUnit( "biwak_cargo", "biwak_cargo", "biwak_cargo","biwak_cargo", 15,false,100, 3200,  {"Cargos"}, 2200, 10000 );--biwak_cargo
+-- dcsUnits.addCargoUnit( "wolf_cargo", "wolf_cargo", "wolf_cargo","wolf_cargo",15,false, 100, 3200,  {"Cargos"}, 2200, 10000 );--wolf_cargo
+-- dcsUnits.addCargoUnit( "biwak_timber", "biwak_timber", "biwak_timber","biwak_timber",15,false, 100, 480,  {"Cargos"}, 100, 480);--biwak_timber
+-- dcsUnits.addCargoUnit( "biwak_metal", "biwak_metal", "biwak_metal","biwak_metal",15,false, 100, 480,  {"Cargos"}, 100, 480);--biwak_metal
 
 
