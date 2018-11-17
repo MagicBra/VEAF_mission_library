@@ -66,7 +66,7 @@ veafSpawn = {}
 veafSpawn.Id = "SPAWN - "
 
 --- Version.
-veafSpawn.Version = "1.1.7"
+veafSpawn.Version = "1.2.1"
 
 --- Key phrase to look for in the mark text which triggers the weather report.
 veafSpawn.Keyphrase = "veaf spawn "
@@ -119,11 +119,13 @@ function veafSpawn.onEventMarkChange(eventPos, event)
         if options then
             -- Check options commands
             if options.unit then
-                veafSpawn.spawnUnit(eventPos, options.name, options.country, options.speed, options.altitude, options.heading)
+                veafSpawn.spawnUnit(eventPos, options.name, options.country, options.speed, options.altitude, options.heading, options.unitName)
             elseif options.group then
                 veafSpawn.spawnGroup(eventPos, options.name, options.country, options.speed, options.altitude, options.heading, options.spacing)
             elseif options.cargo then
-                veafSpawn.spawnCargo(eventPos, options.cargoType, options.cargoSmoke)
+                veafSpawn.spawnCargo(eventPos, options.cargoType, options.cargoSmoke, options.unitName)
+            elseif options.destroy then
+                veafSpawn.destroy(eventPos, options.radius, options.unitName)
             elseif options.bomb then
                 veafSpawn.spawnBomb(eventPos, options.bombPower, options.unlock)
             elseif options.smoke then
@@ -157,9 +159,13 @@ function veafSpawn.markTextAnalysis(text)
     switch.smoke = false
     switch.flare = false
     switch.bomb = false
+    switch.destroy = false
 
-    -- spawned group/unit name
+    -- spawned group/unit type/alias
     switch.name = ""
+
+    -- spawned unit name
+    switch.unitName = nil
 
     -- spawned group units spacing
     switch.spacing = 5
@@ -177,6 +183,9 @@ function veafSpawn.markTextAnalysis(text)
 
     -- optional cargo smoke
     switch.cargoSmoke = false
+
+    -- destruction radius
+    switch.radius = 1
 
     -- cargo type
     switch.cargoType = "ammo_cargo"
@@ -199,6 +208,8 @@ function veafSpawn.markTextAnalysis(text)
         switch.cargo = true
     elseif text:lower():find(veafSpawn.Keyphrase .. "bomb") then
         switch.bomb = true
+    elseif text:lower():find(veafSpawn.Keyphrase .. "destroy") then
+        switch.destroy = true
     else
         return nil
     end
@@ -212,10 +223,23 @@ function veafSpawn.markTextAnalysis(text)
         local key = str[1]
         local val = str[2]
 
+        if key:lower() == "unitname" then
+            -- Set name.
+            veafSpawn.logDebug(string.format("Keyword unitname = %s", val))
+            switch.unitName = val
+        end
+
         if (switch.group or switch.unit) and key:lower() == "name" then
             -- Set name.
             veafSpawn.logDebug(string.format("Keyword name = %s", val))
             switch.name = val
+        end
+
+        if switch.destroy and key:lower() == "radius" then
+            -- Set name.
+            veafSpawn.logDebug(string.format("Keyword radius = %d", val))
+            local nVal = tonumber(val)
+            switch.radius = nVal
         end
 
         if switch.group and key:lower() == "spacing" then
@@ -413,7 +437,7 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Spawn a specific unit at a specific spot
-function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg)
+function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg, unitName)
     veafSpawn.logDebug(string.format("spawnUnit(name = %s, country=%s, speed=%d, alt=%d, hdg= %d)",name, country, speed, alt, hdg))
     veafSpawn.logDebug(string.format("spawnUnit: spawnPosition  x=%.1f y=%.1f, z=%.1f", spawnPosition.x, spawnPosition.y, spawnPosition.z))
     
@@ -441,7 +465,9 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg)
     
     local groupName = veafSpawn.RedSpawnedUnitsGroupName .. " #" .. veafSpawn.spawnedUnitsCounter
     veafSpawn.logTrace("groupName="..groupName)
-    local unitName = unit.displayName .. " #" .. veafSpawn.spawnedUnitsCounter
+    if not unitName then
+        unitName = unit.displayName .. " #" .. veafSpawn.spawnedUnitsCounter
+    end
     veafSpawn.logTrace("unitName="..unitName)
 
     if alt > 0 then
@@ -494,11 +520,11 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Spawn a specific cargo at a specific spot
-function veafSpawn.spawnCargo(spawnSpot, cargoType, cargoSmoke)
+function veafSpawn.spawnCargo(spawnSpot, cargoType, cargoSmoke, unitName)
     veafSpawn.logDebug("spawnCargo(cargoType = " .. cargoType ..")")
     veafSpawn.logDebug(string.format("spawnCargo: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
 
-    veafSpawn.doSpawnCargo(spawnSpot, cargoType, nil, cargoSmoke, false)
+    veafSpawn.doSpawnCargo(spawnSpot, cargoType, unitName, cargoSmoke, false)
 end
 
 --- Spawn a specific cargo at a specific spot
@@ -613,6 +639,46 @@ function veafSpawn.spawnIlluminationFlare(spawnSpot, height)
     veafSpawn.logDebug(string.format("spawnIlluminationFlare: spawnSpot  x=%.1f y=%.1f, z=%.1f", spawnSpot.x, spawnSpot.y, spawnSpot.z))
     local vec3 = {x = spawnSpot.x, y = veaf.getLandHeight(spawnSpot) + height, z = spawnSpot.z}
 	trigger.action.illuminationBomb(vec3)
+end
+
+--- destroy unit(s)
+function veafSpawn.destroy(spawnSpot, radius, unitName)
+    if unitName then
+        -- destroy a specific unit
+        local c = Unit.getByName(name)
+        if c then
+            Unit.destroy(c)
+        end
+
+        -- or a specific static
+        c = StaticObject.getByName(name)
+        if c then
+            StaticObject.destroy(c)
+        end
+
+        -- or a specific group
+        c = Group.getByName(name)
+        if c then
+            Group.destroy(c)
+        end
+    else
+        -- TODO radius based destruction
+        local units = veaf.findUnitsInCircle(spawnSpot, radius)
+        if units then
+            for name, _ in pairs(units) do
+                -- try and find a  unit
+                local unit = Unit.getByName(name)
+                if unit then 
+                    Unit.destroy(unit)
+                else
+                    unit = StaticObject.getByName(name)
+                    if unit then 
+                        StaticObject.destroy(unit)
+                    end
+                end
+            end
+        end
+    end
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------

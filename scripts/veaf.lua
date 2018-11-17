@@ -33,7 +33,7 @@ veaf = {}
 veaf.Id = "VEAF - "
 
 --- Version.
-veaf.Version = "1.1.0"
+veaf.Version = "1.1.1"
 
 --- Development version ?
 veaf.Development = true
@@ -447,6 +447,27 @@ function veaf.computeCoordinatesOffsetFromRoute(startingPoint, destinationPoint,
     veaf.logTrace("offsetPointOnLand="..veaf.vecToString(offsetPointOnLand))
 
     return offsetPointOnLand, offsetPoint
+end
+
+function veaf.findUnitsInCircle(center, radius)
+    local result = {}
+    local units = mist.DBs.unitsByName -- local copy for faster execution
+    for name, _ in pairs(units) do
+        local unit = Unit.getByName(name)
+        if not unit then 
+            unit = StaticObject.getByName(name)
+        end
+        if unit then 
+            local pos = unit:getPosition().p
+            if pos then -- you never know O.o
+                distanceFromCenter = ((pos.x - center.x)^2 + (pos.z - center.z)^2)^0.5
+                if distanceFromCenter <= radius then
+                    result[name] = unit
+                end
+            end
+        end
+    end
+    return result
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
