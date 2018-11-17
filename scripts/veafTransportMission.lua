@@ -49,7 +49,7 @@ veafTransportMission = {}
 veafTransportMission.Id = "TRANSPORT MISSION - "
 
 --- Version.
-veafTransportMission.Version = "1.0.1"
+veafTransportMission.Version = "1.1.0"
 
 --- Key phrase to look for in the mark text which triggers the command.
 veafTransportMission.Keyphrase = "veaf transport "
@@ -661,6 +661,9 @@ function veafTransportMission.buildRadioMenu()
         missionCommands.addCommandForGroup(groupId, "HELP", veafTransportMission.rootPath, veafTransportMission.help)
     end
 
+    -- TODO add this command when the respawn will work (see veafTransportMission.resetAllCargoes)
+    -- missionCommands.addCommand('Respawn all cargoes', veafTransportMission.rootPath, veafTransportMission.resetAllCargoes)
+
 end
 
 --      add ", defense [1-5]" to specify air defense cover on the way (1 = light, 5 = heavy)
@@ -700,6 +703,34 @@ function veafTransportMission.buildHumanGroups()
             veafTransportMission.humanGroups[unit.groupId] = unit.groupName
         end
     end
+end
+
+function veafTransportMission.endTransportOfCargo(cargoName)
+    local text = 
+    'Congratulations on a job well done ! Cargo ' .. cargoName .. ' has been delivered safely'
+    trigger.action.outText(text, 15)
+    -- TODO reset cargo position
+    -- mist.respawnGroup(cargoName, 15) 
+    -- does not work yet because 1. the unit name is changed by mist and 2. the trigger zone condition does not work with the new unit (maybe bc of 1. ?)
+end
+
+function veafTransportMission.resetAllCargoes()
+    -- does not work yet (see veafTransportMission.endTransportOfCargo)
+    local lunits = mist.DBs.unitsByNum
+    if lunits then
+        for i = 1, #lunits do
+            if lunits[i] and lunits[i].unitName and lunits[i].unitName:lower():find('cargo - ') then 
+                local name = lunits[i].unitName
+                -- destroy cargo static unit
+                local c = StaticObject.getByName(name)
+                if c then
+                    StaticObject.destroy(c)
+                end
+                mist.respawnGroup(name, true)
+            end
+        end
+    end
+    trigger.action.outText("All cargoes have been respawned", 15)
 end
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
