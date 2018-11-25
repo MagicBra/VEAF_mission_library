@@ -300,7 +300,7 @@ function veafSpawn.markTextAnalysis(text)
             switch.bombPower = nVal
         end
         
-        if switch.jtac and key:lower() == "laser" then
+        if key:lower() == "laser" then
             -- Set laser code.
             veafSpawn.logDebug(string.format("laser code = %d", val))
             local nVal = tonumber(val)
@@ -496,14 +496,21 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg, unit
     end
 
     local units = {}
+    local groupName = nil
     
     veafSpawn.logDebug("spawnUnit unit = " .. unit.displayName .. ", dcsUnit = " .. tostring(unit.typeName))
     
-    local groupName = veafSpawn.RedSpawnedUnitsGroupName .. " #" .. veafSpawn.spawnedUnitsCounter
-    veafSpawn.logTrace("groupName="..groupName)
-    if not unitName then
+    if role == "jtac" then
+      groupName = "jtac_" .. laserCode
+      unitName = "jtac_" .. laserCode
+    else
+      groupName = veafSpawn.RedSpawnedUnitsGroupName .. " #" .. veafSpawn.spawnedUnitsCounter
+      if not unitName then
         unitName = unit.displayName .. " #" .. veafSpawn.spawnedUnitsCounter
+      end
     end
+    
+    veafSpawn.logTrace("groupName="..groupName)
     veafSpawn.logTrace("unitName="..unitName)
 
     if alt > 0 then
