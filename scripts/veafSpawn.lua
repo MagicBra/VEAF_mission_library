@@ -119,7 +119,7 @@ function veafSpawn.onEventMarkChange(eventPos, event)
         if options then
             -- Check options commands
             if options.unit then
-                veafSpawn.spawnUnit(eventPos, options.name, options.country, options.speed, options.altitude, options.heading, options.unitName)
+                veafSpawn.spawnUnit(eventPos, options.name, options.country, options.speed, options.altitude, options.heading, options.unitName, options.role, options.laserCode)
             elseif options.group then
                 veafSpawn.spawnGroup(eventPos, options.name, options.country, options.speed, options.altitude, options.heading, options.spacing)
             elseif options.cargo then
@@ -160,6 +160,8 @@ function veafSpawn.markTextAnalysis(text)
     switch.flare = false
     switch.bomb = false
     switch.destroy = false
+    switch.role = nil
+    switch.laserCode = 1688
 
     -- spawned group/unit type/alias
     switch.name = ""
@@ -210,6 +212,15 @@ function veafSpawn.markTextAnalysis(text)
         switch.bomb = true
     elseif text:lower():find(veafSpawn.Keyphrase .. "destroy") then
         switch.destroy = true
+    elseif text:lower():find(veafSpawn.Keyphrase .. "jtac") then
+        switch.role = 'jtac'
+        switch.unit = true
+        -- default country for friendly JTAC: USA
+        switch.country = "USA"
+        -- default name for JTAC
+        switch.name = "APC M1025 HMMWV"
+        -- default JTAC name (will overwrite previous unit with same name)
+        switch.unitName = "JTAC1"
     else
         return nil
     end
@@ -264,7 +275,7 @@ function veafSpawn.markTextAnalysis(text)
         end
         
         if (switch.group or switch.unit) and key:lower() == "hdg" then
-            -- Set altitude.
+            -- Set heading.
             veafSpawn.logDebug(string.format("Keyword hdg = %d", val))
             local nVal = tonumber(val)
             switch.heading = nVal
@@ -288,6 +299,13 @@ function veafSpawn.markTextAnalysis(text)
             local nVal = tonumber(val)
             switch.bombPower = nVal
         end
+        
+        if key:lower() == "laser" then
+            -- Set laser code.
+            veafSpawn.logDebug(string.format("laser code = %d", val))
+            local nVal = tonumber(val)
+            switch.laserCode = nVal
+        end        
         
         if switch.smoke and key:lower() == "color" then
             -- Set smoke color.
@@ -437,7 +455,17 @@ end
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --- Spawn a specific unit at a specific spot
-function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg, unitName)
+-- @param position spawnPosition
+-- @param string name
+-- @param string country
+-- @param int speed
+-- @param int alt
+-- @param int speed
+-- @param int hdg (0..359)
+-- @param string unitName (callsign)
+-- @param string role (ex: jtac)
+-- @param int laserCode (ex: 1688)
+function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg, unitName, role, laserCode)
     veafSpawn.logDebug(string.format("spawnUnit(name = %s, country=%s, speed=%d, alt=%d, hdg= %d)",name, country, speed, alt, hdg))
     veafSpawn.logDebug(string.format("spawnUnit: spawnPosition  x=%.1f y=%.1f, z=%.1f", spawnPosition.x, spawnPosition.y, spawnPosition.z))
     
@@ -459,15 +487,30 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg, unit
         return    
     end
     
+    if role == 'jtac' and country:lower() == "russia" then
+        visible = false
+        hidden = true
+    else 
+        visible = true
+        hidden = false
+    end
+
     local units = {}
+    local groupName = nil
     
     veafSpawn.logDebug("spawnUnit unit = " .. unit.displayName .. ", dcsUnit = " .. tostring(unit.typeName))
     
-    local groupName = veafSpawn.RedSpawnedUnitsGroupName .. " #" .. veafSpawn.spawnedUnitsCounter
-    veafSpawn.logTrace("groupName="..groupName)
-    if not unitName then
+    if role == "jtac" then
+      groupName = "jtac_" .. laserCode
+      unitName = "jtac_" .. laserCode
+    else
+      groupName = veafSpawn.RedSpawnedUnitsGroupName .. " #" .. veafSpawn.spawnedUnitsCounter
+      if not unitName then
         unitName = unit.displayName .. " #" .. veafSpawn.spawnedUnitsCounter
+      end
     end
+    
+    veafSpawn.logTrace("groupName="..groupName)
     veafSpawn.logTrace("unitName="..unitName)
 
     if alt > 0 then
@@ -488,7 +531,7 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg, unit
                 ["name"] = unitName,
                 ["speed"] = speed/1.94384,  -- speed in m/s
                 ["skill"] = "Random",
-                ["heading"] = mist.utils.toRadian(hdg)
+                ["heading"] = mist.utils.toRadian(hdg),
         }
 
         veafSpawn.logTrace(string.format("toInsert x=%.1f y=%.1f, alt=%.1f, type=%s, name=%s, speed=%d, skill=%s, country=%s", toInsert.x, toInsert.y, toInsert.alt, toInsert.type, toInsert.name, toInsert.speed, toInsert.skill, country ))
@@ -498,13 +541,23 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg, unit
     -- actually spawn the unit
     if unit.naval then
         veafSpawn.logTrace("Spawning SHIP")
-        mist.dynAdd({country = country, category = "SHIP", name = groupName, hidden = false, units = units})
+        mist.dynAdd({country = country, category = "SHIP", name = groupName, hidden = hidden, visible = visible, units = units})
     elseif unit.air then
         veafSpawn.logTrace("Spawning AIRPLANE")
-        mist.dynAdd({country = country, category = "PLANE", name = groupName, hidden = false, units = units})
+        mist.dynAdd({country = country, category = "PLANE", name = groupName, hidden = hidden, visible = visible, units = units})
     else
         veafSpawn.logTrace("Spawning GROUND_UNIT")
-        mist.dynAdd({country = country, category = "GROUND_UNIT", name = groupName, hidden = false, units = units})
+        mist.dynAdd({country = country, category = "GROUND_UNIT", name = groupName, hidden = hidden, visible = visible, units = units})
+    end
+    
+    -- get spwaned groupd
+    local spawnGroup = 	Group.getByName(groupName)
+    
+    -- JTAC needs to be invisible and immortal
+    if role == "jtac" then
+      -- @todo
+      -- require lib DCS-JTACAutoLaze
+      JTACAutoLase(groupName, laserCode, false, "all")
     end
 
     if speed > 0 then
