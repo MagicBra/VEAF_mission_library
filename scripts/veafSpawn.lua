@@ -66,7 +66,7 @@ veafSpawn = {}
 veafSpawn.Id = "SPAWN - "
 
 --- Version.
-veafSpawn.Version = "1.2.1"
+veafSpawn.Version = "1.2.2"
 
 --- Key phrase to look for in the mark text which triggers the weather report.
 veafSpawn.Keyphrase = "veaf spawn "
@@ -187,7 +187,7 @@ function veafSpawn.markTextAnalysis(text)
     switch.cargoSmoke = false
 
     -- destruction radius
-    switch.radius = 1
+    switch.radius = 150
 
     -- cargo type
     switch.cargoType = "ammo_cargo"
@@ -488,10 +488,8 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg, unit
     end
     
     if role == 'jtac' and country:lower() == "russia" then
-        visible = false
         hidden = true
     else 
-        visible = true
         hidden = false
     end
 
@@ -541,13 +539,13 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg, unit
     -- actually spawn the unit
     if unit.naval then
         veafSpawn.logTrace("Spawning SHIP")
-        mist.dynAdd({country = country, category = "SHIP", name = groupName, hidden = hidden, visible = visible, units = units})
+        mist.dynAdd({country = country, category = "SHIP", name = groupName, hidden = hidden, units = units})
     elseif unit.air then
         veafSpawn.logTrace("Spawning AIRPLANE")
-        mist.dynAdd({country = country, category = "PLANE", name = groupName, hidden = hidden, visible = visible, units = units})
+        mist.dynAdd({country = country, category = "PLANE", name = groupName, hidden = hidden, units = units})
     else
         veafSpawn.logTrace("Spawning GROUND_UNIT")
-        mist.dynAdd({country = country, category = "GROUND_UNIT", name = groupName, hidden = hidden, visible = visible, units = units})
+        mist.dynAdd({country = country, category = "GROUND_UNIT", name = groupName, hidden = hidden, units = units})
     end
     
     -- get spwaned groupd
@@ -555,9 +553,9 @@ function veafSpawn.spawnUnit(spawnPosition, name, country, speed, alt, hdg, unit
     
     -- JTAC needs to be invisible and immortal
     if role == "jtac" then
-      -- @todo
+      -- @todo later - need to refactor JTACAutoLase library
       -- require lib DCS-JTACAutoLaze
-      JTACAutoLase(groupName, laserCode, false, "all")
+      --JTACAutoLase(groupName, laserCode, false, "all")
     end
 
     if speed > 0 then
