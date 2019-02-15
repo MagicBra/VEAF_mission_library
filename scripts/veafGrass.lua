@@ -45,7 +45,7 @@ veafGrass = {}
 veafGrass.Id = "GRASS - "
 
 --- Version.
-veafGrass.Version = "1.0.0"
+veafGrass.Version = "1.0.1"
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Utility methods
@@ -263,9 +263,8 @@ function veafGrass.buildFarpUnits(farp)
 		blue = {
 			"Hummer",
 			"M978 HEMTT Tanker",
-			"M978 HEMTT Tanker",
-			"HEMTT TFFT",
-			"HEMTT TFFT",
+			"M 818",
+			"M 818",
 			"Hummer",
 		},		
 		red = {
