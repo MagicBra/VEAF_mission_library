@@ -740,37 +740,38 @@ end
 function veafSpawn.buildRadioMenu()
     veafSpawn.rootPath = missionCommands.addSubMenu(veafSpawn.RadioMenuName, veaf.radioMenuPath)
     missionCommands.addCommand("HELP", veafSpawn.rootPath, veafSpawn.help)
-    missionCommands.addCommand("HELP - all units", veafSpawn.rootPath, veafSpawn.helpAllUnits)
-    missionCommands.addCommand("HELP - all groups", veafSpawn.rootPath, veafSpawn.helpAllGroups)
+    --missionCommands.addCommand("HELP - all units", veafSpawn.rootPath, veafSpawn.helpAllUnits)
+    --missionCommands.addCommand("HELP - all groups", veafSpawn.rootPath, veafSpawn.helpAllGroups)
     --missionCommands.addCommand("HELP - all cargoes", veafSpawn.rootPath, veafSpawn.helpAllCargoes)
 end
 
 function veafSpawn.help()
     local text = 
-        'Create a marker and type "veaf spawn <unit|group|smoke|flare> " in the text\n' ..
-        'This will spawn the requested object in the DCS world\n' ..
-        'You can add options (comma separated) :\n' ..
-        '"veaf spawn unit" spawns a target vehicle/ship\n' ..
-        '   "name [unit name]" spawns a specific unit ; name can be any DCS type\n' ..
-        '   "country [country name]" spawns a unit of a specific country ; name can be any DCS country\n' ..
-        '   "speed [speed]" spawns the unit already moving\n' ..
-        '   "alt [altitude]" spawns the unit at the specified altitude\n' ..
-        '   "hdg [heading]" spawns the unit facing a heading\n' ..
-        'veaf spawn group, name [group name]" spawns a specific group ; name must be a group name from the VEAF Groups Database\n' ..
-        '   "spacing <spacing>" specifies the (randomly modified) units spacing in unit size multiples\n' ..
-        '   "country [country name]" spawns a group of a specific country ; name can be any DCS country\n' ..
-        '   "speed [speed]" spawns the group already moving\n' ..
-        '   "alt [altitude]" spawns the group at the specified altitude\n' ..
-        '   "hdg [heading]" spawns the group facing a heading\n' ..
-        '"veaf spawn cargo" creates a cargo ready to be picked up\n' ..
-        '   "name [cargo type]" spawns a specific cargo ; name can be any of [ammo, barrels, container, fueltank, f_bar, iso_container, iso_container_small, m117, oiltank, pipes_big, pipes_small, tetrapod, trunks_long, trunks_small, uh1h]\n' ..
-        '   "smoke adds a smoke marker\n' ..
-        '"veaf spawn bomb" spawns a bomb on the ground\n' ..
-        '   "power [value]" specifies the bomb power (default is 100, max is 1000)\n' ..
-        '"veaf spawn smoke" spawns a smoke on the ground\n' ..
-        '   "color [red|green|blue|white|orange]" specifies the smoke color\n' ..
-        '"veaf spawn flare" lights things up with a flare\n' ..
-        '   "alt <altitude in meters agl>" specifies the initial altitude'
+        'Create a marker and type "veaf spawn <unit|group|smoke|flare> " in the text'
+--        'Create a marker and type "veaf spawn <unit|group|smoke|flare> " in the text\n' ..
+--        'This will spawn the requested object in the DCS world\n' ..
+--        'You can add options (comma separated) :\n' ..
+--        '"veaf spawn unit" spawns a target vehicle/ship\n' ..
+--        '   "name [unit name]" spawns a specific unit ; name can be any DCS type\n' ..
+--        '   "country [country name]" spawns a unit of a specific country ; name can be any DCS country\n' ..
+--        '   "speed [speed]" spawns the unit already moving\n' ..
+--        '   "alt [altitude]" spawns the unit at the specified altitude\n' ..
+--        '   "hdg [heading]" spawns the unit facing a heading\n' ..
+--        'veaf spawn group, name [group name]" spawns a specific group ; name must be a group name from the VEAF Groups Database\n' ..
+--        '   "spacing <spacing>" specifies the (randomly modified) units spacing in unit size multiples\n' ..
+--        '   "country [country name]" spawns a group of a specific country ; name can be any DCS country\n' ..
+--        '   "speed [speed]" spawns the group already moving\n' ..
+--        '   "alt [altitude]" spawns the group at the specified altitude\n' ..
+--        '   "hdg [heading]" spawns the group facing a heading\n' ..
+--        '"veaf spawn cargo" creates a cargo ready to be picked up\n' ..
+--        '   "name [cargo type]" spawns a specific cargo ; name can be any of [ammo, barrels, container, fueltank, f_bar, iso_container, iso_container_small, m117, oiltank, pipes_big, pipes_small, tetrapod, trunks_long, trunks_small, uh1h]\n' ..
+--        '   "smoke adds a smoke marker\n' ..
+--        '"veaf spawn bomb" spawns a bomb on the ground\n' ..
+--        '   "power [value]" specifies the bomb power (default is 100, max is 1000)\n' ..
+--        '"veaf spawn smoke" spawns a smoke on the ground\n' ..
+--        '   "color [red|green|blue|white|orange]" specifies the smoke color\n' ..
+--        '"veaf spawn flare" lights things up with a flare\n' ..
+--        '   "alt <altitude in meters agl>" specifies the initial altitude'
             
     trigger.action.outText(text, 30)
 end
